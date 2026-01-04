@@ -1,5 +1,4 @@
 import os
-import copy
 import asyncio
 
 from typing import Dict, List
@@ -8,12 +7,13 @@ from abc import ABC, abstractmethod
 import simplex.basics.exception
 import simplex.basics.dataclass
 
-from simplex.basics.exception import ParameterError
 from simplex.basics.dataclass import ToolCall, ToolReturn
+from simplex.basics.exception import ParameterError, ImplementationError
 
 
 class ToolCollection(ABC):
-    TOOL_METHOD_PREFIX = '_tool_'
+    def __init__(self, name_mapping: Dict) -> None:
+        self.name_mapping: Dict = name_mapping
 
     @abstractmethod
     async def build(self) -> None:
@@ -35,23 +35,40 @@ class ToolCollection(ABC):
     async def dispatch(self, tool_call: ToolCall) -> ToolReturn:
         function_name: str = tool_call.name
         arguments: Dict = tool_call.arguments
-        
-        if not hasattr(self, ToolCollection.TOOL_METHOD_PREFIX + function_name):
+
+        try:
+            member_name: str = self.name_mapping[function_name]
+        except KeyError:
             raise ParameterError(
                 'dispatch',
                 'tool_call',
-                f'undefined tool_call.name = {function_name} or member {ToolCollection.TOOL_METHOD_PREFIX + function_name}',
+                f'tool_call.name should be one of {str(self.name_mapping)}',
                 type_hint='ToolCall',
                 class_name=self.__class__.__name__
             )
         
-        target_function = getattr(self, ToolCollection.TOOL_METHOD_PREFIX + function_name)
+        if not hasattr(self, member_name):
+            raise ParameterError(
+                'dispatch',
+                'tool_call',
+                f'undefined tool_call.name = {function_name} or member {member_name}',
+                type_hint='ToolCall',
+                class_name=self.__class__.__name__
+            )
+        
+        target_function = getattr(self, member_name)
+        if not asyncio.iscoroutinefunction(target_function):
+            raise ImplementationError(
+                target_function.__name__ if hasattr(target_function, '__name__') else 'unknown_function',
+                'target member should be a coroutine function',
+                class_name=self.__class__.__name__
+            )
 
         try:
-            result_text: str = target_function(**arguments)
-            return ToolReturn(result_text, copy.deepcopy(tool_call))
+            result_text: str = await target_function(**arguments)
         except Exception:
             raise
+        return ToolReturn(result_text, tool_call)
 
 if __name__ == '__main__':
     pass
