@@ -1,0 +1,81 @@
+import os
+import uuid
+
+from typing import Dict, List
+from openai import AsyncOpenAI
+from abc import ABC, abstractmethod
+
+import simplex.basics.exception
+import simplex.basics.exception
+import simplex.basics.dataclass
+
+from simplex.basics.exception import EntityInitializationError
+from simplex.basics.dataclass import ModelInput, ModelResponse, DocumentEntry, ToolReturn
+
+class BaseModel(ABC):
+    def __init__(
+        self, 
+        base_url: str, 
+        api_key: str, 
+        client_configs: Dict = {}, 
+        default_generate_configs: Dict = {},
+        instance_id: str = uuid.uuid4().hex
+    ) -> None:
+        super().__init__()
+        self.base_url = base_url
+        self.api_key = api_key
+        self.client_configs = client_configs
+        self.default_generate_configs = default_generate_configs
+        self.instance_id = instance_id
+
+        try:
+            self.client = AsyncOpenAI(base_url=self.base_url, api_key=self.api_key)
+        except Exception as e:
+            raise EntityInitializationError(BaseModel.__name__, e)
+
+    @abstractmethod
+    async def generate(self, model_input: ModelInput) -> ModelResponse:
+        pass
+
+class EmbeddingModel(BaseModel):
+    def __init__(
+        self, 
+        base_url: str, 
+        api_key: str, 
+        client_configs: Dict = {}, 
+        default_generate_configs: Dict = {},
+        instance_id: str = uuid.uuid4().hex
+    ) -> None:
+        super().__init__(base_url, api_key, client_configs, default_generate_configs, instance_id)
+
+    async def generate(self, model_input: ModelInput) -> ModelResponse:
+        return ModelResponse()
+    
+    @abstractmethod
+    async def batch_embedding(self, documents: List[DocumentEntry]) -> ModelResponse:
+        pass
+    
+class ConversationModel(BaseModel):
+    def __init__(
+        self, 
+        base_url: str, 
+        api_key: str, 
+        client_configs: Dict = {}, 
+        default_generate_configs: Dict = {},
+        instance_id: str = uuid.uuid4().hex
+    ) -> None:
+        super().__init__(base_url, api_key, client_configs, default_generate_configs, instance_id)
+
+    async def generate(self, model_input: ModelInput) -> ModelResponse:
+        return ModelResponse()
+
+    @abstractmethod
+    async def batch_response(self, inputs: List[ModelInput]) -> ModelResponse:
+        pass
+
+    @abstractmethod
+    def tool_return_integrate(self, input: ModelInput, response: ModelResponse, tool_return: List[ToolReturn], **kwargs) -> ModelInput:
+        pass
+
+if __name__ == '__main__':
+    pass
