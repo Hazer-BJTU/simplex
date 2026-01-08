@@ -50,5 +50,13 @@ class EnvironmentError(CustomException):
         self.original = original
         super().__init__(f"failed to initialize or release environment due to: {self.original}")
 
+class UnbuiltError(CustomException):
+    def __init__(
+        self,
+        content: str,
+        class_name: str
+    ) -> None:
+        super().__init__(f"{class_name}: {content}")        
+
 if __name__ == '__main__':
     pass

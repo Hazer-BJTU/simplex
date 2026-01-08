@@ -9,7 +9,7 @@ import simplex.basics.exception
 import simplex.basics.dataclass
 import simplex.tools.base
 
-from simplex.basics.exception import EnvironmentError
+from simplex.basics.exception import EnvironmentError, UnbuiltError
 from simplex.basics.dataclass import ToolCall, ToolReturn
 from simplex.tools.base import ToolCollection
 
@@ -57,9 +57,10 @@ class PythonInterpreter(ToolCollection):
 
         self.docker_client = None
         self.container = None
+        self.initialized: bool = False
 
     async def build(self) -> None:
-        if not self.use_container:
+        if not self.use_container or self.initialized:
             return
         
         try:
@@ -101,16 +102,15 @@ class PythonInterpreter(ToolCollection):
                 self.container_id = self.container.id
 
             assert self.container is not None, f'unable to initialize container for {self.name} tool'
-        except DockerException as e:
-            raise EnvironmentError(e)
-        except AssertionError as e:
-            raise EnvironmentError(e)
+            self.initialized = True
+
         except Exception as e:
-            raise
+            raise EnvironmentError(e)
     
     async def release(self) -> None:
-        event_loop = asyncio.get_running_loop()
         try:
+            event_loop = asyncio.get_running_loop()
+
             if self.container is not None:
                 await event_loop.run_in_executor(
                     None,
@@ -125,10 +125,11 @@ class PythonInterpreter(ToolCollection):
             if self.docker_client is not None:
                 self.docker_client.close()
                 self.docker_client = None
-        except DockerException as e:
-            raise EnvironmentError(e)
+
+            self.initialized = False
+
         except Exception as e:
-            raise
+            raise EnvironmentError(e)
     
     def get_tools(self) -> List[Dict]:
         return [self.pyinterpreter_schema]
@@ -169,7 +170,7 @@ class PythonInterpreter(ToolCollection):
         if stderr:
             results += f"[STDERR]: {stderr.decode('utf8', errors='ignore').strip()}"
         
-        return results if results != '' else '[NO OUTPUT]'
+        return results.strip() if results != '' else '[NO OUTPUT]'
     
     async def _execute_container(self, script: str, **kwargs) -> str:
         try:
@@ -181,10 +182,10 @@ class PythonInterpreter(ToolCollection):
                     lambda: self.container.exec_run( #type: ignore
                         cmd = ['python', '-c', script],
                         stdout = True,
-                        stderr = True,
+                        stderr = True
                     )
                 ),
-                timeout=self.time_limit
+                timeout = self.time_limit
             )
 
             stdout = exec_return.output.decode('utf8', errors='ignore').strip()
@@ -203,16 +204,20 @@ class PythonInterpreter(ToolCollection):
         if stderr:
             results += f"[STDERR]: {stderr}"
         
-        return results if results != '' else '[NO OUTPUT]'
+        return results.strip() if results != '' else '[NO OUTPUT]'
     
     async def _tool_python_interpreter(self, script: str, **kwargs) -> str:
+        if not self.initialized:
+            raise UnbuiltError(f"method 'build' is never called", self.__class__.__name__)
+
         if self.use_container and self.container is not None:
             return await self._execute_container(script, **kwargs)
         else:
             return await self._execute_locally(script, **kwargs)
 
 if __name__ == '__main__':
-    tool = PythonInterpreter(use_container=True, container_id='bfe8ff78433ddcee3554d884f154284d635cf3b0411193727bd5a56c05d208f9')
+    '''
+    tool = PythonInterpreter(use_container=True, default_image='python:3.11-slim')
     
     async def test():
         await tool.build()
@@ -224,3 +229,5 @@ if __name__ == '__main__':
         await tool.release()
 
     asyncio.run(test())
+    '''
+    pass

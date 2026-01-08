@@ -32,6 +32,14 @@ class BaseModel(ABC):
             self.client = AsyncOpenAI(base_url=self.base_url, api_key=self.api_key)
         except Exception as e:
             raise EntityInitializationError(BaseModel.__name__, e)
+        
+    @abstractmethod
+    async def build(self) -> None:
+        pass
+
+    @abstractmethod
+    async def release(self) -> None:
+        pass
 
     @abstractmethod
     async def generate(self, model_input: ModelInput) -> ModelResponse:
@@ -47,6 +55,12 @@ class EmbeddingModel(BaseModel):
         instance_id: str = uuid.uuid4().hex
     ) -> None:
         super().__init__(base_url, api_key, client_configs, default_generate_configs, instance_id)
+
+    async def build(self) -> None:
+        return await super().build()
+    
+    async def release(self) -> None:
+        return await super().release()
 
     async def generate(self, model_input: ModelInput) -> ModelResponse:
         return ModelResponse()
@@ -65,6 +79,12 @@ class ConversationModel(BaseModel):
         instance_id: str = uuid.uuid4().hex
     ) -> None:
         super().__init__(base_url, api_key, client_configs, default_generate_configs, instance_id)
+
+    async def build(self) -> None:
+        return await super().build()
+
+    async def release(self) -> None:
+        return await super().release()    
 
     async def generate(self, model_input: ModelInput) -> ModelResponse:
         return ModelResponse()

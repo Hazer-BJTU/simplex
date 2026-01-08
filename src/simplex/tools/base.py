@@ -15,6 +15,9 @@ class ToolCollection(ABC):
     def __init__(self, name_mapping: Dict) -> None:
         self.name_mapping: Dict = name_mapping
 
+    async def __call__(self, tool_call: ToolCall) -> ToolReturn:
+        return await self.dispatch(tool_call)
+
     @abstractmethod
     async def build(self) -> None:
         pass
