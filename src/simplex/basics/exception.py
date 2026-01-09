@@ -56,7 +56,11 @@ class UnbuiltError(CustomException):
         content: str,
         class_name: str
     ) -> None:
-        super().__init__(f"{class_name}: {content}")        
+        super().__init__(f"{class_name}: {content}") 
+
+class ConflictError(CustomException):
+    def __init__(self, content: str) -> None:
+        super().__init__(content)  
 
 if __name__ == '__main__':
     pass

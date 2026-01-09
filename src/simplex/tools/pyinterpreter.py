@@ -130,6 +130,12 @@ class PythonInterpreter(ToolCollection):
 
         except Exception as e:
             raise EnvironmentError(e)
+        
+    async def reset(self) -> None:
+        return
+        
+    def get_names(self) -> List[str]:
+        return [self.name]
     
     def get_tools(self) -> List[Dict]:
         return [self.pyinterpreter_schema]

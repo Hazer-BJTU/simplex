@@ -27,6 +27,14 @@ class ToolCollection(ABC):
         pass
 
     @abstractmethod
+    async def reset(self) -> None:
+        pass
+
+    @abstractmethod
+    def get_names(self) -> List[str]:
+        pass
+
+    @abstractmethod
     def get_tools(self) -> List[Dict]:
         pass
 
@@ -60,7 +68,7 @@ class ToolCollection(ABC):
             )
         
         target_function = getattr(self, member_name)
-        if not asyncio.iscoroutinefunction(target_function):
+        if not callable(target_function) or not asyncio.iscoroutinefunction(target_function):
             raise ImplementationError(
                 target_function.__name__ if hasattr(target_function, '__name__') else 'unknown_function',
                 'target member should be a coroutine function',

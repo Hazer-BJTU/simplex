@@ -57,10 +57,10 @@ class EmbeddingModel(BaseModel):
         super().__init__(base_url, api_key, client_configs, default_generate_configs, instance_id)
 
     async def build(self) -> None:
-        return await super().build()
+        return
     
     async def release(self) -> None:
-        return await super().release()
+        return
 
     async def generate(self, model_input: ModelInput) -> ModelResponse:
         return ModelResponse()
@@ -81,10 +81,10 @@ class ConversationModel(BaseModel):
         super().__init__(base_url, api_key, client_configs, default_generate_configs, instance_id)
 
     async def build(self) -> None:
-        return await super().build()
+        return
 
     async def release(self) -> None:
-        return await super().release()    
+        return    
 
     async def generate(self, model_input: ModelInput) -> ModelResponse:
         return ModelResponse()
