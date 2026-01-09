@@ -10,7 +10,7 @@ import simplex.context.base
 import simplex.models.base
 import simplex.tools.base
 
-from simplex.basics.dataclass import ToolCall, ToolReturn
+from simplex.basics.dataclass import ToolCall, ToolReturn, ModelInput, ModelResponse
 from simplex.basics.exception import ConflictError
 from simplex.context.base import ContextPlugin
 from simplex.models.base import ConversationModel
@@ -48,12 +48,19 @@ class AgentLoop(ABC):
         self.agent_model = agent_model
         self.tools_list: List[ToolCollection] = []
         self.context_list: List[ContextPlugin] = []
+        self.instance_dict: Dict[str, Any] = {}
 
         for instance in args:
             if isinstance(instance, ToolCollection):
                 self.tools_list.append(instance)
+                if instance.key in self.instance_dict:
+                    raise ConflictError(f'duplicated instance key: {instance.key}')
+                self.instance_dict[instance.key] = instance
             elif isinstance(instance, ContextPlugin):
                 self.context_list.append(instance)
+                if instance.key in self.instance_dict:
+                    raise ConflictError(f'duplicated instance key: {instance.key}')
+                self.instance_dict[instance.key] = instance
             else:
                 pass
         
@@ -67,6 +74,9 @@ class AgentLoop(ABC):
                 if name in self.tool_mapping:
                     raise ConflictError(f'duplicated tool name: {name}')
                 self.tool_mapping[name] = tool
+
+    def __getitem__(self, instance_key: str) -> Any:
+        return self.instance_dict.get(instance_key, None)
 
     async def build(self) -> None:
         await asyncio.gather(*call_coroutine_functions(
@@ -88,6 +98,10 @@ class AgentLoop(ABC):
             'reset'
         ))
         return
+    
+    async def procedure(self) -> None:
+        model_input = ModelInput(messages = [], tools = self.tool_schemas)
+
 
 if __name__ == '__main__':
     '''

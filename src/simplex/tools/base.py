@@ -1,4 +1,5 @@
 import os
+import uuid
 import asyncio
 
 from typing import Dict, List
@@ -12,8 +13,17 @@ from simplex.basics.exception import ParameterError, ImplementationError
 
 
 class ToolCollection(ABC):
-    def __init__(self, name_mapping: Dict) -> None:
+    def __init__(
+        self,
+        instance_id: str,
+        name_mapping: Dict
+    ) -> None:
+        self.instance_id = instance_id
         self.name_mapping: Dict = name_mapping
+
+    @property
+    def key(self) -> str:
+        return self.instance_id
 
     async def __call__(self, tool_call: ToolCall) -> ToolReturn:
         return await self.dispatch(tool_call)
@@ -42,7 +52,6 @@ class ToolCollection(ABC):
     def tools_descriptions(self) -> List[Dict]:
         pass
     
-    @abstractmethod
     async def dispatch(self, tool_call: ToolCall) -> ToolReturn:
         function_name: str = tool_call.name
         arguments: Dict = tool_call.arguments

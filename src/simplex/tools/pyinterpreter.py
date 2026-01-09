@@ -1,4 +1,5 @@
 import os
+import uuid
 import docker
 import asyncio
 
@@ -17,6 +18,7 @@ from simplex.tools.base import ToolCollection
 class PythonInterpreter(ToolCollection):
     def __init__(
         self, 
+        instance_id: str = uuid.uuid4().hex,
         rename: str = 'python_interpreter',
         time_limit: int = 10,
         use_container: bool = False,
@@ -26,7 +28,12 @@ class PythonInterpreter(ToolCollection):
         mem_limit: str = '256m',
         cpu_quota: int = 25000
     ) -> None:
-        super().__init__({rename: '_tool_python_interpreter'})
+        super().__init__(
+            instance_id,
+            {
+                rename: '_tool_python_interpreter'
+            }
+        )
 
         self.name = rename
         self.time_limit = time_limit
@@ -149,9 +156,6 @@ class PythonInterpreter(ToolCollection):
                 'output': 'program execution results'
             }
         ]
-    
-    async def dispatch(self, tool_call: ToolCall) -> ToolReturn:
-        return await super().dispatch(tool_call)
     
     async def _execute_locally(self, script: str, **kwargs) -> str:
         process = await asyncio.create_subprocess_exec(

@@ -1,4 +1,5 @@
 import os
+import uuid
 
 from abc import ABC, abstractmethod
 
@@ -9,6 +10,16 @@ from simplex.basics.dataclass import ModelInput
 
 
 class ContextPlugin(ABC):
+    def __init__(
+        self, 
+        instance_id: str
+    ) -> None:
+        self.instance_id = instance_id
+
+    @property
+    def key(self) -> str:
+        return self.instance_id
+
     @abstractmethod
     async def build(self) -> None:
         pass
