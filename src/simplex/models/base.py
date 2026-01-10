@@ -33,12 +33,20 @@ class BaseModel(ABC):
         except Exception as e:
             raise EntityInitializationError(BaseModel.__name__, e)
         
+    @property
+    def key(self) -> str:
+        return self.instance_id
+        
     @abstractmethod
     async def build(self) -> None:
         pass
 
     @abstractmethod
     async def release(self) -> None:
+        pass
+
+    @abstractmethod
+    async def reset(self) -> None:
         pass
 
     @abstractmethod
@@ -60,6 +68,9 @@ class EmbeddingModel(BaseModel):
         return
     
     async def release(self) -> None:
+        return
+    
+    async def reset(self) -> None:
         return
 
     async def generate(self, model_input: ModelInput) -> ModelResponse:
@@ -84,7 +95,10 @@ class ConversationModel(BaseModel):
         return
 
     async def release(self) -> None:
-        return    
+        return
+
+    async def reset(self) -> None:
+        return   
 
     async def generate(self, model_input: ModelInput) -> ModelResponse:
         return ModelResponse()

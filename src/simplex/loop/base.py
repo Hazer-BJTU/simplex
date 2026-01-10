@@ -1,4 +1,5 @@
 import os
+import copy
 import asyncio
 
 from abc import ABC, abstractmethod
@@ -11,7 +12,7 @@ import simplex.models.base
 import simplex.tools.base
 
 from simplex.basics.dataclass import ToolCall, ToolReturn, ModelInput, ModelResponse
-from simplex.basics.exception import ConflictError
+from simplex.basics.exception import ConflictError, RequestError
 from simplex.context.base import ContextPlugin
 from simplex.models.base import ConversationModel
 from simplex.tools.base import ToolCollection
@@ -99,15 +100,68 @@ class AgentLoop(ABC):
         ))
         return
     
-    async def procedure(self) -> None:
-        model_input = ModelInput(messages = [], tools = self.tool_schemas)
+    async def procedure(self, max_iteration: int = 30) -> None:
+        async def tool_not_exists(original_call: ToolCall):
+            return ToolReturn(
+                content = f'[ERROR]: Tool {original_call.name} not exists. Please try again.',
+                original_call = original_call
+            )
 
+        initial_prompt = ModelInput(messages = [], tools = self.tool_schemas)
+        call_functions(self.context_list, 'process_prompt', model_input = initial_prompt)
+
+        input: ModelInput = copy.deepcopy(initial_prompt)
+        output: Optional[ModelResponse] = None
+        for iter in range(max_iteration):
+            print(input)
+            output = await self.agent_model.generate(input)
+            print(output)
+            
+            if output.tool_call is not None and len(output.tool_call) > 0:
+                tool_call_tasks: List = []
+                for tool_call in output.tool_call:
+                    if tool_call.name in self.tool_mapping:
+                        tool_call_tasks.append(self.tool_mapping[tool_call.name](tool_call))
+                    else:
+                        tool_call_tasks.append(tool_not_exists(tool_call))
+                tool_returns = await asyncio.gather(*tool_call_tasks)
+                input = self.agent_model.tool_return_integrate(input, output, tool_returns)
+                continue
+
+            if output.response != '':
+                break
 
 if __name__ == '__main__':
-    '''
-    from simplex.tools.pyinterpreter import PythonInterpreter
-    tool = PythonInterpreter(use_container=True, default_image='python:3.11-slim')
+    from simplex.models.qwen import QwenConversationModel
 
-    agent_loop = AgentLoop(None, tool, tool)
-    '''
-    pass
+    model = QwenConversationModel(
+        base_url = 'https://dashscope.aliyuncs.com/compatible-mode/v1',
+        api_key = 'sk-9b3a060c5d4d4c748af56ca372b9a9ed'
+    )
+
+    from simplex.tools.pyinterpreter import PythonInterpreter
+
+    interpreter = PythonInterpreter(
+        use_container = True,
+        default_image = 'python:3.11-slim'
+    )
+
+    from simplex.context.base import InitPromptContext
+
+    prompt = "**Solve the following, rounding your answer to three decimal places:** " \
+             "In triangle \\( ABC \\), side \\( a = 7.5 \\), side \\( b = 9.2 \\), and \\( \angle C = 38.4^\\circ \\). " \
+             "Find the length of side \\( c \\) using the Law of Cosines."
+
+    init_prompt = InitPromptContext(
+        system_prompt = 'You are a helpful assistant. Think briefly and answer the following question. Keep your thinking in no more than 10 sentences.',
+        user_instruction = prompt
+    )
+
+    agent = AgentLoop(model, interpreter, init_prompt)
+
+    async def test():
+        await agent.build()
+        await agent.procedure()
+        await agent.release()
+
+    asyncio.run(test())

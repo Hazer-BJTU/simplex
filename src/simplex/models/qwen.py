@@ -104,11 +104,11 @@ class QwenConversationModel(ConversationModel):
         return ModelResponse(response='not supported yet..')
     
     def tool_return_integrate(self, input: ModelInput, response: ModelResponse, tool_return: List[ToolReturn], **kwargs) -> ModelInput:
-        if response.tool_call is None:
+        if response.tool_call is None or len(response.tool_call) == 0:
             raise ParameterError(
                 'tool_return_integrate', 
                 'response', 
-                'response.tool_call should not be None',
+                'response.tool_call should not be empty',
                 type_hint='ModelResponse',
                 class_name=self.__class__.__name__
             )
