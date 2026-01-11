@@ -1,7 +1,7 @@
 [project]
 name = "simplex"
 version = "0.1.0"
-description = "Add your description here"
+description = "A simple python LLM-based code agent SDK."
 readme = "README.md"
 authors = [
     { name = "Hazer", email = "22301092@bjtu.edu.cn" }
