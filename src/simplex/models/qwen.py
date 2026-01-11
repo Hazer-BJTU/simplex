@@ -61,9 +61,9 @@ class QwenConversationModel(ConversationModel):
                 delta = chunk.choices[0].delta
                 if hasattr(delta, 'reasoning_content') and delta.reasoning_content is not None:
                     reasoning_content += delta.reasoning_content
-                elif delta.content is not None:
+                if delta.content is not None:
                     response += delta.content
-                elif delta.tool_calls is not None:
+                if delta.tool_calls is not None:
                     for call in delta.tool_calls:
                         index = call.index
                         while len(tool_call) <= index:
@@ -74,8 +74,6 @@ class QwenConversationModel(ConversationModel):
                             tool_call[index]['name'] = tool_call[index].get('name', '') + call.function.name
                         if call.function and call.function.arguments:
                             tool_call[index]['arguments'] = tool_call[index].get('arguments', '') + call.function.arguments
-                else:
-                    pass
 
         prompt_tokens, completion_tokens = 0, 0
         for record in token_usages:

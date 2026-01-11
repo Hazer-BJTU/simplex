@@ -76,6 +76,8 @@ class AgentLoop(ABC):
                     raise ConflictError(f'duplicated tool name: {name}')
                 self.tool_mapping[name] = tool
 
+        self.iter: int = 0
+
     def __getitem__(self, instance_key: str) -> Any:
         return self.instance_dict.get(instance_key, None)
 
@@ -106,16 +108,18 @@ class AgentLoop(ABC):
                 content = f'[ERROR]: Tool {original_call.name} not exists. Please try again.',
                 original_call = original_call
             )
-
+        
+        call_functions(self.context_list, 'on_start_procedure', agent = self)
         initial_prompt = ModelInput(messages = [], tools = self.tool_schemas)
-        call_functions(self.context_list, 'process_prompt', model_input = initial_prompt)
+        call_functions(self.context_list, 'on_process_prompt', model_input = initial_prompt, agent = self)
+        call_functions(self.context_list, 'on_prompt_ready', model_input = initial_prompt, agent = self)
 
         input: ModelInput = copy.deepcopy(initial_prompt)
         output: Optional[ModelResponse] = None
-        for iter in range(max_iteration):
-            print(input)
+        for self.iter in range(max_iteration):
             output = await self.agent_model.generate(input)
             print(output)
+            call_functions(self.context_list, 'on_model_response', model_response = output, agent = self)
             
             if output.tool_call is not None and len(output.tool_call) > 0:
                 tool_call_tasks: List = []
@@ -125,18 +129,22 @@ class AgentLoop(ABC):
                     else:
                         tool_call_tasks.append(tool_not_exists(tool_call))
                 tool_returns = await asyncio.gather(*tool_call_tasks)
+                call_functions(self.context_list, 'on_tool_return', tool_return = tool_returns, agent = self)
                 input = self.agent_model.tool_return_integrate(input, output, tool_returns)
-                continue
 
             if output.response != '':
-                break
+                call_functions(self.context_list, 'on_final_answer', model_response = output, agent = self)
+                if output.tool_call is None or len(output.tool_call) == 0:
+                    break
 
 if __name__ == '__main__':
     from simplex.models.qwen import QwenConversationModel
 
     model = QwenConversationModel(
         base_url = 'https://dashscope.aliyuncs.com/compatible-mode/v1',
-        api_key = 'sk-9b3a060c5d4d4c748af56ca372b9a9ed'
+        api_key = 'sk-9b3a060c5d4d4c748af56ca372b9a9ed',
+        qwen_model = 'qwen3-coder-plus',
+        enable_thinking = False
     )
 
     from simplex.tools.pyinterpreter import PythonInterpreter
@@ -146,18 +154,18 @@ if __name__ == '__main__':
         default_image = 'python:3.11-slim'
     )
 
-    from simplex.context.base import InitPromptContext
+    from simplex.context.base import InitPromptContext, TrajectoryLogContext
 
     prompt = "**Solve the following, rounding your answer to three decimal places:** " \
              "In triangle \\( ABC \\), side \\( a = 7.5 \\), side \\( b = 9.2 \\), and \\( \angle C = 38.4^\\circ \\). " \
              "Find the length of side \\( c \\) using the Law of Cosines."
 
     init_prompt = InitPromptContext(
-        system_prompt = 'You are a helpful assistant. Think briefly and answer the following question. Keep your thinking in no more than 10 sentences.',
+        system_prompt = 'You are a helpful assistant.',
         user_instruction = prompt
     )
 
-    agent = AgentLoop(model, interpreter, init_prompt)
+    agent = AgentLoop(model, interpreter, init_prompt, TrajectoryLogContext('trajectory'))
 
     async def test():
         await agent.build()
@@ -165,3 +173,8 @@ if __name__ == '__main__':
         await agent.release()
 
     asyncio.run(test())
+
+    import json
+    trajectory = agent['trajectory'].get()
+    with open('dev\\output.jsonl', 'w', encoding = 'utf8') as file:
+        file.write(json.dumps(trajectory, indent = 2))
