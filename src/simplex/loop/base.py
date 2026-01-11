@@ -118,7 +118,6 @@ class AgentLoop(ABC):
         output: Optional[ModelResponse] = None
         for self.iter in range(max_iteration):
             output = await self.agent_model.generate(input)
-            print(output)
             call_functions(self.context_list, 'on_model_response', model_response = output, agent = self)
             
             if output.tool_call is not None and len(output.tool_call) > 0:
@@ -138,43 +137,4 @@ class AgentLoop(ABC):
                     break
 
 if __name__ == '__main__':
-    from simplex.models.qwen import QwenConversationModel
-
-    model = QwenConversationModel(
-        base_url = 'https://dashscope.aliyuncs.com/compatible-mode/v1',
-        api_key = 'sk-9b3a060c5d4d4c748af56ca372b9a9ed',
-        qwen_model = 'qwen3-coder-plus',
-        enable_thinking = False
-    )
-
-    from simplex.tools.pyinterpreter import PythonInterpreter
-
-    interpreter = PythonInterpreter(
-        use_container = True,
-        default_image = 'python:3.11-slim'
-    )
-
-    from simplex.context.base import InitPromptContext, TrajectoryLogContext
-
-    prompt = "**Solve the following, rounding your answer to three decimal places:** " \
-             "In triangle \\( ABC \\), side \\( a = 7.5 \\), side \\( b = 9.2 \\), and \\( \angle C = 38.4^\\circ \\). " \
-             "Find the length of side \\( c \\) using the Law of Cosines."
-
-    init_prompt = InitPromptContext(
-        system_prompt = 'You are a helpful assistant.',
-        user_instruction = prompt
-    )
-
-    agent = AgentLoop(model, interpreter, init_prompt, TrajectoryLogContext('trajectory'))
-
-    async def test():
-        await agent.build()
-        await agent.procedure()
-        await agent.release()
-
-    asyncio.run(test())
-
-    import json
-    trajectory = agent['trajectory'].get()
-    with open('dev\\output.jsonl', 'w', encoding = 'utf8') as file:
-        file.write(json.dumps(trajectory, indent = 2))
+    pass

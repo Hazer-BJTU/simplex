@@ -3,7 +3,7 @@ import uuid
 import docker
 import asyncio
 
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Callable
 from docker.errors import DockerException, ImageNotFound, APIError, NotFound
 
 import simplex.basics.exception
@@ -25,8 +25,11 @@ class PythonInterpreter(ToolCollection):
         container_id: Optional[str] = None,
         default_image: Optional[str] = None,
         auto_pull: bool = True,
+        remove_on_finish: bool = True,
         mem_limit: str = '256m',
-        cpu_quota: int = 25000
+        cpu_quota: int = 25000,
+        cmd_insert: Callable[[str], List[str]] 
+        = lambda script: ['python', '-c', script]
     ) -> None:
         super().__init__(
             instance_id,
@@ -41,14 +44,17 @@ class PythonInterpreter(ToolCollection):
         self.container_id = container_id
         self.default_image = default_image
         self.auto_pull = auto_pull
+        self.remove_on_finish = remove_on_finish
         self.mem_limit = mem_limit
         self.cpu_quota = cpu_quota
+        self.cmd_insert = cmd_insert
 
         self.pyinterpreter_schema = {
             "type": "function",
             "function": {
                 "name": self.name,
-                "description": "execute given python scripts and return program output",
+                "description": "Execute given python scripts and return program results. " \
+                               "Remember to use 'print' function to output to stdout!",
                 "parameters": {
                     "type": "object",
                     "properties": {
@@ -77,6 +83,8 @@ class PythonInterpreter(ToolCollection):
             if self.container_id is not None:
                 try:
                     self.container = self.docker_client.containers.get(self.container_id)
+                    assert self.container is not None, f'unable to initialize container for {self.name} tool'
+                    self.initialized = True
                     return
                 except NotFound:
                     pass                
@@ -118,7 +126,7 @@ class PythonInterpreter(ToolCollection):
         try:
             event_loop = asyncio.get_running_loop()
 
-            if self.container is not None:
+            if self.container is not None and self.remove_on_finish:
                 await event_loop.run_in_executor(
                     None,
                     self.container.stop
@@ -159,7 +167,7 @@ class PythonInterpreter(ToolCollection):
     
     async def _execute_locally(self, script: str, **kwargs) -> str:
         process = await asyncio.create_subprocess_exec(
-            'python', '-c', script, 
+            *self.cmd_insert(script), 
             stdout = asyncio.subprocess.PIPE,
             stderr = asyncio.subprocess.PIPE
         )
@@ -190,7 +198,7 @@ class PythonInterpreter(ToolCollection):
                 event_loop.run_in_executor(
                     None,
                     lambda: self.container.exec_run( #type: ignore
-                        cmd = ['python', '-c', script],
+                        cmd = self.cmd_insert(script),
                         stdout = True,
                         stderr = True
                     )
@@ -226,18 +234,4 @@ class PythonInterpreter(ToolCollection):
             return await self._execute_locally(script, **kwargs)
 
 if __name__ == '__main__':
-    '''
-    tool = PythonInterpreter(use_container=True, default_image='python:3.11-slim')
-    
-    async def test():
-        await tool.build()
-
-        tool_return = await tool.dispatch(ToolCall('task#1', tool.name, {'script': 'import math; print(math.sqrt(math.pi))'}))
-
-        print(tool_return)
-
-        await tool.release()
-
-    asyncio.run(test())
-    '''
     pass
