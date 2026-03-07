@@ -31,7 +31,7 @@ class BaseModel(ABC):
         try:
             self.client = AsyncOpenAI(base_url=self.base_url, api_key=self.api_key)
         except Exception as e:
-            raise EntityInitializationError(BaseModel.__name__, e)
+            raise EntityInitializationError(self.__class__.__name__, e)
         
     @property
     def key(self) -> str:

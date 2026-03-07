@@ -1,18 +1,21 @@
 import os
 import uuid
-import docker
 import asyncio
 
-from typing import Optional, List, Dict, Callable
-from docker.errors import DockerException, ImageNotFound, APIError, NotFound
+from typing import Optional, List, Dict, Callable, TYPE_CHECKING
 
 import simplex.basics.exception
 import simplex.basics.dataclass
+import simplex.basics.container
 import simplex.tools.base
 
-from simplex.basics.exception import EnvironmentError, UnbuiltError
-from simplex.basics.dataclass import ToolCall, ToolReturn
+from simplex.basics.exception import UnbuiltError, EntityInitializationError
+from simplex.basics.dataclass import ModelInput
+from simplex.basics.container import ContainerManager
 from simplex.tools.base import ToolCollection
+
+if TYPE_CHECKING:
+    from simplex.loop.base import AgentLoop
 
 
 class PythonInterpreter(ToolCollection):
@@ -20,134 +23,64 @@ class PythonInterpreter(ToolCollection):
         self, 
         instance_id: str = uuid.uuid4().hex,
         rename: str = 'python_interpreter',
-        time_limit: int = 10,
         use_container: bool = False,
-        container_id: Optional[str] = None,
-        default_image: Optional[str] = None,
-        auto_pull: bool = True,
-        remove_on_finish: bool = True,
-        mem_limit: str = '256m',
-        cpu_quota: int = 25000,
-        cmd_insert: Callable[[str], List[str]] 
-        = lambda script: ['python', '-c', script]
+        container_manager: Optional[ContainerManager] = None,
+        exec_command: Callable[[str], List[str]] = lambda script: ['python', '-c', script],
+        timeout: float = 10
     ) -> None:
-        super().__init__(
-            instance_id,
-            {
-                rename: '_tool_python_interpreter'
-            }
-        )
+        super().__init__(instance_id, { rename: '_tool_python_interpreter' })
 
         self.name = rename
-        self.time_limit = time_limit
         self.use_container = use_container
-        self.container_id = container_id
-        self.default_image = default_image
-        self.auto_pull = auto_pull
-        self.remove_on_finish = remove_on_finish
-        self.mem_limit = mem_limit
-        self.cpu_quota = cpu_quota
-        self.cmd_insert = cmd_insert
+        self.container_manager = container_manager
+        self.exec_command = exec_command
+        self.timeout = timeout
 
-        self.pyinterpreter_schema = {
-            "type": "function",
-            "function": {
-                "name": self.name,
-                "description": "Execute given python scripts and return program results. " \
-                               "Remember to use 'print' function to output to stdout!",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "script": {
-                            "type": "string",
-                            "description": "a python script, e.g., 'import math; print(math.sqrt(math.sin(math.pi)))'",
-                        }
+        try:
+            self.initialized: bool = False
+
+            if self.use_container == True:
+                assert self.container_manager is not None, "argument 'container_manager' must not be None when use_container is True"
+
+            self.pyinterpreter_schema = {
+                "type": "function",
+                "function": {
+                    "name": self.name,
+                    "description": "Execute given python scripts and return program results. " \
+                                   "Remember to use 'print' function to output to stdout!",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "script": {
+                                "type": "string",
+                                "description": "a python script, e.g., 'import math; print(math.sqrt(math.sin(math.pi)))'",
+                            }
+                        },
+                        "required": ["script"],
                     },
-                    "required": ["script"],
                 },
-            },
-        }
-
-        self.docker_client = None
-        self.container = None
-        self.initialized: bool = False
+            }
+        except Exception as e:
+            raise EntityInitializationError(self.__class__.__name__, e)
 
     async def build(self) -> None:
-        if not self.use_container or self.initialized:
-            return
-        
         try:
-            event_loop = asyncio.get_running_loop()
-            self.docker_client = docker.from_env()
-
-            if self.container_id is not None:
-                try:
-                    self.container = self.docker_client.containers.get(self.container_id)
-                    assert self.container is not None, f'unable to initialize container for {self.name} tool'
-                    self.initialized = True
-                    return
-                except NotFound:
-                    pass                
-
-            if self.default_image is not None:
-                try:
-                    self.docker_client.images.get(self.default_image)
-                except ImageNotFound:
-                    if self.auto_pull:
-                        await event_loop.run_in_executor(
-                            None,   
-                            lambda: self.docker_client.images.pull(self.default_image) #type: ignore
-                        )
-                    else:
-                        raise
-
-                self.container = await event_loop.run_in_executor(
-                    None,
-                    lambda: self.docker_client.containers.run( #type: ignore
-                        image = self.default_image, #type: ignore
-                        command = "tail -f /dev/null && /bin/bash",
-                        detach = True,
-                        tty = True,
-                        mem_limit = self.mem_limit,
-                        cpu_quota = self.cpu_quota,
-                        name = f"{self.name}_container",
-                        remove = False
-                    )
-                )
-                self.container_id = self.container.id
-
-            assert self.container is not None, f'unable to initialize container for {self.name} tool'
+            if self.use_container and self.container_manager is not None:
+                await self.container_manager.build()
             self.initialized = True
-
-        except Exception as e:
-            raise EnvironmentError(e)
+        except Exception:
+            raise
     
     async def release(self) -> None:
         try:
-            event_loop = asyncio.get_running_loop()
-
-            if self.container is not None and self.remove_on_finish:
-                await event_loop.run_in_executor(
-                    None,
-                    self.container.stop
-                )
-                await event_loop.run_in_executor(
-                    None,
-                    self.container.remove
-                )
-                self.container = None
-
-            if self.docker_client is not None:
-                self.docker_client.close()
-                self.docker_client = None
-
+            if self.use_container and self.container_manager is not None:
+                await self.container_manager.release()
             self.initialized = False
-
-        except Exception as e:
-            raise EnvironmentError(e)
+        except Exception:
+            raise
         
     async def reset(self) -> None:
-        return
+        pass
         
     def get_names(self) -> List[str]:
         return [self.name]
@@ -165,9 +98,12 @@ class PythonInterpreter(ToolCollection):
             }
         ]
     
+    def on_init_output(self, model_input: ModelInput, agent: "AgentLoop") -> None:
+        pass
+    
     async def _execute_locally(self, script: str, **kwargs) -> str:
         process = await asyncio.create_subprocess_exec(
-            *self.cmd_insert(script), 
+            *self.exec_command(script), 
             stdout = asyncio.subprocess.PIPE,
             stderr = asyncio.subprocess.PIPE
         )
@@ -175,60 +111,35 @@ class PythonInterpreter(ToolCollection):
         try:
             stdout, stderr = await asyncio.wait_for(
                 process.communicate(),
-                timeout = self.time_limit
+                timeout = self.timeout
             )
         except asyncio.TimeoutError:
             process.kill()
             await process.wait()
-            return f'[ERROR]: execution timeout after {self.time_limit} seconds'
+            return f'[ERROR]: execution timeout after {self.timeout} seconds'
         
         results: str = ''
         if stdout:
-            results += f"[STDOUT]: {stdout.decode('utf8', errors='ignore').strip()}\n"
+            results += f"[STDOUT]: {stdout.decode('utf8', errors = 'ignore').strip()}\n"
         if stderr:
-            results += f"[STDERR]: {stderr.decode('utf8', errors='ignore').strip()}"
-        
-        return results.strip() if results != '' else '[NO OUTPUT]'
+            results += f"[STDERR]: {stderr.decode('utf8', errors = 'ignore').strip()}"
+        results = results.strip()
+        return results if results != '' else '[NO OUTPUT]'
     
     async def _execute_container(self, script: str, **kwargs) -> str:
         try:
-            event_loop = asyncio.get_running_loop()
-
-            exec_return = await asyncio.wait_for(
-                event_loop.run_in_executor(
-                    None,
-                    lambda: self.container.exec_run( #type: ignore
-                        cmd = self.cmd_insert(script),
-                        stdout = True,
-                        stderr = True
-                    )
-                ),
-                timeout = self.time_limit
+            return await self.container_manager.exec_run( #type: ignore
+                self.exec_command(script),
+                timeout = self.timeout
             )
-
-            stdout = exec_return.output.decode('utf8', errors='ignore').strip()
-            stderr = exec_return.output.decode('utf8', errors='ignore').strip() if exec_return.exit_code != 0 else ''
-
-        except asyncio.TimeoutError:
-            return f'[ERROR]: execution timeout after {self.time_limit} seconds'
-        except DockerException as e:
-            return f'[ERROR]: Container execution failed: {e}'
-        except Exception as e:
-            return f'[ERROR]: Unexpected error during container execution: {e}'
-        
-        results: str = ''
-        if stdout:
-            results += f"[STDOUT]: {stdout}\n"
-        if stderr:
-            results += f"[STDERR]: {stderr}"
-        
-        return results.strip() if results != '' else '[NO OUTPUT]'
+        except Exception:
+            raise
     
     async def _tool_python_interpreter(self, script: str, **kwargs) -> str:
         if not self.initialized:
-            raise UnbuiltError(f"method 'build' is never called", self.__class__.__name__)
+            raise UnbuiltError(self.__class__.__name__)
 
-        if self.use_container and self.container is not None:
+        if self.use_container and self.container_manager is not None:
             return await self._execute_container(script, **kwargs)
         else:
             return await self._execute_locally(script, **kwargs)

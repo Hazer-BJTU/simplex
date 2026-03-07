@@ -10,9 +10,12 @@ class EntityInitializationError(CustomException):
         super().__init__(f"failed to initialize {name} due to exception: {self.original}")
 
 class RequestError(CustomException):
-    def __init__(self, original: Exception) -> None:
+    def __init__(self, original: Optional[Exception] = None, content: str = '') -> None:
         self.original = original
-        super().__init__(f"request error due to exception: {self.original}")
+        if original is not None:
+            super().__init__(f"request error due to exception: {self.original}")
+        else:
+            super().__init__(F"{content}")
 
 class ParameterError(CustomException):
     def __init__(
@@ -51,16 +54,12 @@ class EnvironmentError(CustomException):
         super().__init__(f"failed to initialize or release environment due to: {self.original}")
 
 class UnbuiltError(CustomException):
-    def __init__(
-        self,
-        content: str,
-        class_name: str
-    ) -> None:
-        super().__init__(f"{class_name}: {content}") 
+    def __init__(self, class_name: str) -> None:
+        super().__init__(f"{class_name}: method 'build' is never called") 
 
 class ConflictError(CustomException):
     def __init__(self, content: str) -> None:
-        super().__init__(content)  
+        super().__init__(content)
 
 if __name__ == '__main__':
     pass

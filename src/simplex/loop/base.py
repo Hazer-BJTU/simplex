@@ -12,7 +12,7 @@ import simplex.models.base
 import simplex.tools.base
 
 from simplex.basics.dataclass import ToolCall, ToolReturn, ModelInput, ModelResponse
-from simplex.basics.exception import ConflictError, RequestError
+from simplex.basics.exception import ConflictError, EntityInitializationError
 from simplex.context.base import ContextPlugin
 from simplex.models.base import ConversationModel
 from simplex.tools.base import ToolCollection
@@ -26,7 +26,10 @@ def call_coroutine_functions(target_list: List, name: str, *args, **kwargs) -> L
         target_function = getattr(target, name)
         if not callable(target_function) or not asyncio.iscoroutinefunction(target_function):
             continue
-        result_list.append(target_function(*args, **kwargs))
+        try:
+            result_list.append(target_function(*args, **kwargs))
+        except Exception:
+            raise
     return result_list
 
 def call_functions(target_list: List, name: str, *args, **kwargs) -> List[Any]:
@@ -37,7 +40,10 @@ def call_functions(target_list: List, name: str, *args, **kwargs) -> List[Any]:
         target_function = getattr(target, name)
         if not callable(target_function):
             continue
-        result_list.append(target_function(*args, **kwargs))
+        try:
+            result_list.append(target_function(*args, **kwargs))
+        except Exception:
+            raise
     return result_list
 
 class AgentLoop(ABC):
@@ -51,56 +57,60 @@ class AgentLoop(ABC):
         self.context_list: List[ContextPlugin] = []
         self.instance_dict: Dict[str, Any] = {}
 
-        for instance in args:
-            if isinstance(instance, ToolCollection):
-                self.tools_list.append(instance)
-                if instance.key in self.instance_dict:
-                    raise ConflictError(f'duplicated instance key: {instance.key}')
-                self.instance_dict[instance.key] = instance
-            elif isinstance(instance, ContextPlugin):
-                self.context_list.append(instance)
-                if instance.key in self.instance_dict:
-                    raise ConflictError(f'duplicated instance key: {instance.key}')
-                self.instance_dict[instance.key] = instance
-            else:
-                pass
-        
-        self.tool_mapping: Dict[str, ToolCollection] = {}
-        self.tool_schemas: List[Dict] = []
-
-        for tool in self.tools_list:
-            self.tool_schemas.extend(tool.get_tools())
-            names = tool.get_names()
-            for name in names:
-                if name in self.tool_mapping:
-                    raise ConflictError(f'duplicated tool name: {name}')
-                self.tool_mapping[name] = tool
-
         self.iter: int = 0
+
+        try:
+            for instance in args:
+                if isinstance(instance, ToolCollection):
+                    self.tools_list.append(instance)
+                    if instance.key in self.instance_dict:
+                        raise ConflictError(f'duplicated instance key: {instance.key}')
+                    self.instance_dict[instance.key] = instance
+                elif isinstance(instance, ContextPlugin):
+                    self.context_list.append(instance)
+                    if instance.key in self.instance_dict:
+                        raise ConflictError(f'duplicated instance key: {instance.key}')
+                    self.instance_dict[instance.key] = instance
+                else:
+                    pass
+            
+            self.tool_mapping: Dict[str, ToolCollection] = {}
+            self.tool_schemas: List[Dict] = []
+
+            for tool in self.tools_list:
+                self.tool_schemas.extend(tool.get_tools())
+                names = tool.get_names()
+                for name in names:
+                    if name in self.tool_mapping:
+                        raise ConflictError(f'duplicated tool name: {name}')
+                    self.tool_mapping[name] = tool
+        except Exception as e:
+            raise EntityInitializationError(self.__class__.__name__, e)
 
     def __getitem__(self, instance_key: str) -> Any:
         return self.instance_dict.get(instance_key, None)
+    
+    @property
+    def _all_instances(self) -> List[ToolCollection | ContextPlugin]:
+        return self.tools_list + self.context_list
 
     async def build(self) -> None:
-        await asyncio.gather(*call_coroutine_functions(
-            self.tools_list + self.context_list,
-            'build'
-        ))
-        return
+        try:
+            await asyncio.gather(*call_coroutine_functions(self._all_instances, 'build'))
+        except Exception:
+            raise
 
     async def release(self) -> None:
-        await asyncio.gather(*call_coroutine_functions(
-            self.tools_list + self.context_list,
-            'release'
-        ))
-        return
+        try:
+            await asyncio.gather(*call_coroutine_functions(self._all_instances, 'release'))
+        except Exception:
+            raise
     
     async def reset(self) -> None:
-        await asyncio.gather(*call_coroutine_functions(
-            self.tools_list + self.context_list,
-            'reset'
-        ))
-        return
+        try:
+            await asyncio.gather(*call_coroutine_functions(self._all_instances, 'reset'))
+        except Exception:
+            raise
     
     async def procedure(self, max_iteration: int = 30) -> None:
         async def tool_not_exists(original_call: ToolCall):
@@ -109,9 +119,11 @@ class AgentLoop(ABC):
                 original_call = original_call
             )
         
-        call_functions(self.context_list, 'on_start_procedure', agent = self)
         initial_prompt = ModelInput(messages = [], tools = self.tool_schemas)
+
+        call_functions(self.context_list, 'on_start_procedure', agent = self)
         call_functions(self.context_list, 'on_process_prompt', model_input = initial_prompt, agent = self)
+        call_functions(self.tools_list, 'on_init_output', model_input = initial_prompt, agent = self)
         call_functions(self.context_list, 'on_prompt_ready', model_input = initial_prompt, agent = self)
 
         input: ModelInput = copy.deepcopy(initial_prompt)

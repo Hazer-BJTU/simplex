@@ -47,7 +47,7 @@ class QwenConversationModel(ConversationModel):
         try:
             completion = await self.client.chat.completions.create(**(self.default_generate_configs | model_input.dict | self.completion_extras))
         except Exception as e:
-            raise RequestError(e)
+            raise RequestError(original = e)
 
         response: str = ''
         reasoning_content: str = ''

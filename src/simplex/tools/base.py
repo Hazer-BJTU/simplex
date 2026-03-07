@@ -2,14 +2,17 @@ import os
 import uuid
 import asyncio
 
-from typing import Dict, List
 from abc import ABC, abstractmethod
+from typing import Dict, List, TYPE_CHECKING
 
 import simplex.basics.exception
 import simplex.basics.dataclass
 
-from simplex.basics.dataclass import ToolCall, ToolReturn
+from simplex.basics.dataclass import ToolCall, ToolReturn, ModelInput
 from simplex.basics.exception import ParameterError, ImplementationError
+
+if TYPE_CHECKING:
+    from simplex.loop.base import AgentLoop
 
 
 class ToolCollection(ABC):
@@ -27,6 +30,14 @@ class ToolCollection(ABC):
 
     async def __call__(self, tool_call: ToolCall) -> ToolReturn:
         return await self.dispatch(tool_call)
+    
+    async def __aenter__(self):
+        await self.build()
+        return self
+
+    async def __aexit__(self, exc_type, exc, tb):
+        await self.release()
+        return False
 
     @abstractmethod
     async def build(self) -> None:
@@ -51,6 +62,10 @@ class ToolCollection(ABC):
     @abstractmethod
     def tools_descriptions(self) -> List[Dict]:
         pass
+
+    @abstractmethod
+    def on_init_output(self, model_input: ModelInput, agent: "AgentLoop") -> None:
+        pass 
     
     async def dispatch(self, tool_call: ToolCall) -> ToolReturn:
         function_name: str = tool_call.name

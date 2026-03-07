@@ -1,5 +1,8 @@
 .venv/
 .vscode/
+libs/
+bin/
+build/
+proto/
 __pycache__/
-
 /dev/
