@@ -23,7 +23,8 @@ class BaseModel(ABC):
         api_key: str, 
         client_configs: Dict = {}, 
         default_generate_configs: Dict = {},
-        instance_id: str = uuid.uuid4().hex
+        instance_id: str = uuid.uuid4().hex,
+        disable_openai_backend: bool = False
     ) -> None:
         super().__init__()
         self.base_url = base_url
@@ -31,9 +32,13 @@ class BaseModel(ABC):
         self.client_configs = client_configs
         self.default_generate_configs = default_generate_configs
         self.instance_id = instance_id
+        self.disable_openai_backend = disable_openai_backend
 
         try:
-            self.client = AsyncOpenAI(base_url=self.base_url, api_key=self.api_key)
+            if not self.disable_openai_backend:
+                self.client = AsyncOpenAI(base_url=self.base_url, api_key=self.api_key)
+            else:
+                self.client = None
         except Exception as e:
             raise EntityInitializationError(self.__class__.__name__, e)
         
@@ -64,9 +69,17 @@ class EmbeddingModel(BaseModel):
         api_key: str, 
         client_configs: Dict = {}, 
         default_generate_configs: Dict = {},
-        instance_id: str = uuid.uuid4().hex
+        instance_id: str = uuid.uuid4().hex,
+        disable_openai_backend: bool = False
     ) -> None:
-        super().__init__(base_url, api_key, client_configs, default_generate_configs, instance_id)
+        super().__init__(
+            base_url, 
+            api_key, 
+            client_configs, 
+            default_generate_configs, 
+            instance_id,
+            disable_openai_backend
+        )
 
     async def build(self) -> None:
         return
@@ -81,7 +94,7 @@ class EmbeddingModel(BaseModel):
         return ModelResponse()
     
     @abstractmethod
-    async def batch_embedding(self, documents: List[DocumentEntry]) -> ModelResponse:
+    async def batch_embedding(self, documents: List[DocumentEntry]) -> List[ModelResponse]:
         pass
     
 class ConversationModel(BaseModel):
@@ -91,9 +104,17 @@ class ConversationModel(BaseModel):
         api_key: str, 
         client_configs: Dict = {}, 
         default_generate_configs: Dict = {},
-        instance_id: str = uuid.uuid4().hex
+        instance_id: str = uuid.uuid4().hex,
+        disable_openai_backend: bool = False
     ) -> None:
-        super().__init__(base_url, api_key, client_configs, default_generate_configs, instance_id)
+        super().__init__(
+            base_url, 
+            api_key, 
+            client_configs, 
+            default_generate_configs, 
+            instance_id,
+            disable_openai_backend
+        )
 
     async def build(self) -> None:
         return
@@ -108,7 +129,7 @@ class ConversationModel(BaseModel):
         return ModelResponse()
 
     @abstractmethod
-    async def batch_response(self, inputs: List[ModelInput]) -> ModelResponse:
+    async def batch_response(self, inputs: List[ModelInput]) -> List[ModelResponse]:
         pass
 
     @abstractmethod
