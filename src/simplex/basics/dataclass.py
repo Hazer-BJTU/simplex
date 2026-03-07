@@ -10,8 +10,8 @@ from dataclasses import dataclass, field
 @dataclass
 class DocumentEntry:
     content: bytes
-    digest: bytes = field(init=False)
-    key: str = field(default_factory=lambda: uuid.uuid4().hex)
+    digest: bytes = field(init = False)
+    key: str = field(default_factory = lambda: uuid.uuid4().hex)
     file_identifier: str = 'unknown'
     extras: Optional[Dict] = None
 
@@ -86,6 +86,48 @@ class ModelInput:
         if self.extras is not None:
             output_dict |= self.extras
         return output_dict
+    
+@dataclass
+class ToolSchema:
+    @dataclass
+    class Parameter:
+        field: str
+        type: str
+        description: str
+        required: bool = True
+        extras: Optional[Dict] = None
+
+        @property
+        def dict(self) -> Dict:
+            result = {
+                'field': self.field,
+                'type': self.type,
+                'description': self.description,
+                'required': self.required
+            }
+            if self.extras is not None:
+                result['extras'] = self.extras
+            return result
+
+    name: str
+    description: str
+    params: List[Parameter] = []
+    extras: Optional[Dict] = None
+
+    @property
+    def param_dict(self) -> Dict:
+        return { param.field: param.dict for param in self.params }
+
+    @property
+    def dict(self) -> Dict:
+        result = {
+            'name': self.name,
+            'description': self.description,
+            'parameters': self.param_dict
+        }
+        if self.extras is not None:
+            result['extras'] = self.extras
+        return result
 
 if __name__ == '__main__':
     pass
