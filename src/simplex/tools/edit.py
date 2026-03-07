@@ -5,18 +5,21 @@ import uuid
 from enum import Enum, auto
 from typing import Optional, List, Dict, Callable, TYPE_CHECKING
 
-import simplex.basics.exception
-import simplex.basics.dataclass
-import simplex.basics.client
+import simplex.basics
 import simplex.tools.base
 
-from simplex.basics.exception import UnbuiltError, RequestError
-from simplex.basics.dataclass import ModelInput
-from simplex.basics.client import WebsocketClient
+from simplex.basics import (
+    ModelInput,
+    WebsocketClient,
+    UnbuiltError,
+    RequestError
+)
 from simplex.tools.base import ToolCollection
 
 if TYPE_CHECKING:
-    from simplex.loop.base import AgentLoop
+    import simplex.loop
+
+    from simplex.loop import AgentLoop
 
 
 class EditTools(ToolCollection):

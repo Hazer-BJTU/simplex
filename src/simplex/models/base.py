@@ -5,12 +5,16 @@ from typing import Dict, List
 from openai import AsyncOpenAI
 from abc import ABC, abstractmethod
 
-import simplex.basics.exception
-import simplex.basics.exception
-import simplex.basics.dataclass
+import simplex.basics
 
-from simplex.basics.exception import EntityInitializationError
-from simplex.basics.dataclass import ModelInput, ModelResponse, DocumentEntry, ToolReturn
+from simplex.basics import (
+    ModelInput, 
+    ModelResponse, 
+    DocumentEntry, 
+    ToolReturn, 
+    EntityInitializationError
+)
+
 
 class BaseModel(ABC):
     def __init__(

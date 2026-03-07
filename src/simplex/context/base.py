@@ -6,13 +6,18 @@ from dataclasses import asdict
 from abc import ABC, abstractmethod
 from typing import Optional, Dict, List, TYPE_CHECKING
 
-import simplex.basics.dataclass
-import simplex.basics.exception
+import simplex.basics
 
-from simplex.basics.dataclass import ModelInput, ModelResponse, ToolReturn
+from simplex.basics import (
+    ModelInput,
+    ModelResponse,
+    ToolReturn
+)
 
 if TYPE_CHECKING:
-    from simplex.loop.base import AgentLoop
+    import simplex.loop
+
+    from simplex.loop import AgentLoop
 
 
 class ContextPlugin(ABC):

@@ -4,18 +4,21 @@ import asyncio
 
 from typing import Optional, List, Dict, Callable, TYPE_CHECKING
 
-import simplex.basics.exception
-import simplex.basics.dataclass
-import simplex.basics.container
+import simplex.basics
 import simplex.tools.base
 
-from simplex.basics.exception import UnbuiltError, EntityInitializationError
-from simplex.basics.dataclass import ModelInput
-from simplex.basics.container import ContainerManager
+from simplex.basics import (
+    ModelInput,
+    ContainerManager,
+    UnbuiltError,
+    EntityInitializationError
+)
 from simplex.tools.base import ToolCollection
 
 if TYPE_CHECKING:
-    from simplex.loop.base import AgentLoop
+    import simplex.loop
+
+    from simplex.loop import AgentLoop
 
 
 class PythonInterpreter(ToolCollection):

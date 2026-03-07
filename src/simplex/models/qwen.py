@@ -4,13 +4,18 @@ import copy
 
 from typing import List, Dict
 
-import simplex.basics.exception
-import simplex.basics.dataclass
+import simplex.basics
 import simplex.models.base
 
-from simplex.basics.exception import RequestError, ParameterError
+from simplex.basics import (
+    ModelInput, 
+    ModelResponse, 
+    ToolCall, 
+    ToolReturn, 
+    RequestError, 
+    ParameterError
+)
 from simplex.models.base import EmbeddingModel, ConversationModel
-from simplex.basics.dataclass import ModelInput, ModelResponse, ToolCall, ToolReturn
 
 
 class QwenConversationModel(ConversationModel):

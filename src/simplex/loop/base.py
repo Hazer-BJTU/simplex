@@ -5,17 +5,22 @@ import asyncio
 from abc import ABC, abstractmethod
 from typing import List, Dict, Optional, Any
 
-import simplex.basics.dataclass
-import simplex.basics.exception
-import simplex.context.base
-import simplex.models.base
-import simplex.tools.base
+import simplex.basics
+import simplex.context
+import simplex.models
+import simplex.tools
 
-from simplex.basics.dataclass import ToolCall, ToolReturn, ModelInput, ModelResponse
-from simplex.basics.exception import ConflictError, EntityInitializationError
-from simplex.context.base import ContextPlugin
-from simplex.models.base import ConversationModel
-from simplex.tools.base import ToolCollection
+from simplex.basics import (
+    ModelInput,
+    ModelResponse,
+    ToolCall,
+    ToolReturn,
+    ConflictError,
+    EntityInitializationError
+)
+from simplex.context import ContextPlugin
+from simplex.models import ConversationModel
+from simplex.tools import ToolCollection
 
 
 def call_coroutine_functions(target_list: List, name: str, *args, **kwargs) -> List[Any]:

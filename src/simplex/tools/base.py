@@ -5,14 +5,20 @@ import asyncio
 from abc import ABC, abstractmethod
 from typing import Dict, List, TYPE_CHECKING
 
-import simplex.basics.exception
-import simplex.basics.dataclass
+import simplex.basics
 
-from simplex.basics.dataclass import ToolCall, ToolReturn, ModelInput
-from simplex.basics.exception import ParameterError, ImplementationError
+from simplex.basics import (
+    ModelInput,
+    ToolCall,
+    ToolReturn,
+    ParameterError,
+    ImplementationError
+)
 
 if TYPE_CHECKING:
-    from simplex.loop.base import AgentLoop
+    import simplex.loop
+
+    from simplex.loop import AgentLoop
 
 
 class ToolCollection(ABC):
