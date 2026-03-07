@@ -20,7 +20,8 @@ from simplex.basics.exception import (
     ImplementationError,
     EnvironmentError,
     UnbuiltError,
-    ConflictError
+    ConflictError,
+    RuntimeError
 )
 
 
@@ -40,5 +41,6 @@ __all__ = [
     "ImplementationError",
     "EnvironmentError",
     "UnbuiltError",
-    "ConflictError"
+    "ConflictError",
+    "RuntimeError"
 ]
