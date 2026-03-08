@@ -319,6 +319,8 @@ SIMPLEX_COMMAND_DEF(touch) {
     path_reader->navigate_target(ptuple.view);
     output << "[updated workspace: " << path_reader->base_dir() << ", [D]: directory, [F]: regular file]: " << std::endl << *path_reader;
 
+    searcher->cache_expire(ptuple); // noexcept
+
     try {
         auto lines_record = searcher->view_file_content(ptuple);
         output << std::endl << "[successfully created file: " << ptuple.view << "]: " << std::endl;
@@ -359,6 +361,8 @@ SIMPLEX_COMMAND_DEF(remove) {
 
     output << "[successfully removed file: " << ptuple.view << "]: " << std::endl;
     output << "[updated workspace: " << path_reader->base_dir() << ", [D]: directory, [F]: regular file]: " << std::endl << *path_reader;
+
+    searcher->cache_expire(ptuple); // noexcept
 
     server->safe_output("[Session#", session_id, "]: command got: remove ", command);
     server->safe_output("[Session#", session_id, "]: response:", '\n', output.str());

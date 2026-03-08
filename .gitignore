@@ -6,3 +6,4 @@ build/
 proto/
 __pycache__/
 /dev/
+/unitest/fixtures/playground/

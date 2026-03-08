@@ -6,7 +6,7 @@ readme = "README.md"
 authors = [
     { name = "Hazer", email = "22301092@bjtu.edu.cn" }
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 dependencies = [
     "datasets>=4.6.1",
     "docker>=7.1.0",

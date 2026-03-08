@@ -111,7 +111,7 @@ class ToolSchema:
 
     name: str
     description: str
-    params: List[Parameter] = []
+    params: List[Parameter] = field(default_factory = list)
     extras: Optional[Dict] = None
 
     @property

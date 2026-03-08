@@ -1,0 +1,4190 @@
+[workspace: /home/hazer/simplex/unitest/fixtures/python_example/GeCoSleep, [D]: directory, [F]: regular file]: 
+[D] baselines
+[F] metric.py
+[D] modelsaved
+[F] README.md
+[D] old_version_code
+[D] results
+[F] no_use.py
+[F] environment.yml
+[F] joint.py
+[D] GeCoSleep
+[F] models.py
+[D] others
+[F] logs.py
+[D] DeepSleepNet
+[F] data_preprocessing.py
+[D] visualization
+[D] BayesEEGNet
+[F] main.py
+[F] clnetworks.py
+[F] train.py
+
+[updated workspace: /home/hazer/simplex/unitest/fixtures/python_example/GeCoSleep, [D]: directory, [F]: regular file]: 
+[D] baselines
+[F] metric.py
+[D] modelsaved
+[F] README.md
+[D] old_version_code
+[D] results
+[F] no_use.py
+[F] environment.yml
+[F] joint.py
+[D] GeCoSleep
+[F] models.py
+[D] others
+[F] logs.py
+[D] DeepSleepNet
+[F] data_preprocessing.py
+[D] visualization
+[D] BayesEEGNet
+  [F] __init__.py
+  [F] BayesEEGNet.py
+  [F] GCN.py
+  [F] base_func.py
+  [F] BayesCLNetwork.py
+  [F] GraphBuilder.py
+  [F] FeatureNet.py
+[F] main.py
+[F] clnetworks.py
+[F] train.py
+
+[workspace view is already navigated to: "BayesEEGNet"]
+
+[updated workspace: /home/hazer/simplex/unitest/fixtures/python_example/GeCoSleep, [D]: directory, [F]: regular file]: 
+[D] baselines
+[F] metric.py
+[D] modelsaved
+[F] README.md
+[D] old_version_code
+[D] results
+[F] no_use.py
+[F] environment.yml
+[F] joint.py
+[D] GeCoSleep
+[F] models.py
+[D] others
+[F] logs.py
+[D] DeepSleepNet
+[F] data_preprocessing.py
+[D] visualization
+[D] BayesEEGNet
+  [F] __init__.py
+  [F] BayesEEGNet.py
+  [F] GCN.py
+  [F] base_func.py
+  [F] BayesCLNetwork.py
+  [F] GraphBuilder.py
+  [F] FeatureNet.py
+[F] main.py
+[F] clnetworks.py
+[F] train.py
+
+[target: path_not_exists not found!]
+
+[updated workspace: /home/hazer/simplex/unitest/fixtures/python_example/GeCoSleep, [D]: directory, [F]: regular file]: 
+[D] baselines
+[F] metric.py
+[D] modelsaved
+[F] README.md
+[D] old_version_code
+[D] results
+[F] no_use.py
+[F] environment.yml
+[F] joint.py
+[D] GeCoSleep
+[F] models.py
+[D] others
+[F] logs.py
+[D] DeepSleepNet
+[F] data_preprocessing.py
+[D] visualization
+[D] BayesEEGNet
+  [F] __init__.py
+  [F] BayesEEGNet.py
+  [F] GCN.py
+  [F] base_func.py
+  [F] BayesCLNetwork.py
+  [F] GraphBuilder.py
+  [F] FeatureNet.py
+[F] main.py
+[F] clnetworks.py
+[F] train.py
+
+[content preview of file: "README.md"]: 
+[file_path: "README.md", total_lines: 127]: 
+|  1|# GeCoSleep
+|  2|GeCoSleep: A Generative Continual Learning Frame work for Cross-Center Adaptation in Sleep Staging
+|  3|
+|  4|![structure _1_-1.png](https://s2.loli.net/2025/05/23/5OakgcuLVbRCjPi.png)
+|  5|
+|  6|GeCoSleep employs a generative replay strategy to reconstruct the distribution of historical data without storing any raw samples, effectively mitigating catastrophic forgetting. 
+|  7|
+|  8|These are the source code and experimental setup of GeCoSleep.
+|  9|
+| 10|## Dataset
+| 11|We conducted our experiments on four publicly available sleep datasets:
+| 12|
+| 13|* ISRUC-S1: [https://sleeptight.isr.uc.pt/](https://sleeptight.isr.uc.pt/)
+| 14|* SHHS: [https://sleepdata.org/datasets/shhs](https://sleepdata.org/datasets/shhs)
+| 15|* MASS-SS3: [http://ceams-carsm.ca/en/MASS/](http://ceams-carsm.ca/en/MASS/)
+| 16|* Sleep-EDF-153: [http://www.physionet.org/physiobank/database/sleep-edfx/](http://www.physionet.org/physiobank/database/sleep-edfx/)
+| 17|
+| 18|These datasets were used to evaluate the performance of our proposed method. Please refer to the respective links for more information and access instructions.
+| 19|
+| 20|## Requirements
+
+[updated workspace: /home/hazer/simplex/unitest/fixtures/python_example/GeCoSleep, [D]: directory, [F]: regular file]: 
+[D] baselines
+[F] metric.py
+[D] modelsaved
+[F] README.md
+[D] old_version_code
+[D] results
+[F] no_use.py
+[F] environment.yml
+[F] joint.py
+[D] GeCoSleep
+  [F] __init__.py
+  [F] EEGGR.py
+  [F] generator.py
+  [F] HMM.py
+[F] models.py
+[D] others
+[F] logs.py
+[D] DeepSleepNet
+[F] data_preprocessing.py
+[D] visualization
+[D] BayesEEGNet
+  [F] __init__.py
+  [F] BayesEEGNet.py
+  [F] GCN.py
+  [F] base_func.py
+  [F] BayesCLNetwork.py
+  [F] GraphBuilder.py
+  [F] FeatureNet.py
+[F] main.py
+[F] clnetworks.py
+[F] train.py
+
+[source code skeleton of file: "GeCoSleep/EEGGR.py"]: 
+[file_path: "GeCoSleep/EEGGR.py"]: 
+| Imported  |: import torch.nn
+|           |: from models import *
+|           |: from . import generator
+|           |: from baselines import MultiHeadSleepNet
+|           |: from clnetworks import CLnetwork, linear_warmup_cosine_annealing
+|           |: from metric import ConfusionMatrix, evaluate_tasks_multihead
+|           |: from .HMM import HMMTaskGenerator
+
+[file_path: "GeCoSleep/EEGGR.py", lines: 10-30]: 
+| Entity    |: knowledge_distillation_function
+| Type      |: Function definition
+| Signature |: def knowledge_distillation_function(loss_type):
+| Lines     |: [10, 30]
+
+[file_path: "GeCoSleep/EEGGR.py", lines: 14-15]: 
+| Entity    |: knowledge_distillation_function.kl_divergence
+| Type      |: Function definition
+| Signature |: def kl_divergence(y_hat, y, args):
+| Lines     |: [14, 15]
+
+[file_path: "GeCoSleep/EEGGR.py", lines: 17-18]: 
+| Entity    |: knowledge_distillation_function.euclidean
+| Type      |: Function definition
+| Signature |: def euclidean(y_hat, y, args):
+| Lines     |: [17, 18]
+
+[file_path: "GeCoSleep/EEGGR.py", lines: 20-23]: 
+| Entity    |: knowledge_distillation_function.mixed
+| Type      |: Function definition
+| Signature |: def mixed(y_hat, y, args):
+| Lines     |: [20, 23]
+
+[file_path: "GeCoSleep/EEGGR.py", lines: 33-271]: 
+| Entity    |: EEGGRnetwork
+| Type      |: Class definition
+| Signature |: class EEGGRnetwork(CLnetwork):
+| Lines     |: [33, 271]
+
+[file_path: "GeCoSleep/EEGGR.py", lines: 34-60]: 
+| Entity    |: EEGGRnetwork.__init__
+| Type      |: Method definition
+| Signature |: def __init__(self, args, fold_num, logs):
+| Lines     |: [34, 60]
+
+[file_path: "GeCoSleep/EEGGR.py", lines: 62-87]: 
+| Entity    |: EEGGRnetwork.start_task
+| Type      |: Method definition
+| Signature |: def start_task(self):
+| Lines     |: [62, 87]
+
+[file_path: "GeCoSleep/EEGGR.py", lines: 89-97]: 
+| Entity    |: EEGGRnetwork.start_epoch
+| Type      |: Method definition
+| Signature |: def start_epoch(self):
+| Lines     |: [89, 97]
+
+[file_path: "GeCoSleep/EEGGR.py", lines: 99-111]: 
+| Entity    |: EEGGRnetwork.update_running_task_loss
+| Type      |: Method definition
+| Signature |: def update_running_task_loss(self, L, t, batch_size):
+| Lines     |: [99, 111]
+
+[file_path: "GeCoSleep/EEGGR.py", lines: 113-194]: 
+| Entity    |: EEGGRnetwork.observe
+| Type      |: Method definition
+| Signature |: def observe(self, X, y, first_time=False):
+| Lines     |: [113, 194]
+
+[file_path: "GeCoSleep/EEGGR.py", lines: 196-261]: 
+| Entity    |: EEGGRnetwork.end_epoch
+| Type      |: Method definition
+| Signature |: def end_epoch(self, valid_dataset):
+| Lines     |: [196, 261]
+
+[file_path: "GeCoSleep/EEGGR.py", lines: 263-271]: 
+| Entity    |: EEGGRnetwork.end_task
+| Type      |: Method definition
+| Signature |: def end_task(self, dataset=None):
+| Lines     |: [263, 271]
+
+[file_path: "GeCoSleep/generator.py", total_lines: 156]: 
+|  1|import torch
+|  2|from models import *
+|  3|from data_preprocessing import *
+|  4|# from thop import profile
+|  5|
+|  6|
+|  7|class PositionalEncoding(nn.Module):
+|  8|    def __init__(self, d_model, max_len=256, **kwargs):
+|  9|        super(PositionalEncoding, self).__init__(**kwargs)
+| 10|        self.pe = torch.zeros((max_len, d_model), dtype=torch.float32, requires_grad=False)
+| 11|        position = torch.arange(0, max_len, dtype=torch.float32, requires_grad=False).unsqueeze(1)
+| 12|        div_term = torch.arange(0, d_model, 2, dtype=torch.float32, requires_grad=False)
+| 13|        div_term = torch.exp(div_term * (-math.log(10000.0) / d_model))
+| 14|        self.pe[:, 0::2] = torch.sin(position * div_term)
+| 15|        self.pe[:, 1::2] = torch.cos(position * div_term)
+| 16|        self.pe = self.pe.unsqueeze(0)
+| 17|
+| 18|    def forward(self, X):
+| 19|        batch_size, seq_length, d_model = X.shape
+| 20|        X = X + self.pe[:, :seq_length, :].to(X.device)
+
+[target: "path_not_exists" not found!]
+
+[file_path: "GeCoSleep/EEGGR.py", total_lines: 275]: 
+|  34|    def __init__(self, args, fold_num, logs):
+|  35|        super(EEGGRnetwork, self).__init__(args, fold_num, logs)
+|  36|        self.net = MultiHeadSleepNet(self.num_channels, args.dropout, args.task_num, self.args.enable_multihead)
+|  37|        self.net.apply(init_weight)
+|  38|        self.net.to(self.device)
+|  39|        '''generator settings'''
+|  40|        self.start_training_generator = False
+|  41|        self.num_epochs_solver = self.args.num_epochs - self.args.num_epochs_generator
+|  42|        self.seq_gen = generator.SequentialVAE(512, 0)
+|  43|        self.seq_gen.apply(init_weight)
+|  44|        self.optim_seq_gen = torch.optim.Adam(self.seq_gen.parameters(), lr=args.lr_seq_gen)
+|  45|        self.sched_seq_gen = None
+|  46|        self.rec_loss, self.kl_loss, self.task_loss = 0, 0, 0
+|  47|        self.seq_gen.to(self.device)
+|  48|        self.mseloss = nn.MSELoss()
+|  49|        self.kdloss = knowledge_distillation_function(self.args.distill_loss)
+|  50|        '''replay settings'''
+|  51|        self.teacher_model = MultiHeadSleepNet(self.num_channels, args.dropout, args.task_num, self.args.enable_multihead)
+|  52|        self.teacher_seq_gen = generator.SequentialVAE(512, 0)
+|  53|        self.teacher_model.to(self.device)
+|  54|        self.teacher_seq_gen.to(self.device)
+|  55|        self.seq_gen_memory = []
+|  56|        '''statistics settings'''
+|  57|        self.running_task_loss = None
+|  58|        self.distill_loss, self.replay_loss = 0, 0
+|  59|        '''HMM settings'''
+|  60|        self.hmm_model = HMMTaskGenerator(args.task_num, self.device)
+|  61|
+|  62|    def start_task(self):
+|  63|        super(EEGGRnetwork, self).start_task()
+|  64|        '''generator settings'''
+|  65|        self.start_training_generator = False
+|  66|        self.optimizer = torch.optim.AdamW(self.net.parameters(), lr=self.args.lr, weight_decay=self.args.weight_decay)
+|  67|        self.scheduler = torch.optim.lr_scheduler.LambdaLR(
+|  68|            self.optimizer,
+|  69|            lr_lambda=linear_warmup_cosine_annealing(self.num_epochs_solver, self.args.min_epoch)
+|  70|        )
+|  71|        self.optim_seq_gen = torch.optim.Adam(self.seq_gen.parameters(), lr=self.args.lr_seq_gen)
+|  72|        self.sched_seq_gen = torch.optim.lr_scheduler.LambdaLR(
+|  73|            self.optim_seq_gen,
+|  74|            lr_lambda=linear_warmup_cosine_annealing(self.args.num_epochs_generator, self.args.min_epoch)
+|  75|        )
+|  76|        '''replay settings'''
+|  77|        if self.task > 0:
+|  78|            self.teacher_model.load_state_dict(torch.load(self.best_net_memory[-1], map_location=self.device, weights_only=True))
+|  79|            print(f'teacher model loaded: {self.best_net_memory[-1]}')
+|  80|            self.teacher_seq_gen.load_state_dict(torch.load(self.seq_gen_memory[-1], map_location=self.device, weights_only=True))
+|  81|            print(f'generator loaded: {self.seq_gen_memory[-1]}')
+|  82|        '''statistics settings'''
+|  83|        if self.task > 0:
+|  84|            self.running_task_loss = torch.ones(self.task, dtype=torch.float32, requires_grad=False, device=self.device)
+|  85|            self.running_task_loss = self.running_task_loss / torch.norm(self.running_task_loss, p=2)
+|  86|        '''HMM settings'''
+|  87|        self.hmm_model.clear_samples()
+|  88|
+|  89|    def start_epoch(self):
+|  90|        super(EEGGRnetwork, self).start_epoch()
+|  91|        '''generator settings'''
+|  92|        self.rec_loss, self.kl_loss, self.task_loss = 0, 0, 0
+|  93|        self.seq_gen.train()
+|  94|        self.teacher_model.eval()
+|  95|        self.teacher_seq_gen.eval()
+|  96|        '''statistics settings'''
+|  97|        self.distill_loss, self.replay_loss = 0, 0
+|  98|
+|  99|    def update_running_task_loss(self, L, t, batch_size):
+| 100|        delta = torch.zeros_like(self.running_task_loss)
+| 101|        cnt = torch.zeros_like(self.running_task_loss)
+| 102|        for i in range(batch_size):
+| 103|            delta[t[i]] += L[i].item()
+| 104|            cnt[t[i]] += 1
+| 105|        delta = delta / torch.clamp(cnt, min=1.0)
+| 106|        delta = delta / (torch.norm(delta, p=2) + 1e-8)
+| 107|        for i in range(self.running_task_loss.shape[0]):
+| 108|            if cnt[i] == 0:
+| 109|                continue
+| 110|            self.running_task_loss[i] = (1 - self.args.gamma) * self.running_task_loss[i] + self.args.gamma * delta[i]
+| 111|        self.running_task_loss = self.running_task_loss / (torch.norm(self.running_task_loss, p=2) + 1e-8)
+| 112|
+| 113|    def observe(self, X, y, first_time=False):
+| 114|        if first_time:
+| 115|            '''update hmm model samples'''
+| 116|            self.hmm_model.add_sample(y)
+| 117|        if self.epoch < self.num_epochs_solver:
+| 118|            X, y = X.to(self.device), y.to(self.device)
+| 119|            if self.task > 0:
+| 120|                self.net.freeze_parameters()
+| 121|            self.optimizer.zero_grad()
+| 122|            y_hat = self.net(X, self.task)
+| 123|            L_current = self.loss(y_hat, y.view(-1))
+| 124|            L = torch.mean(L_current)
+| 125|            self.train_loss += L.item()
+| 126|            if self.task > 0:
+| 127|                '''perform generative replay'''
+| 128|                weights = self.running_task_loss.softmax(dim=0)
+| 129|                t = torch.multinomial(weights, y.shape[0], replacement=True)
+| 130|                y_hmm = self.hmm_model.generate(t)
+| 131|                F_fake = self.teacher_seq_gen.decoder.generate(y_hmm, t).detach()
+| 132|                y_fake = self.teacher_model.classify(F_fake, self.task - 1).detach()
+| 133|                y_pred = self.net.classify(F_fake, self.task)
+| 134|                L_replay = self.kdloss(y_pred, y_fake, self.args)
+| 135|                L = L + torch.mean(L_replay) * self.args.replay_lambda
+| 136|                self.replay_loss += torch.mean(L_replay).item() * self.args.replay_lambda
+| 137|                '''distillation for sample feature extractor'''
+| 138|                y_distill = self.teacher_model(X, self.task - 1).detach()
+| 139|                L_distill = self.kdloss(y_hat, y_distill, self.args)
+| 140|                L = L + torch.mean(L_distill) * self.args.distill_lambda
+| 141|                self.distill_loss += torch.mean(L_distill).item() * self.args.distill_lambda
+| 142|                '''update running task loss'''
+| 143|                self.update_running_task_loss(L_replay, t, y.shape[0])
+| 144|            L.backward()
+| 145|            self.optimizer.step()
+| 146|            self.confusion_matrix.count_task_separated(y_hat, y, 0)
+| 147|        else:
+| 148|            if not self.start_training_generator:
+| 149|                if self.task + 1 == self.args.task_num:
+| 150|                    print('skip last training...')
+| 151|                    return
+| 152|                print('start training generator...')
+| 153|                self.net.load_state_dict(torch.load(self.best_net, map_location=self.device, weights_only=True))
+| 154|                print(f'best solver model loaded: {self.best_net}')
+| 155|                self.start_training_generator = True
+| 156|            '''freeze BN and dropout'''
+| 157|            for m in self.net.modules():
+| 158|                if isinstance(m, nn.BatchNorm1d) or isinstance(m, nn.Dropout):
+| 159|                    m.eval()
+| 160|            X, y = X.to(self.device), y.to(self.device)
+| 161|            '''training sequential generator'''
+| 162|            self.optim_seq_gen.zero_grad()
+| 163|            self.optimizer.zero_grad()
+| 164|            F = self.net.features(X).detach()
+| 165|            if self.task > 0:
+| 166|                '''perform generative replay for sequential generator'''
+| 167|                weights = self.running_task_loss.softmax(dim=0)
+| 168|                t = torch.multinomial(weights, y.shape[0], replacement=True)
+| 169|                y_hmm = self.hmm_model.generate(t)
+| 170|                F_fake = self.teacher_seq_gen.decoder.generate(y_hmm, t).detach()
+| 171|                F_prime = torch.cat((F_fake, F), dim=0)
+| 172|                y_prime = torch.cat((y_hmm, y), dim=0)
+| 173|                temp = torch.ones(y.shape[0], dtype=torch.int64, requires_grad=False, device=self.device) * self.task
+| 174|                t_prime = torch.cat((t, temp), dim=0)
+| 175|            else:
+| 176|                F_prime = F
+| 177|                y_prime = y
+
+[file_path: "GeCoSleep/EEGGR.py", total_lines: 275]: 
+| 117|        if self.epoch < self.num_epochs_solver:
+| 118|            X, y = X.to(self.device), y.to(self.device)
+| 119|            if self.task > 0:
+| 120|                self.net.freeze_parameters()
+| 121|            self.optimizer.zero_grad()
+| 122|            y_hat = self.net(X, self.task)
+| 123|            L_current = self.loss(y_hat, y.view(-1))
+| 124|            L = torch.mean(L_current)
+| 125|            self.train_loss += L.item()
+| 126|            if self.task > 0:
+| 127|                '''perform generative replay'''
+| 128|                weights = self.running_task_loss.softmax(dim=0)
+| 129|                t = torch.multinomial(weights, y.shape[0], replacement=True)
+| 130|                y_hmm = self.hmm_model.generate(t)
+| 131|                F_fake = self.teacher_seq_gen.decoder.generate(y_hmm, t).detach()
+| 132|                y_fake = self.teacher_model.classify(F_fake, self.task - 1).detach()
+| 133|                y_pred = self.net.classify(F_fake, self.task)
+| 134|                L_replay = self.kdloss(y_pred, y_fake, self.args)
+| 135|                L = L + torch.mean(L_replay) * self.args.replay_lambda
+| 136|                self.replay_loss += torch.mean(L_replay).item() * self.args.replay_lambda
+| 137|                '''distillation for sample feature extractor'''
+| 138|                y_distill = self.teacher_model(X, self.task - 1).detach()
+| 139|                L_distill = self.kdloss(y_hat, y_distill, self.args)
+| 140|                L = L + torch.mean(L_distill) * self.args.distill_lambda
+| 141|                self.distill_loss += torch.mean(L_distill).item() * self.args.distill_lambda
+| 142|                '''update running task loss'''
+| 143|                self.update_running_task_loss(L_replay, t, y.shape[0])
+| 144|            L.backward()
+| 145|            self.optimizer.step()
+| 146|            self.confusion_matrix.count_task_separated(y_hat, y, 0)
+| 147|        else:
+| 148|            if not self.start_training_generator:
+| 149|                if self.task + 1 == self.args.task_num:
+| 150|                    print('skip last training...')
+| 151|                    return
+| 152|                print('start training generator...')
+| 153|                self.net.load_state_dict(torch.load(self.best_net, map_location=self.device, weights_only=True))
+| 154|                print(f'best solver model loaded: {self.best_net}')
+| 155|                self.start_training_generator = True
+| 156|            '''freeze BN and dropout'''
+| 157|            for m in self.net.modules():
+| 158|                if isinstance(m, nn.BatchNorm1d) or isinstance(m, nn.Dropout):
+| 159|                    m.eval()
+| 160|            X, y = X.to(self.device), y.to(self.device)
+| 161|            '''training sequential generator'''
+| 162|            self.optim_seq_gen.zero_grad()
+| 163|            self.optimizer.zero_grad()
+| 164|            F = self.net.features(X).detach()
+| 165|            if self.task > 0:
+| 166|                '''perform generative replay for sequential generator'''
+| 167|                weights = self.running_task_loss.softmax(dim=0)
+| 168|                t = torch.multinomial(weights, y.shape[0], replacement=True)
+| 169|                y_hmm = self.hmm_model.generate(t)
+| 170|                F_fake = self.teacher_seq_gen.decoder.generate(y_hmm, t).detach()
+| 171|                F_prime = torch.cat((F_fake, F), dim=0)
+| 172|                y_prime = torch.cat((y_hmm, y), dim=0)
+| 173|                temp = torch.ones(y.shape[0], dtype=torch.int64, requires_grad=False, device=self.device) * self.task
+| 174|                t_prime = torch.cat((t, temp), dim=0)
+| 175|            else:
+| 176|                F_prime = F
+| 177|                y_prime = y
+| 178|                t_prime = torch.ones(y.shape[0], dtype=torch.int64, requires_grad=False, device=self.device) * self.task
+| 179|            F_hat, L_kl = self.seq_gen(F_prime, y_prime, t_prime)
+| 180|            L_rec = self.mseloss(F_hat, F_prime)
+| 181|            pred_true = self.net.classify(F_prime, self.task).detach()
+| 182|            pred_fake = self.net.classify(F_hat, self.task)
+| 183|            L_task = self.kdloss(pred_fake, pred_true, self.args)
+| 184|            if self.task > 0:
+| 185|                '''update running task loss'''
+| 186|                self.update_running_task_loss(L_task.detach(), t_prime, y.shape[0])
+| 187|            '''backprop'''
+| 188|            L_task = torch.mean(L_task)
+| 189|            (L_rec + L_task + self.args.beta * L_kl).backward()
+| 190|            self.optim_seq_gen.step()
+| 191|            self.rec_loss += L_rec.item()
+| 192|            self.task_loss += L_task.item()
+| 193|            self.kl_loss += L_kl.item() * self.args.beta
+| 194|        self.cnt += 1
+| 195|
+| 196|    def end_epoch(self, valid_dataset):
+| 197|        if self.epoch < self.num_epochs_solver:
+| 198|            learning_rate = self.optimizer.state_dict()['param_groups'][0]['lr']
+| 199|            train_acc, train_mf1 = self.confusion_matrix.accuracy(), self.confusion_matrix.macro_f1()
+| 200|            print(
+| 201|                f'epoch: {self.epoch}, '
+| 202|                f'train loss: {self.train_loss / self.cnt:.3f}, '
+| 203|                f'distill loss: {self.distill_loss / self.cnt:.3f}, '
+| 204|                f'replay loss: {self.replay_loss / self.cnt:.3f}, '
+| 205|                f'train accuracy: {train_acc:.3f}, '
+| 206|                f"macro F1: {train_mf1:.3f}, 1000 lr: {learning_rate * 1000:.3f}")
+| 207|            self.logs.append(['train_info', f'task{self.task}_fold{self.fold_num}', f'epoch:{self.epoch}'], {
+| 208|                'train loss': self.train_loss / self.cnt,
+| 209|                'distill loss': self.distill_loss / self.cnt,
+| 210|                'replay loss': self.replay_loss / self.cnt,
+| 211|                'train accuracy': train_acc,
+| 212|                'train mF1': train_mf1,
+| 213|                '1000 lr': learning_rate * 1000
+| 214|            })
+| 215|            if (self.epoch + 1) % self.args.valid_epoch == 0:
+| 216|                print(f'validating on the datasets...')
+| 217|                valid_confusion = ConfusionMatrix(1)
+| 218|                valid_confusion = evaluate_tasks_multihead(self.net, [valid_dataset], valid_confusion,
+| 219|                                                           self.device, self.args.valid_batch, self.task)
+| 220|                valid_acc, valid_mf1 = valid_confusion.accuracy(), valid_confusion.macro_f1()
+| 221|                print(f'valid accuracy: {valid_acc:.3f}, valid macro F1: {valid_mf1:.3f}')
+| 222|                self.logs.append(['train_info', f'task{self.task}_fold{self.fold_num}', f'valid epoch:{self.epoch}'], {
+| 223|                    'valid accuracy': valid_acc,
+| 224|                    'valid mF1': valid_mf1
+| 225|                })
+| 226|                if valid_acc + valid_mf1 > self.best_valid_acc and self.epoch + 1 >= self.args.min_epoch:
+| 227|                    self.logs.append(
+| 228|                        ['train_info', f'task{self.task}_fold{self.fold_num}', f'valid epoch:{self.epoch}', 'saved'],
+| 229|                        True)
+| 230|                    self.best_train_loss = self.train_loss / self.cnt
+| 231|                    self.best_train_acc = train_acc
+| 232|                    self.best_valid_acc = valid_acc + valid_mf1
+| 233|                    self.best_net = './modelsaved/' + str(self.args.replay_mode) + '_task' + str(
+| 234|                        self.task) + '_fold' + str(self.fold_num) + '.pth'
+| 235|                    print(f'model saved: {self.best_net}')
+| 236|                    torch.save(self.net.state_dict(), self.best_net)
+| 237|            self.epoch += 1
+| 238|            self.scheduler.step()
+| 239|        else:
+| 240|            if self.task + 1 == self.args.task_num:
+| 241|                return
+| 242|            lr_seq_gen = self.optim_seq_gen.state_dict()['param_groups'][0]['lr']
+| 243|            print(f'epoch: {self.epoch}, '
+| 244|                  f'reconstruction loss: {self.rec_loss / self.cnt:.3f}, '
+| 245|                  f'task loss: {self.task_loss / self.cnt:.3f}, '
+| 246|                  f'kl loss: {self.kl_loss / self.cnt:.3f}, '
+| 247|                  f"1000 lr: {lr_seq_gen * 1000:.3f}")
+| 248|            self.logs.append(['train_info', f'task{self.task}_fold{self.fold_num}', f'epoch:{self.epoch}'], {
+| 249|                'train generator': True,
+| 250|                'reconstruction loss': self.rec_loss / self.cnt,
+| 251|                'task loss': self.task_loss / self.cnt,
+| 252|                'kl loss': self.kl_loss / self.cnt,
+| 253|                '1000 lr': lr_seq_gen * 1000
+| 254|            })
+| 255|            self.epoch += 1
+| 256|            self.sched_seq_gen.step()
+| 257|        if self.task > 0:
+| 258|            self.logs.append(
+| 259|                ['train_info', f'task{self.task}_fold{self.fold_num}', f'epoch:{self.epoch - 1}', 'Pk'],
+| 260|                self.running_task_loss.cpu().numpy().tolist()
+| 261|            )
+| 262|
+| 263|    def end_task(self, dataset=None):
+| 264|        super(EEGGRnetwork, self).end_task()
+| 265|        seq_gen_path = './modelsaved/seq_gen_task' + str(self.task - 1) + '_fold' + str(self.fold_num) + '.pth'
+| 266|        torch.save(self.seq_gen.state_dict(), seq_gen_path)
+| 267|        self.seq_gen_memory.append(seq_gen_path)
+| 268|        '''hmm settings'''
+| 269|        print(f'start fitting hmm model on {self.hmm_model.total_samples} samples...')
+| 270|        self.hmm_model.ready()
+| 271|        print('hmm model fitted.')
+| 272|
+| 273|
+| 274|if __name__ == '__main__':
+| 275|    pass
+
+[file_path: "GeCoSleep/EEGGR.py", total_lines: 275]: 
+|  1|import torch.nn
+|  2|from models import *
+|  3|from . import generator
+|  4|from baselines import MultiHeadSleepNet
+|  5|from clnetworks import CLnetwork, linear_warmup_cosine_annealing
+|  6|from metric import ConfusionMatrix, evaluate_tasks_multihead
+|  7|from .HMM import HMMTaskGenerator
+|  8|
+|  9|
+| 10|def knowledge_distillation_function(loss_type):
+| 11|    kld_loss = nn.KLDivLoss(reduction='none')
+| 12|    mse_loss = nn.MSELoss(reduction='none')
+| 13|
+| 14|    def kl_divergence(y_hat, y, args):
+| 15|        return torch.sum(kld_loss(nn.functional.log_softmax(y_hat / args.tau, dim=1), (y / args.tau).softmax(dim=1)), dim=1)
+| 16|
+| 17|    def euclidean(y_hat, y, args):
+| 18|        return torch.mean(mse_loss(y_hat, y), dim=1)
+| 19|
+| 20|    def mixed(y_hat, y, args):
+
+[file_path: "GeCoSleep/EEGGR.py", total_lines: 275]: 
+|  1|import torch.nn
+|  2|from models import *
+|  3|from . import generator
+|  4|from baselines import MultiHeadSleepNet
+|  5|from clnetworks import CLnetwork, linear_warmup_cosine_annealing
+|  6|from metric import ConfusionMatrix, evaluate_tasks_multihead
+|  7|from .HMM import HMMTaskGenerator
+|  8|
+|  9|
+| 10|def knowledge_distillation_function(loss_type):
+| 11|    kld_loss = nn.KLDivLoss(reduction='none')
+| 12|    mse_loss = nn.MSELoss(reduction='none')
+| 13|
+| 14|    def kl_divergence(y_hat, y, args):
+| 15|        return torch.sum(kld_loss(nn.functional.log_softmax(y_hat / args.tau, dim=1), (y / args.tau).softmax(dim=1)), dim=1)
+| 16|
+| 17|    def euclidean(y_hat, y, args):
+| 18|        return torch.mean(mse_loss(y_hat, y), dim=1)
+| 19|
+| 20|    def mixed(y_hat, y, args):
+
+[updated workspace: /home/hazer/simplex/unitest/fixtures/python_example/GeCoSleep, [D]: directory, [F]: regular file]: 
+[F] edit_hello.txt
+[D] baselines
+[F] metric.py
+[D] modelsaved
+[F] README.md
+[F] clnetworks.py
+[F] train.py
+[F] data_preprocessing.py
+[F] models.py
+[D] GeCoSleep
+  [F] __init__.py
+  [F] EEGGR.py
+  [F] generator.py
+  [F] HMM.py
+[D] visualization
+[D] results
+[F] main.py
+[D] BayesEEGNet
+  [F] __init__.py
+  [F] BayesEEGNet.py
+  [F] GCN.py
+  [F] base_func.py
+  [F] BayesCLNetwork.py
+  [F] GraphBuilder.py
+  [F] FeatureNet.py
+[D] DeepSleepNet
+[F] logs.py
+[D] others
+[F] no_use.py
+[F] environment.yml
+[F] joint.py
+[D] old_version_code
+
+[successfully created file: "edit_hello.txt"]: 
+[file_path: "edit_hello.txt", total_lines: 3]: 
+| 1|Hello world!
+| 2|	Hello world!
+| 3|Hello world!
+
+[updated workspace: /home/hazer/simplex/unitest/fixtures/python_example/GeCoSleep, [D]: directory, [F]: regular file]: 
+[F] edit_hello.txt
+[D] baselines
+[F] metric.py
+[D] modelsaved
+[F] README.md
+[F] clnetworks.py
+[F] train.py
+[F] data_preprocessing.py
+[F] models.py
+[D] GeCoSleep
+  [F] __init__.py
+  [F] EEGGR.py
+  [F] generator.py
+  [F] HMM.py
+[D] visualization
+[D] results
+[F] main.py
+[D] BayesEEGNet
+  [F] __init__.py
+  [F] BayesEEGNet.py
+  [F] GCN.py
+  [F] base_func.py
+  [F] BayesCLNetwork.py
+  [F] GraphBuilder.py
+  [F] FeatureNet.py
+[D] DeepSleepNet
+[F] logs.py
+[D] others
+[F] no_use.py
+[F] environment.yml
+[F] joint.py
+[D] old_version_code
+
+[successfully created file: "edit_hello.txt"]: 
+[file_path: "edit_hello.txt", total_lines: 5]: 
+| 1|Hello world!
+| 2|	Hello world!
+| 3|Hello world!
+| 4|	Hello world!
+| 5|Hello world!
+
+[changes have been written to: "edit_hello.txt"]: 
+[file_path: "edit_hello.txt", added_lines: 1]:
+| 1|Hello world!
+| 2|	Hello world!
+|+3|This is an additional row!
+| 4|Hello world!
+| 5|	Hello world!
+| 6|Hello world!
+
+[changes have been written to: "edit_hello.txt"]: 
+[file_path: "edit_hello.txt", added_lines: 1]:
+| 1|Hello world!
+| 2|	Hello world!
+| 3|This is an additional row!
+| 4|Hello world!
+| 5|	Hello world!
+| 6|Hello world!
+|+7|This is a additional row!
+
+[changes have been written to: "edit_hello.txt"]: 
+[file_path: "edit_hello.txt", removed_lines: 3]:
+|-1|Hello world!
+|-2|	Hello world!
+|-3|This is an additional row!
+| 3|Hello world!
+| 4|	Hello world!
+| 5|Hello world!
+| 6|This is a additional row!
+
+[file_path: "edit_hello.txt", added_lines: 2]:
+|+1|The rows are replaced!
+|+2|The rows are replaced!
+| 3|Hello world!
+| 4|	Hello world!
+| 5|Hello world!
+| 6|This is a additional row!
+
+[error occurred: line number should be positive integers; no changes have been made to workspace]
+
+[error occurred: invalid start line: 0; start line should not be zero or exceed maximum lines in the file; no changes have been made to workspace]
+
+[successfully removed file: "edit_hello.txt"]: 
+[updated workspace: /home/hazer/simplex/unitest/fixtures/python_example/GeCoSleep, [D]: directory, [F]: regular file]: 
+[D] baselines
+[F] metric.py
+[D] modelsaved
+[F] README.md
+[F] clnetworks.py
+[F] train.py
+[F] data_preprocessing.py
+[F] models.py
+[D] GeCoSleep
+  [F] __init__.py
+  [F] EEGGR.py
+  [F] generator.py
+  [F] HMM.py
+[D] visualization
+[D] results
+[F] main.py
+[D] BayesEEGNet
+  [F] __init__.py
+  [F] BayesEEGNet.py
+  [F] GCN.py
+  [F] base_func.py
+  [F] BayesCLNetwork.py
+  [F] GraphBuilder.py
+  [F] FeatureNet.py
+[D] DeepSleepNet
+[F] logs.py
+[D] others
+[F] no_use.py
+[F] environment.yml
+[F] joint.py
+[D] old_version_code
+
+[4 entities found]: 
+[file_path: "old_version_code/data_preprocessing.py", lines: 11-40]: 
+| Entity    |: load_data_isruc1
+| Type      |: Function definition
+| Signature |: def load_data_isruc1(filepath, window_size, channels, total_num):
+| Lines     |: [11, 40]
+
+[file_path: "models.py", lines: 7-43]: 
+| Entity    |: MultiScaleCNN
+| Type      |: Class definition
+| Signature |: class MultiScaleCNN(nn.Module):
+| Lines     |: [7, 43]
+
+[file_path: "data_preprocessing.py", lines: 14-49]: 
+| Entity    |: load_data_isruc1
+| Type      |: Function definition
+| Signature |: def load_data_isruc1(filepath, window_size, channels, total_num, normalize):
+| Lines     |: [14, 49]
+
+[file_path: "logs.py", lines: 7-72]: 
+| Entity    |: LogDocument
+| Type      |: Class definition
+| Signature |: class LogDocument:
+| Lines     |: [7, 72]
+
+[file_path: "BayesEEGNet/BayesEEGNet.py", lines_matched: 5]: 
+|*  1|import torch
+|*  2|import torch.nn as nn
+|   3|
+|   4|from .FeatureNet import FeatureNet
+|   5|from .GraphBuilder import GraphBuilder
+|   6|
+|   7|class BayesEEGNet(nn.Module):
+|   8|    def __init__(self, hidden_size, output_size,
+|   9|                 graph_node_dim, num_nodes, last_dense=64, res=True):
+| ...| ... 
+|  29|            nn.Dropout(p=0.1),
+|  30|            nn.Linear(last_dense, output_size))
+|  31|
+|  32|    def forward(self, x):
+|  33|        B, C, T = x.size()
+|  34|        
+|  35|        # Feature extract
+|* 36|        x = torch.reshape(x, (B*C, 1, T))
+|  37|        x = self.feature(x)
+|  38|        if self.hidden_size!=512:
+|  39|            x = self.changeDim(x)
+|* 40|        x = torch.reshape(x, (B, C, self.hidden_size))
+|  41|
+|  42|        # Build graph representation
+|  43|        graph_out = self.graph(x)
+|  44|        x = graph_out['H_g']
+|  45|        
+|  46|        # Classify
+|* 47|        x = torch.reshape(x, (B, -1))
+|  48|        x = self.classifier(x)
+|  49|
+|  50|        graph_out['y_hat'] = x
+|  51|        return graph_out
+|  52|
+|  53|
+|  54|if __name__ == '__main__':
+
+[file_path: "BayesEEGNet/FeatureNet.py", lines_matched: 1]: 
+|*  1|import torch.nn as nn
+|   2|
+|   3|'''
+|   4|Single channel EEG feature extraction
+|   5|'''
+|   6|def FeatureNet(s_freq, filters=128, dropout=0.5):
+|   7|    model = nn.Sequential(
+|   8|        nn.Conv1d(1, filters, kernel_size=s_freq//2, stride=s_freq//4),
+
+[file_path: "BayesEEGNet/GCN.py", lines_matched: 11]: 
+|*  1|import torch
+|*  2|from torch import nn
+|*  3|from torch.nn import init
+|*  4|from torch.nn.parameter import Parameter
+|   5|import math
+|   6|
+|   7|class GCN(nn.Module):
+|   8|    def __init__(self, in_features, out_features, num_node=None, bias=True, input_vector=False):
+|   9|        super(GCN, self).__init__()
+|  10|        
+|  11|        self.in_features = in_features
+|  12|        self.out_features = out_features
+|  13|        self.bias = bias
+|  14|        self.input_vector = input_vector
+|  15|        self.num_node = num_node
+|  16|        
+|* 17|        self.weight = Parameter(torch.randn(in_features, out_features))
+|  18|        if bias:
+|* 19|            self.bias = Parameter(torch.randn(out_features))
+|  20|        else:
+|  21|            self.register_parameter('bias', None)
+|  22|        self._reset_parameters()
+|  23|
+|  24|    def _reset_parameters(self):
+|  25|        if (self.in_features == self.out_features):
+|  26|            init.orthogonal_(self.weight)
+| ...| ... 
+|  35|        '''
+|  36|        A: [N,V,V] or [V,V]
+|  37|        X: [N,V,F]
+|  38|        '''
+|  39|        if self.input_vector:
+|  40|            A = self.vector2matrix(A)
+|  41|            #print(A.shape, X.shape, self.weight.shape, self.bias.shape)
+|* 42|            return torch.matmul(torch.matmul(A, X), self.weight) + self.bias, A
+|  43|        else:
+|* 44|            return torch.matmul(torch.matmul(A, X), self.weight) + self.bias
+|  45|
+|  46|    def extra_repr(self):
+|  47|        return 'in_features={}, out_features={}, bias={}'.format(
+|  48|            self.in_features, self.out_features, self.bias is not None)
+|  49|    
+|  50|    def vector2matrix(self, A):
+|  51|        if self.num_node is None:
+|  52|            num_node = int(math.sqrt(1+A.shape[-1]*8)+1)//2
+|  53|        else:
+|  54|            num_node = self.num_node
+|  55|        if(len(A.shape)==2):
+|* 56|            A_M = torch.zeros(A.shape[0], num_node, num_node).cuda()
+|  57|            eid = 0
+|  58|            for i in range(num_node):
+|  59|                for j in range(i):
+|  60|                    A_M[:,i,j] = A[:,eid]
+|  61|                    A_M[:,j,i] = A[:,eid]
+|  62|                    eid+=1
+|  63|        else:
+|* 64|            A_M = torch.zeros(num_node, num_node).cuda()
+|  65|            eid = 0
+|  66|            for i in range(num_node):
+|  67|                for j in range(i):
+|  68|                    A_M[i,j] = A[eid]
+|  69|                    A_M[j,i] = A[eid]
+|  70|                    eid+=1
+|* 71|        A_M += torch.eye(num_node).cuda()
+|  72|        return A_M
+
+[file_path: "DeepSleepNet/DeepSleepNet.py", lines_matched: 9]: 
+|*  1|import torch
+|*  2|import torch.nn as nn
+|*  3|import torch.nn.functional as F
+|   4|
+|   5|
+|   6|class DeepSleepNet(nn.Module):
+|   7|    def __init__(self, num_channels=1, num_classes=5, fs=100, window_size=30, dropout=0.5):
+|   8|        super(DeepSleepNet, self).__init__()
+|   9|
+|  10|        self.num_channels = num_channels
+| ...| ... 
+|  53|        )
+|  54|
+|  55|    def forward(self, x):
+|  56|        batch_size, window_size, num_channels, len_series = x.size()
+|  57|        x = x.view(batch_size * window_size, num_channels, len_series)
+|  58|        h_small = self.cnn_small(x)  # (batch*window, 512)
+|  59|        h_large = self.cnn_large(x)  # (batch*window, 512)
+|* 60|        a = torch.cat((h_small, h_large), dim=1)  # (batch*window, 1024)
+|  61|        a_seq = a.view(batch_size, window_size, -1)  # (batch, window, 1024)
+|  62|        lstm_out, _ = self.bilstm(a_seq)  # (batch, window, 1024)
+|  63|        lstm_out = lstm_out.contiguous().view(batch_size * window_size, -1)  # (batch*window, 1024)
+|  64|        a = a.view(batch_size * window_size, -1)
+|  65|        residual = self.fc_residual(a)  # (batch*window, 1024)
+|  66|        out = lstm_out + residual
+|  67|        out = self.dropout(out)
+|* 68|        logits = self.fc_out(out)  # (batch*window, num_classes)
+|* 69|        return logits
+|  70|
+|  71|
+|  72|if __name__ == "__main__":
+|  73|    '''
+|  74|    batch_size = 32
+|  75|    window_size = 10
+|  76|    num_channels = 2
+|  77|    len_series = 100 * 30
+|  78|    num_classes = 5
+|  79|
+|  80|    model = DeepSleepNet(num_channels=num_channels, num_classes=num_classes)
+|  81|
+|* 82|    x = torch.randn(batch_size, window_size, num_channels, len_series)
+|  83|
+|* 84|    logits = model(x)
+|  85|
+|  86|    print(f"Input shape: {x.shape}")
+|* 87|    print(f"Output shape: {logits.shape}")
+|  88|    '''
+
+[file_path: "baselines/DER.py", lines_matched: 12]: 
+|*  1|import torch
+|   2|import random
+|   3|from models import *
+|   4|from clnetworks import ExperienceReplay
+|   5|
+|   6|
+|   7|class DERnetwork(ExperienceReplay):
+|*  8|    def __init__(self, args, fold_num, logs):
+|*  9|        super(DERnetwork, self).__init__(args, fold_num, logs)
+|  10|        self.kldloss = nn.KLDivLoss(reduction='none')
+|  11|        self.mseloss = nn.MSELoss()
+|  12|        '''replay settings'''
+|  13|        self.dark_experience = None
+|  14|        self.teacher_model = SleepNet(self.num_channels, args.dropout)
+|  15|        self.teacher_model.to(self.device)
+|  16|
+|  17|    def start_task(self):
+|  18|        super(DERnetwork, self).start_task()
+|  19|        '''load teacher model
+|  20|        if self.task > 0:
+|* 21|            self.teacher_model.load_state_dict(torch.load(self.best_net_memory[-1], map_location=self.device, weights_only=True))
+|  22|            print(f'teacher model loaded: {self.best_net_memory[-1]}')'''
+|  23|
+|  24|    def start_epoch(self):
+|  25|        super(DERnetwork, self).start_epoch()
+|  26|        self.teacher_model.eval()
+|  27|
+|  28|    def observe(self, X, y, first_time=False):
+|  29|        X, y = X.to(self.device), y.to(self.device)
+|* 30|        self.optimizer.zero_grad()
+|  31|        if self.task > 0:
+|  32|            self.net.freeze_parameters()
+|  33|        y_hat = self.net(X)
+|  34|        L_current = self.loss(y_hat, y.view(-1))
+|* 35|        L = torch.mean(L_current)
+|  36|        if self.task > 0:
+|  37|            selected = random.sample(list(range(self.replay_buffer_size)), self.args.batch_size)
+|  38|            Xr, dr, yr = self.sample_buffer[selected], self.dark_experience[selected], self.label_buffer[selected]
+|  39|            Xr, dr, yr = Xr.to(self.device), dr.to(self.device), yr.to(self.device)
+|  40|            yr_hat = self.net(Xr)
+|  41|            L_cl = self.loss(yr_hat, yr.view(-1))
+|  42|            L_ed = self.mseloss(yr_hat, dr.view(-1, 5))
+|* 43|            L = L + self.args.der_alpha * torch.mean(L_cl) + self.args.der_beta * L_ed
+|  44|        L.backward()
+|* 45|        self.optimizer.step()
+|  46|        self.train_loss += L.item()
+|  47|        self.cnt += 1
+|  48|        self.confusion_matrix.count_task_separated(y_hat, y, 0)
+|  49|
+|  50|    def end_task(self, dataset=None):
+|  51|        super(DERnetwork, self).end_task(dataset)
+|* 52|        batches = torch.split(self.sample_buffer, self.args.batch_size, dim=0)
+|* 53|        self.teacher_model.load_state_dict(torch.load(self.best_net_memory[-1], map_location=self.device, weights_only=True))
+|  54|        print(f'teacher model loaded: {self.best_net_memory[-1]}')
+|  55|        self.teacher_model.eval()
+|  56|        print(f'start calculating dark experience...')
+|* 57|        with torch.no_grad():
+|  58|            if self.dark_experience is None:
+|  59|                pred_list = []
+|  60|                for batch in batches:
+|  61|                    batch = batch.to(self.device)
+|  62|                    pred = self.teacher_model(batch)
+|  63|                    pred_list.append(pred.view(self.args.batch_size, self.args.window_size, 5).to('cpu'))
+|* 64|                self.dark_experience = torch.cat(pred_list, dim=0)
+|  65|                print(f'calculation complete')
+|  66|            else:
+|  67|                cnt = 0
+|  68|                for idx in range(self.task_tag.shape[0]):
+|  69|                    if self.task_tag[idx] == self.task:
+|  70|                        sample = self.sample_buffer[idx].unsqueeze(0).to(self.device)
+|  71|                        pred = self.teacher_model(sample)
+
+[file_path: "baselines/multihead_model.py", lines_matched: 5]: 
+|*  1|import torch
+|*  2|import torch.nn as nn
+|   3|from models import CNNencoders, ShortTermEncoder, LongTermEncoder
+|   4|
+|   5|
+|   6|class MultiHeadSleepNet(nn.Module):
+|   7|    def __init__(self, input_channels, dropout, num_tasks, enable_multihead, **kwargs):
+|   8|        super(MultiHeadSleepNet, self).__init__(**kwargs)
+|   9|        self.input_channels = input_channels
+| ...| ... 
+|  41|            task_idx = 0
+|  42|        batch_size, seq_length, num_channels, series = X.shape
+|  43|        X = self.cnn(X)
+|  44|        X = self.short_term_encoder(X)
+|  45|        X = X.view(batch_size, seq_length, -1)
+|  46|        r = self.resblock(X.view(batch_size * seq_length, -1))
+|  47|        X = self.long_term_encoder(X)
+|* 48|        X = torch.cat((r, X), dim=1)
+|  49|        X = self.classifiers[task_idx](X)
+|  50|        return X
+|  51|
+|  52|    def features(self, X):
+|  53|        batch_size, seq_length, num_channels, series = X.shape
+|  54|        X = self.cnn(X)
+|  55|        X = self.short_term_encoder(X)
+| ...| ... 
+|  58|
+|  59|    def classify(self, X, task_idx):
+|  60|        if not self.enable_multihead:
+|  61|            task_idx = 0
+|  62|        batch_size, seq_length, embeddings = X.shape
+|  63|        r = self.resblock(X.view(batch_size * seq_length, -1))
+|  64|        X = self.long_term_encoder(X)
+|* 65|        X = torch.cat((r, X), dim=1)
+|  66|        X = self.classifiers[task_idx](X)
+|  67|        return X
+|  68|
+|  69|    def freeze_parameters(self):
+|  70|        for m in self.cnn.modules():
+|  71|            if isinstance(m, nn.BatchNorm1d):
+|  72|                m.eval()
+| ...| ... 
+|  76|            param.requires_grad = False
+|  77|
+|  78|
+|  79|if __name__ == '__main__':
+|  80|    net = MultiHeadSleepNet(2, 0.15, 4, False)
+|  81|    for name, module in net.named_modules():
+|  82|        print(name)
+|* 83|    torch.save(net.state_dict(), 'multihead_model.pth')
+
+[file_path: "BayesEEGNet/GraphBuilder.py", lines_matched: 16]: 
+|*  1|import torch
+|*  2|import torch.nn as nn
+|   3|from .GCN import GCN
+|   4|from .base_func import *
+|   5|
+|   6|#import warnings
+|   7|#warnings.filterwarnings('ignore')
+|   8|
+|   9|##############################################################################
+| ...| ... 
+|  46|
+|  47|    def forward(self, x):
+|  48|        batch_size = x.size()[0]
+|  49|
+|  50|        x_node_emb = self.node_emb(x.clone())
+|  51|
+|  52|        # build node pairs
+|* 53|        node_pairs = torch.zeros(
+|  54|            batch_size, self.total_edges,
+|  55|            self.g_dim * 2).cuda()
+|  56|        adj_node_emb = x_node_emb.clone()
+|  57|        for i in range(self.num_nodes - 1):
+|  58|            start = int((self.num_nodes - i - 2) * (self.num_nodes - i - 1) / 2)
+|  59|            end = int((self.num_nodes - i) * (self.num_nodes - i - 1) / 2)
+|  60|            one = adj_node_emb[:, self.num_nodes-i-1, :].unsqueeze(1)\
+|  61|                .repeat(1, self.num_nodes-i-1, 1)
+|  62|            two = adj_node_emb[:, 0:self.num_nodes - i - 1, :]
+|* 63|            node_pairs[:, start:end, :] = torch.cat([one, two], dim=2)
+|  64|
+|  65|        # node2edge
+|* 66|        node_pairs = torch.reshape(
+|  67|            node_pairs,
+|  68|            (batch_size * self.total_edges, self.g_dim * 2))
+|  69|        edge_emb_2 = self.gen_edge_emb(node_pairs)
+|  70|
+|  71|
+|  72|        input4prior = edge_emb_2.clone()
+|  73|        input4post  = edge_emb_2.clone()
+| ...| ... 
+|  89|        post_mean_approx_g = post_mean_approx_g.reshape(batch_size, self.total_edges)
+|  90|        post_std_approx_g = post_std_approx_g.reshape(batch_size, self.total_edges)
+|  91|
+|  92|        # estimate post mij for Binomial Dis
+|  93|        eps = 1e-6
+|  94|        nij = 2.0 * post_mean_approx_g - 1.0
+|  95|        nij_ = nij*nij + 8.0*post_std_approx_g*post_std_approx_g
+|* 96|        post_mij = 0.25 * (nij + torch.sqrt(nij_)) + eps
+|  97|        
+|  98|        # reparameterization: sampling alpha_tilda and alpha_bar
+|  99|        alpha_bar, alpha_tilde = self.sample_repara(post_mean_g, post_std_g, post_mij)
+| 100|
+| 101|        # graph embedding
+| 102|        H_g, A = self.gcn1(x, alpha_bar)
+| 103|        H_g = self.gcn2(H_g, A)
+| 104|
+| 105|        # regularization
+| 106|        kl_g = self.kld_loss_gauss(alpha_tilde * post_mean_g,
+|*107|                                   torch.sqrt(alpha_tilde) * post_std_g,
+| 108|                                   alpha_tilde * prior_mean_g,
+|*109|                                   torch.sqrt(alpha_tilde) * prior_std_g)
+| 110|        kl_b = self.kld_loss_binomial_upper_bound(post_mij, prior_mij)
+| 111|
+| 112|        # return dic for next iter and optimization
+| 113|        outputs = {
+| 114|            'H_g': H_g,
+| 115|            'kl_g': kl_g,
+| 116|            'kl_b': kl_b,
+| ...| ... 
+| 124|            weight.data.normal_(0, stdv)
+| 125|
+| 126|    def _init_weights(self, stdv):
+| 127|        pass
+| 128|
+| 129|    def sample_repara(self, mean, std, mij):
+| 130|        mean_alpha = mij
+|*131|        std_alpha = torch.sqrt(mij)
+|*132|        eps = torch.FloatTensor(std.size()).normal_().cuda()
+| 133|        alpha_tilde = eps * std_alpha + mean_alpha
+| 134|        alpha_tilde = softplus(alpha_tilde)
+| 135|
+| 136|        mean_sij = alpha_tilde * mean
+|*137|        std_sij = torch.sqrt(alpha_tilde) * std
+|*138|        eps_2 = torch.FloatTensor(std.size()).normal_().cuda()
+| 139|        s_ij = eps_2 * std_sij + mean_sij
+| 140|        alpha_bar = s_ij * alpha_tilde
+| 141|
+| 142|        return alpha_bar, alpha_tilde
+| 143|
+| 144|    def kld_loss_gauss(self, mean_post, std_post, mean_prior, std_prior, eps=1e-6):
+|*145|        kld_element = (2 * torch.log(std_prior + eps) - 2 * torch.log(std_post + eps) +
+| 146|                       ((std_post).pow(2) + (mean_post - mean_prior).pow(2)) /
+| 147|                       (std_prior + eps).pow(2) - 1)
+|*148|        return 0.5 * torch.sum(torch.abs(kld_element))
+| 149|
+| 150|    def kld_loss_binomial_upper_bound(self, mij_post, mij_prior, eps=1e-6):
+| 151|        kld_element = mij_prior - mij_post + \
+|*152|                       mij_post * (torch.log(mij_post+eps) - torch.log(mij_prior+eps))
+|*153|        return torch.sum(torch.abs(kld_element))
+| 154|
+| 155|
+| 156|class encode_mean_std(nn.Module):
+| 157|    def __init__(self, g_dim, h_dim, dropout=0.1):
+| 158|        super(encode_mean_std, self).__init__()
+| 159|
+| 160|        self.g_dim = g_dim
+
+[file_path: "logs.py", lines_matched: 6]: 
+|   1|import random
+|   2|import json
+|   3|import os
+|   4|from datetime import datetime
+|   5|
+|   6|
+|*  7|class LogDocument:
+|   8|    def __init__(self, args):
+|   9|        self.args = args
+|  10|        self.assignment_idx = None
+|  11|        self.file_path = None
+|  12|        self.dir_path = None
+|  13|        while True:
+|  14|            if self.try_assign_filename():
+|  15|                break
+|  16|        self.all_information = {
+|* 17|            'log_starting_time': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+|* 18|            'log_ending_time': '',
+|  19|            'exp_assignment_index': self.assignment_idx,
+|  20|            'exp_args': vars(args),
+|  21|            'performance': {},
+|  22|            'train_info': {}
+|  23|        }
+|  24|
+|  25|    def try_assign_filename(self):
+| ...| ... 
+|  50|            cnt += 1
+|  51|        cnt = 0
+|  52|        for matrices in count_results:
+|  53|            self.append(['performance', f'task{cnt}_fold{fold_idx}', 'confusion_matrices'], matrices)
+|  54|            cnt += 1
+|  55|
+|  56|    def write(self):
+|* 57|        self.all_information['log_ending_time'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+|  58|        prefix = os.path.join('results', self.dir_path)
+|  59|        if not os.path.exists(prefix):
+|  60|            os.system(f'mkdir -p {prefix}')
+|  61|        with open(os.path.join(prefix, self.file_path), 'w', encoding='utf-8') as file:
+|  62|            json.dump(self.all_information, file, indent=4)
+|  63|
+|  64|    def save_params(self):
+| ...| ... 
+|  70|        )
+|  71|        os.system(f'rm -f ./modelsaved/*.pth')
+|  72|        print('all operations complete')
+|  73|
+|  74|
+|  75|if __name__ == '__main__':
+|  76|    '''
+|* 77|    log = LogDocument(args)
+|* 78|    log.write()
+|  79|    '''
+|  80|    pass
+
+[file_path: "BayesEEGNet/base_func.py", lines_matched: 24]: 
+|*  1|import torch
+|*  2|import torch.nn.functional as F
+|   3|
+|   4|##############################################################################
+|   5|################ implemenations of the basic functionality ###################
+|   6|##############################################################################
+|   7|
+|   8|def error(y, pred):
+|*  9|    return torch.mean(torch.ne(y, pred))
+|  10|
+|  11|
+|  12|def accuracy(y, pred):
+|* 13|    return torch.mean(torch.eq(y, pred))
+|  14|
+|  15|
+|  16|def clip(x, min, max):
+|* 17|    return torch.clamp(x, min, max)
+|  18|
+|  19|
+|  20|def floor(x):
+|* 21|    return torch.floor(x).int()
+|  22|
+|  23|
+|  24|def ceil(x):
+|* 25|    return torch.ceil(x).int()
+|  26|
+|  27|
+|  28|def sigmoid(x):
+|* 29|    return torch.sigmoid(x)
+|  30|
+|  31|
+|  32|def relu(x):
+|  33|    return F.relu(x)
+|  34|
+|  35|
+|  36|def leaky_relu(x, negative_slope):
+| ...| ... 
+|  42|
+|  43|
+|  44|def softmax(x):
+|  45|    return F.softmax(x)
+|  46|
+|  47|
+|  48|def tanh(x):
+|* 49|    return torch.tanh(x)
+|  50|
+|  51|
+|  52|def l2_norm(x, epsilon=0.00001):
+|* 53|    square_sum = torch.sum(torch.pow(x, exponent=2))
+|* 54|    norm = torch.sqrt(torch.add(square_sum, epsilon))
+|  55|    return norm
+|  56|
+|  57|
+|  58|def l2_norm_2d(x, epsilon=0.00001):
+|* 59|    square_sum = torch.sum(torch.pow(x, exponent=2))
+|* 60|    norm = torch.mean(torch.sqrt(torch.add(square_sum, epsilon)))
+|  61|    return norm
+|  62|
+|  63|
+|  64|# we assume afa=beta
+|  65|def neg_likelihood_gamma(x, afa, epsilon=0.00001):
+|* 66|    norm = torch.add(x, epsilon)
+|* 67|    neg_likelihood = -(afa - 1) * torch.log(norm) + afa * norm
+|* 68|    return torch.mean(neg_likelihood)
+|  69|
+|  70|
+|  71|# KL(lambda_t||lambda=1)
+|  72|def kl_exponential(x, epsilon=0.00001):
+|* 73|    norm = torch.add(x, epsilon)
+|* 74|    kl = -torch.log(norm) + norm
+|* 75|    return torch.mean(kl)
+|  76|
+|  77|
+|  78|def likelihood(x, y, epsilon=0.00001):
+|* 79|    norm = torch.add(x, epsilon)
+|* 80|    kl = -torch.log(norm) + norm * y
+|* 81|    return 0.25 * torch.mean(kl)
+|  82|
+|  83|
+|  84|def shape(x):
+|  85|    return x.shape
+|  86|
+|  87|
+|  88|def reshape(x, shape):
+|* 89|    y = torch.reshape(x, shape).float()
+|  90|    return y
+|  91|
+|  92|
+|  93|def Linear_Function(input, weight, bias=None):
+|  94|    if input.dim() == 2 and bias is not None:
+|* 95|        ret = torch.addmm(bias, input, weight.t())
+|  96|    else:
+|  97|        output = input.matmul(weight.t())
+|  98|        if bias is not None:
+|  99|            output += bias
+| 100|        ret = output
+| 101|    return ret
+| 102|
+
+[file_path: "baselines/DT2W.py", lines_matched: 39]: 
+|*  1|import torch
+|   2|import random
+|   3|from models import *
+|   4|from clnetworks import CLnetwork
+|   5|from metric import ConfusionMatrix, evaluate_tasks
+|*  6|from torch.utils.data import DataLoader
+|   7|
+|   8|
+|   9|def batched_soft_dtw_loss_4_short_seq(seriesX, seriesY, gamma=0.1, eps=1e-5):
+|  10|    N, M, features = seriesX.shape[1], seriesY.shape[1], seriesX.shape[2]
+|  11|    '''the input series should be organized in [batch_size, seq_length, features]'''
+|* 12|    dist = torch.cdist(seriesX, seriesY, p=2)
+|  13|    '''the size of the distance matrix is [batch_size, N, M]'''
+|  14|    dist = dist.permute(1, 2, 0)
+|  15|    '''transpose the distance matrix into [N, M, batch_size]'''
+|  16|    R = dist.clone()
+|  17|    for i in range(1, N):
+|  18|        R[i, 0] = R[i - 1, 0] + dist[i, 0]
+|  19|    for j in range(1, M):
+|  20|        R[0, j] = R[0, j - 1] + dist[0, j]
+|  21|    for i in range(1, N):
+|  22|        for j in range(1, M):
+|  23|            c = -1 / gamma
+|* 24|            delta = torch.exp(R[i - 1, j] * c) + torch.exp(R[i, j - 1] * c) + torch.exp(R[i - 1, j - 1] * c)
+|* 25|            R[i, j] = dist[i, j] - gamma * torch.log(torch.clamp(delta, min=eps))
+|  26|    return R[-1, -1, :]
+|  27|
+|  28|
+|  29|class DTWSleepNet(SleepNet):
+|  30|    def __init__(self, input_channels, dropout, **kwargs):
+|  31|        super(DTWSleepNet, self).__init__(input_channels, dropout, **kwargs)
+|  32|
+|  33|    def forward(self, X, with_features=False):
+|  34|        batch_size, seq_length, num_channels, series = X.shape
+|  35|        X = self.cnn(X)
+|  36|        X = self.short_term_encoder(X)
+|  37|        X = X.view(batch_size, seq_length, -1)
+|  38|        r = self.resblock(X.view(batch_size * seq_length, -1))
+|  39|        F1 = self.long_term_encoder(X)
+|* 40|        F2 = torch.cat((r, F1), dim=1)
+|  41|        output = self.classifier(F2)
+|  42|        if with_features:
+|  43|            return output, F1.view(batch_size, seq_length, -1), F2
+|  44|        else:
+|  45|            return output
+|  46|
+|  47|    def predict(self, F):
+|  48|        F = self.classifier(F)
+|  49|        return F
+|  50|
+|  51|
+|  52|class DTWnetwork(CLnetwork):
+|* 53|    def __init__(self, args, fold_num, logs):
+|* 54|        super(DTWnetwork, self).__init__(args, fold_num, logs)
+|  55|        self.net = DTWSleepNet(self.num_channels, args.dropout)
+|  56|        self.net.apply(init_weight)
+|* 57|        self.optimizer = torch.optim.AdamW(self.net.parameters(), lr=args.lr, weight_decay=args.weight_decay)
+|  58|        self.net.to(self.device)
+|  59|        self.kldloss = nn.KLDivLoss(reduction='none')
+|  60|        '''distill settings'''
+|  61|        self.teacher_model = DTWSleepNet(self.num_channels, args.dropout)
+|  62|        self.teacher_model.to(self.device)
+|  63|        self.dtw_loss, self.distill_loss = 0, 0
+|  64|        '''prototype settings'''
+| ...| ... 
+|  66|        self.radius = None
+|  67|        self.prot_loss = 0
+|  68|
+|  69|    def start_task(self):
+|  70|        super(DTWnetwork, self).start_task()
+|  71|        '''load teacher models'''
+|  72|        if self.task > 0:
+|* 73|            self.teacher_model.load_state_dict(torch.load(self.best_net_memory[-1], map_location=self.device, weights_only=True))
+|  74|            print(f'teacher model loaded: {self.best_net_memory[-1]}')
+|  75|
+|  76|    def start_epoch(self):
+|  77|        super(DTWnetwork, self).start_epoch()
+|  78|        self.dtw_loss, self.distill_loss, self.prot_loss = 0, 0, 0
+|  79|        self.teacher_model.eval()
+|  80|
+|  81|    def sample_prototypes(self):
+|  82|        t = random.randint(0, self.task - 1)
+|  83|        mu = self.task_prototypes[t]
+|* 84|        mini_batch = torch.randint(0, 5, [self.args.batch_size * self.args.window_size],
+|* 85|                                   dtype=torch.int64, requires_grad=False, device=self.device)
+|  86|        mus = mu[mini_batch]
+|* 87|        eps = torch.randn_like(mus)
+|  88|        F_prot = mus + self.radius[mini_batch] * eps
+|  89|        return F_prot, mini_batch
+|  90|
+|  91|    def observe(self, X, y, first_time=False):
+|  92|        X, y = X.to(self.device), y.to(self.device)
+|* 93|        self.optimizer.zero_grad()
+|  94|        if self.task > 0:
+|  95|            self.net.freeze_parameters()
+|  96|        y_hat, F1, F2 = self.net(X, True)
+|  97|        L_current = self.loss(y_hat, y.view(-1))
+|* 98|        L = torch.mean(L_current)
+|  99|        self.train_loss += L.item()
+| 100|        if self.task > 0:
+| 101|            '''perform knowledge distillation'''
+| 102|            y_distill, F_distill, _ = self.teacher_model(X, True)
+| 103|            y_distill, F_distill = y_distill.detach() / self.args.tau, F_distill.detach()
+|*104|            L_distill = torch.sum(self.kldloss(nn.functional.log_softmax(y_hat / self.args.tau, dim=1), y_distill.softmax(dim=1)), dim=1)
+| 105|            L_dtw = batched_soft_dtw_loss_4_short_seq(F1, F_distill)
+|*106|            L = L + torch.mean(L_distill) + torch.mean(L_dtw) * self.args.dtw_lambda
+|*107|            self.distill_loss += torch.mean(L_distill).item()
+|*108|            self.dtw_loss += torch.mean(L_dtw).item() * self.args.dtw_lambda
+| 109|            '''prototype loss'''
+| 110|            F_prot, y_prot = self.sample_prototypes()
+| 111|            y_prot_hat = self.net.predict(F_prot)
+| 112|            L_prot = self.loss(y_prot_hat, y_prot)
+|*113|            L = L + torch.mean(L_prot)
+|*114|            self.prot_loss += torch.mean(L_prot).item()
+| 115|        L.backward()
+|*116|        self.optimizer.step()
+| 117|        self.cnt += 1
+| 118|        self.confusion_matrix.count_task_separated(y_hat, y, 0)
+| 119|
+| 120|    def end_epoch(self, valid_dataset):
+|*121|        learning_rate = self.optimizer.state_dict()['param_groups'][0]['lr']
+| 122|        train_acc, train_mf1 = self.confusion_matrix.accuracy(), self.confusion_matrix.macro_f1()
+| 123|        print(f'epoch: {self.epoch}, '
+| 124|              f'train loss: {self.train_loss / self.cnt:.3f}, '
+| 125|              f'distill loss: {self.distill_loss / self.cnt:.3f}, '
+| 126|              f'dtw loss: {self.dtw_loss / self.cnt:.3f}, '
+| 127|              f'prot loss: {self.prot_loss / self.cnt:.3f}, '
+| 128|              f'train accuracy: {train_acc:.3f}, '
+| 129|              f"macro F1: {train_mf1:.3f}, 1000 lr: {learning_rate * 1000:.3f}")
+|*130|        self.logs.append(['train_info', f'task{self.task}_fold{self.fold_num}', f'epoch:{self.epoch}'], {
+| 131|            'train loss': self.train_loss / self.cnt,
+| 132|            'distill loss': self.distill_loss / self.cnt,
+| 133|            'dtw loss': self.dtw_loss / self.cnt,
+| 134|            'prot loss': self.prot_loss / self.cnt,
+| 135|            'train accuracy': train_acc,
+| 136|            'train mF1': train_mf1,
+| 137|            '1000 lr': learning_rate * 1000
+| 138|        })
+| 139|        if (self.epoch + 1) % self.args.valid_epoch == 0:
+| 140|            print(f'validating on the datasets...')
+| 141|            valid_confusion = ConfusionMatrix(1)
+| 142|            valid_confusion = evaluate_tasks(self.net, [valid_dataset], valid_confusion, self.device, self.args.valid_batch)
+| 143|            valid_acc, valid_mf1 = valid_confusion.accuracy(), valid_confusion.macro_f1()
+| 144|            print(f'valid accuracy: {valid_acc:.3f}, valid macro F1: {valid_mf1:.3f}')
+|*145|            self.logs.append(['train_info', f'task{self.task}_fold{self.fold_num}', f'valid epoch:{self.epoch}'], {
+| 146|                'valid accuracy': valid_acc,
+| 147|                'valid mF1': valid_mf1
+| 148|            })
+| 149|            if valid_acc + valid_mf1 > self.best_valid_acc and self.epoch + 1 >= self.args.min_epoch:
+|*150|                self.logs.append(['train_info', f'task{self.task}_fold{self.fold_num}', f'valid epoch:{self.epoch}', 'saved'], True)
+| 151|                self.best_train_loss = self.train_loss / self.cnt
+| 152|                self.best_train_acc = train_acc
+| 153|                self.best_valid_acc = valid_acc + valid_mf1
+| 154|                self.best_net = './modelsaved/' + str(self.args.replay_mode) + '_task' + str(self.task) + '_fold' + str(self.fold_num) + '.pth'
+| 155|                print(f'model saved: {self.best_net}')
+|*156|                torch.save(self.net.state_dict(), self.best_net)
+| 157|        self.epoch += 1
+| 158|        self.scheduler.step()
+| 159|
+| 160|    def update_prototypes(self, dataset):
+|*161|        self.teacher_model.load_state_dict(torch.load(self.best_net_memory[-1], map_location=self.device, weights_only=True))
+| 162|        print(f'best model loaded: {self.best_net_memory[-1]}')
+| 163|        loader = DataLoader(dataset, self.args.batch_size, True)
+| 164|        self.teacher_model.eval()
+| 165|        num_samples = 0
+|*166|        mu = torch.zeros((5, 1024), dtype=torch.float32, requires_grad=False, device=self.device)
+|*167|        mu2 = torch.zeros_like(mu)
+| 168|        print('start calculating task prototypes')
+|*169|        with torch.no_grad():
+| 170|            for X, y in loader:
+| 171|                X, y = X.to(self.device), y.view(-1).to(self.device)
+| 172|                _, _, F2 = self.teacher_model(X, True)
+| 173|                for idx in range(F2.shape[0]):
+| 174|                    mu[y[idx]] += F2[idx].data
+| 175|                    mu2[y[idx]] += F2[idx].data.pow(2)
+| 176|                num_samples += F2.shape[0]
+| ...| ... 
+| 184|        super(DTWnetwork, self).end_task(dataset)
+| 185|        self.update_prototypes(dataset)
+| 186|
+| 187|
+| 188|if __name__ == '__main__':
+| 189|    '''
+| 190|    net = Net()
+|*191|    Y = torch.randn(1, 10, 512)
+|*192|    optim = torch.optim.Adam(net.parameters(), lr=1)
+|*193|    net.to(torch.device(f'cuda:{0}'))
+|*194|    Y = Y.to(torch.device(f'cuda:{0}'))
+|*195|    print(torch.nn.functional.mse_loss(net.X, Y))
+| 196|    for epoch in range(20):
+| 197|        optim.zero_grad()
+| 198|        loss = batched_soft_dtw_loss_4_short_seq(net.X, Y)
+| 199|        loss.backward()
+| 200|        print(loss.item())
+| 201|        optim.step()
+|*202|    print(torch.nn.functional.mse_loss(net.X, Y))
+| 203|    '''
+|*204|    X = torch.randn(32, 10, 512)
+|*205|    Y = torch.randn(32, 10, 512)
+| 206|    print(batched_soft_dtw_loss_4_short_seq(X, Y))
+
+[file_path: "GeCoSleep/EEGGR.py", lines_matched: 47]: 
+|*  1|import torch.nn
+|   2|from models import *
+|   3|from . import generator
+|   4|from baselines import MultiHeadSleepNet
+|   5|from clnetworks import CLnetwork, linear_warmup_cosine_annealing
+|   6|from metric import ConfusionMatrix, evaluate_tasks_multihead
+|   7|from .HMM import HMMTaskGenerator
+|   8|
+|   9|
+|  10|def knowledge_distillation_function(loss_type):
+|  11|    kld_loss = nn.KLDivLoss(reduction='none')
+|  12|    mse_loss = nn.MSELoss(reduction='none')
+|  13|
+|  14|    def kl_divergence(y_hat, y, args):
+|* 15|        return torch.sum(kld_loss(nn.functional.log_softmax(y_hat / args.tau, dim=1), (y / args.tau).softmax(dim=1)), dim=1)
+|  16|
+|  17|    def euclidean(y_hat, y, args):
+|* 18|        return torch.mean(mse_loss(y_hat, y), dim=1)
+|  19|
+|  20|    def mixed(y_hat, y, args):
+|* 21|        L_kl = torch.sum(kld_loss(nn.functional.log_softmax(y_hat / args.tau, dim=1), (y / args.tau).softmax(dim=1)), dim=1)
+|* 22|        L_ed = torch.mean(mse_loss(y_hat, y), dim=1)
+|  23|        return L_kl * (1 - args.mix_lambda) + L_ed * args.mix_lambda
+|  24|
+|  25|    if loss_type == 'kl':
+|  26|        return kl_divergence
+|  27|    elif loss_type == 'ed':
+|  28|        return euclidean
+|  29|    else:
+|  30|        return mixed
+|  31|
+|  32|
+|  33|class EEGGRnetwork(CLnetwork):
+|* 34|    def __init__(self, args, fold_num, logs):
+|* 35|        super(EEGGRnetwork, self).__init__(args, fold_num, logs)
+|  36|        self.net = MultiHeadSleepNet(self.num_channels, args.dropout, args.task_num, self.args.enable_multihead)
+|  37|        self.net.apply(init_weight)
+|  38|        self.net.to(self.device)
+|  39|        '''generator settings'''
+|  40|        self.start_training_generator = False
+|  41|        self.num_epochs_solver = self.args.num_epochs - self.args.num_epochs_generator
+|  42|        self.seq_gen = generator.SequentialVAE(512, 0)
+|  43|        self.seq_gen.apply(init_weight)
+|* 44|        self.optim_seq_gen = torch.optim.Adam(self.seq_gen.parameters(), lr=args.lr_seq_gen)
+|  45|        self.sched_seq_gen = None
+|  46|        self.rec_loss, self.kl_loss, self.task_loss = 0, 0, 0
+|  47|        self.seq_gen.to(self.device)
+|  48|        self.mseloss = nn.MSELoss()
+|  49|        self.kdloss = knowledge_distillation_function(self.args.distill_loss)
+|  50|        '''replay settings'''
+|  51|        self.teacher_model = MultiHeadSleepNet(self.num_channels, args.dropout, args.task_num, self.args.enable_multihead)
+| ...| ... 
+|  59|        '''HMM settings'''
+|  60|        self.hmm_model = HMMTaskGenerator(args.task_num, self.device)
+|  61|
+|  62|    def start_task(self):
+|  63|        super(EEGGRnetwork, self).start_task()
+|  64|        '''generator settings'''
+|  65|        self.start_training_generator = False
+|* 66|        self.optimizer = torch.optim.AdamW(self.net.parameters(), lr=self.args.lr, weight_decay=self.args.weight_decay)
+|* 67|        self.scheduler = torch.optim.lr_scheduler.LambdaLR(
+|* 68|            self.optimizer,
+|  69|            lr_lambda=linear_warmup_cosine_annealing(self.num_epochs_solver, self.args.min_epoch)
+|  70|        )
+|* 71|        self.optim_seq_gen = torch.optim.Adam(self.seq_gen.parameters(), lr=self.args.lr_seq_gen)
+|* 72|        self.sched_seq_gen = torch.optim.lr_scheduler.LambdaLR(
+|  73|            self.optim_seq_gen,
+|  74|            lr_lambda=linear_warmup_cosine_annealing(self.args.num_epochs_generator, self.args.min_epoch)
+|  75|        )
+|  76|        '''replay settings'''
+|  77|        if self.task > 0:
+|* 78|            self.teacher_model.load_state_dict(torch.load(self.best_net_memory[-1], map_location=self.device, weights_only=True))
+|  79|            print(f'teacher model loaded: {self.best_net_memory[-1]}')
+|* 80|            self.teacher_seq_gen.load_state_dict(torch.load(self.seq_gen_memory[-1], map_location=self.device, weights_only=True))
+|  81|            print(f'generator loaded: {self.seq_gen_memory[-1]}')
+|  82|        '''statistics settings'''
+|  83|        if self.task > 0:
+|* 84|            self.running_task_loss = torch.ones(self.task, dtype=torch.float32, requires_grad=False, device=self.device)
+|* 85|            self.running_task_loss = self.running_task_loss / torch.norm(self.running_task_loss, p=2)
+|  86|        '''HMM settings'''
+|  87|        self.hmm_model.clear_samples()
+|  88|
+|  89|    def start_epoch(self):
+|  90|        super(EEGGRnetwork, self).start_epoch()
+|  91|        '''generator settings'''
+|  92|        self.rec_loss, self.kl_loss, self.task_loss = 0, 0, 0
+|  93|        self.seq_gen.train()
+|  94|        self.teacher_model.eval()
+|  95|        self.teacher_seq_gen.eval()
+|  96|        '''statistics settings'''
+|  97|        self.distill_loss, self.replay_loss = 0, 0
+|  98|
+|  99|    def update_running_task_loss(self, L, t, batch_size):
+|*100|        delta = torch.zeros_like(self.running_task_loss)
+|*101|        cnt = torch.zeros_like(self.running_task_loss)
+| 102|        for i in range(batch_size):
+| 103|            delta[t[i]] += L[i].item()
+| 104|            cnt[t[i]] += 1
+|*105|        delta = delta / torch.clamp(cnt, min=1.0)
+|*106|        delta = delta / (torch.norm(delta, p=2) + 1e-8)
+| 107|        for i in range(self.running_task_loss.shape[0]):
+| 108|            if cnt[i] == 0:
+| 109|                continue
+| 110|            self.running_task_loss[i] = (1 - self.args.gamma) * self.running_task_loss[i] + self.args.gamma * delta[i]
+|*111|        self.running_task_loss = self.running_task_loss / (torch.norm(self.running_task_loss, p=2) + 1e-8)
+| 112|
+| 113|    def observe(self, X, y, first_time=False):
+| 114|        if first_time:
+| 115|            '''update hmm model samples'''
+| 116|            self.hmm_model.add_sample(y)
+| 117|        if self.epoch < self.num_epochs_solver:
+| 118|            X, y = X.to(self.device), y.to(self.device)
+| 119|            if self.task > 0:
+| 120|                self.net.freeze_parameters()
+|*121|            self.optimizer.zero_grad()
+| 122|            y_hat = self.net(X, self.task)
+| 123|            L_current = self.loss(y_hat, y.view(-1))
+|*124|            L = torch.mean(L_current)
+| 125|            self.train_loss += L.item()
+| 126|            if self.task > 0:
+| 127|                '''perform generative replay'''
+| 128|                weights = self.running_task_loss.softmax(dim=0)
+|*129|                t = torch.multinomial(weights, y.shape[0], replacement=True)
+| 130|                y_hmm = self.hmm_model.generate(t)
+| 131|                F_fake = self.teacher_seq_gen.decoder.generate(y_hmm, t).detach()
+| 132|                y_fake = self.teacher_model.classify(F_fake, self.task - 1).detach()
+| 133|                y_pred = self.net.classify(F_fake, self.task)
+| 134|                L_replay = self.kdloss(y_pred, y_fake, self.args)
+|*135|                L = L + torch.mean(L_replay) * self.args.replay_lambda
+|*136|                self.replay_loss += torch.mean(L_replay).item() * self.args.replay_lambda
+| 137|                '''distillation for sample feature extractor'''
+| 138|                y_distill = self.teacher_model(X, self.task - 1).detach()
+| 139|                L_distill = self.kdloss(y_hat, y_distill, self.args)
+|*140|                L = L + torch.mean(L_distill) * self.args.distill_lambda
+|*141|                self.distill_loss += torch.mean(L_distill).item() * self.args.distill_lambda
+| 142|                '''update running task loss'''
+| 143|                self.update_running_task_loss(L_replay, t, y.shape[0])
+| 144|            L.backward()
+|*145|            self.optimizer.step()
+| 146|            self.confusion_matrix.count_task_separated(y_hat, y, 0)
+| 147|        else:
+| 148|            if not self.start_training_generator:
+| 149|                if self.task + 1 == self.args.task_num:
+| 150|                    print('skip last training...')
+| 151|                    return
+| 152|                print('start training generator...')
+|*153|                self.net.load_state_dict(torch.load(self.best_net, map_location=self.device, weights_only=True))
+| 154|                print(f'best solver model loaded: {self.best_net}')
+| 155|                self.start_training_generator = True
+| 156|            '''freeze BN and dropout'''
+| 157|            for m in self.net.modules():
+| 158|                if isinstance(m, nn.BatchNorm1d) or isinstance(m, nn.Dropout):
+| 159|                    m.eval()
+| 160|            X, y = X.to(self.device), y.to(self.device)
+| 161|            '''training sequential generator'''
+| 162|            self.optim_seq_gen.zero_grad()
+|*163|            self.optimizer.zero_grad()
+| 164|            F = self.net.features(X).detach()
+| 165|            if self.task > 0:
+| 166|                '''perform generative replay for sequential generator'''
+| 167|                weights = self.running_task_loss.softmax(dim=0)
+|*168|                t = torch.multinomial(weights, y.shape[0], replacement=True)
+| 169|                y_hmm = self.hmm_model.generate(t)
+| 170|                F_fake = self.teacher_seq_gen.decoder.generate(y_hmm, t).detach()
+|*171|                F_prime = torch.cat((F_fake, F), dim=0)
+|*172|                y_prime = torch.cat((y_hmm, y), dim=0)
+|*173|                temp = torch.ones(y.shape[0], dtype=torch.int64, requires_grad=False, device=self.device) * self.task
+|*174|                t_prime = torch.cat((t, temp), dim=0)
+| 175|            else:
+| 176|                F_prime = F
+| 177|                y_prime = y
+|*178|                t_prime = torch.ones(y.shape[0], dtype=torch.int64, requires_grad=False, device=self.device) * self.task
+| 179|            F_hat, L_kl = self.seq_gen(F_prime, y_prime, t_prime)
+| 180|            L_rec = self.mseloss(F_hat, F_prime)
+| 181|            pred_true = self.net.classify(F_prime, self.task).detach()
+| 182|            pred_fake = self.net.classify(F_hat, self.task)
+| 183|            L_task = self.kdloss(pred_fake, pred_true, self.args)
+| 184|            if self.task > 0:
+| 185|                '''update running task loss'''
+| 186|                self.update_running_task_loss(L_task.detach(), t_prime, y.shape[0])
+| 187|            '''backprop'''
+|*188|            L_task = torch.mean(L_task)
+| 189|            (L_rec + L_task + self.args.beta * L_kl).backward()
+| 190|            self.optim_seq_gen.step()
+| 191|            self.rec_loss += L_rec.item()
+| 192|            self.task_loss += L_task.item()
+| 193|            self.kl_loss += L_kl.item() * self.args.beta
+| 194|        self.cnt += 1
+| 195|
+| 196|    def end_epoch(self, valid_dataset):
+| 197|        if self.epoch < self.num_epochs_solver:
+|*198|            learning_rate = self.optimizer.state_dict()['param_groups'][0]['lr']
+| 199|            train_acc, train_mf1 = self.confusion_matrix.accuracy(), self.confusion_matrix.macro_f1()
+| 200|            print(
+| 201|                f'epoch: {self.epoch}, '
+| 202|                f'train loss: {self.train_loss / self.cnt:.3f}, '
+| 203|                f'distill loss: {self.distill_loss / self.cnt:.3f}, '
+| 204|                f'replay loss: {self.replay_loss / self.cnt:.3f}, '
+| 205|                f'train accuracy: {train_acc:.3f}, '
+| 206|                f"macro F1: {train_mf1:.3f}, 1000 lr: {learning_rate * 1000:.3f}")
+|*207|            self.logs.append(['train_info', f'task{self.task}_fold{self.fold_num}', f'epoch:{self.epoch}'], {
+| 208|                'train loss': self.train_loss / self.cnt,
+| 209|                'distill loss': self.distill_loss / self.cnt,
+| 210|                'replay loss': self.replay_loss / self.cnt,
+| 211|                'train accuracy': train_acc,
+| 212|                'train mF1': train_mf1,
+| 213|                '1000 lr': learning_rate * 1000
+| 214|            })
+| 215|            if (self.epoch + 1) % self.args.valid_epoch == 0:
+| 216|                print(f'validating on the datasets...')
+| 217|                valid_confusion = ConfusionMatrix(1)
+| 218|                valid_confusion = evaluate_tasks_multihead(self.net, [valid_dataset], valid_confusion,
+| 219|                                                           self.device, self.args.valid_batch, self.task)
+| 220|                valid_acc, valid_mf1 = valid_confusion.accuracy(), valid_confusion.macro_f1()
+| 221|                print(f'valid accuracy: {valid_acc:.3f}, valid macro F1: {valid_mf1:.3f}')
+|*222|                self.logs.append(['train_info', f'task{self.task}_fold{self.fold_num}', f'valid epoch:{self.epoch}'], {
+| 223|                    'valid accuracy': valid_acc,
+| 224|                    'valid mF1': valid_mf1
+| 225|                })
+| 226|                if valid_acc + valid_mf1 > self.best_valid_acc and self.epoch + 1 >= self.args.min_epoch:
+|*227|                    self.logs.append(
+| 228|                        ['train_info', f'task{self.task}_fold{self.fold_num}', f'valid epoch:{self.epoch}', 'saved'],
+| 229|                        True)
+| 230|                    self.best_train_loss = self.train_loss / self.cnt
+| 231|                    self.best_train_acc = train_acc
+| 232|                    self.best_valid_acc = valid_acc + valid_mf1
+| 233|                    self.best_net = './modelsaved/' + str(self.args.replay_mode) + '_task' + str(
+| 234|                        self.task) + '_fold' + str(self.fold_num) + '.pth'
+| 235|                    print(f'model saved: {self.best_net}')
+|*236|                    torch.save(self.net.state_dict(), self.best_net)
+| 237|            self.epoch += 1
+| 238|            self.scheduler.step()
+| 239|        else:
+| 240|            if self.task + 1 == self.args.task_num:
+| 241|                return
+| 242|            lr_seq_gen = self.optim_seq_gen.state_dict()['param_groups'][0]['lr']
+| 243|            print(f'epoch: {self.epoch}, '
+| 244|                  f'reconstruction loss: {self.rec_loss / self.cnt:.3f}, '
+| 245|                  f'task loss: {self.task_loss / self.cnt:.3f}, '
+| 246|                  f'kl loss: {self.kl_loss / self.cnt:.3f}, '
+| 247|                  f"1000 lr: {lr_seq_gen * 1000:.3f}")
+|*248|            self.logs.append(['train_info', f'task{self.task}_fold{self.fold_num}', f'epoch:{self.epoch}'], {
+| 249|                'train generator': True,
+| 250|                'reconstruction loss': self.rec_loss / self.cnt,
+| 251|                'task loss': self.task_loss / self.cnt,
+| 252|                'kl loss': self.kl_loss / self.cnt,
+| 253|                '1000 lr': lr_seq_gen * 1000
+| 254|            })
+| 255|            self.epoch += 1
+| 256|            self.sched_seq_gen.step()
+| 257|        if self.task > 0:
+|*258|            self.logs.append(
+| 259|                ['train_info', f'task{self.task}_fold{self.fold_num}', f'epoch:{self.epoch - 1}', 'Pk'],
+| 260|                self.running_task_loss.cpu().numpy().tolist()
+| 261|            )
+| 262|
+| 263|    def end_task(self, dataset=None):
+| 264|        super(EEGGRnetwork, self).end_task()
+| 265|        seq_gen_path = './modelsaved/seq_gen_task' + str(self.task - 1) + '_fold' + str(self.fold_num) + '.pth'
+|*266|        torch.save(self.seq_gen.state_dict(), seq_gen_path)
+| 267|        self.seq_gen_memory.append(seq_gen_path)
+| 268|        '''hmm settings'''
+| 269|        print(f'start fitting hmm model on {self.hmm_model.total_samples} samples...')
+| 270|        self.hmm_model.ready()
+| 271|        print('hmm model fitted.')
+| 272|
+| 273|
+
+[file_path: "main.py", lines_matched: 5]: 
+|  60|parser.add_argument('--time_reverse_rate', type=float, nargs='?', default=0.05, help='frequency for time reversion')
+|  61|'''other settings'''
+|  62|parser.add_argument('--enable_multihead', action='store_true', help='whether enable multihead')
+|  63|parser.add_argument('--replay_buffer', type=int, nargs='?', default=512, help='replay buffer size')
+|  64|parser.add_argument('--joint_training', action='store_true', help='start joint training')
+|  65|'''BayesEEGNet settings'''
+|  66|parser.add_argument('--bayes_eeg_params', nargs='+', default= {
+|* 67|    'optimizer': 'Adam', 'lr': 0.001, 'lr_decay': 0.0, 'weight_decay': 0.0, 'batchSize': 256,
+|  68|    'minEpoch': 100, 'hiddenDim': 512, 'num_nodes': 2, 'graph_dim': 512, 'lamada1': 1e-7,
+|  69|    'lamada2': 1e-7, 'targetDim': 5, 'dense': 64, 'seed': 0, 'loss_score': [1, 1.5, 1, 1, 1.5]
+|  70|}, help='params for sleep model BayesEEGNet')
+|  71|'''Additional dataset settings'''
+|  72|parser.add_argument('--physionet_path', type=str, nargs='?',
+|  73|                    default='PhysioNet-Challenge-2018_sub251_C4E1', help='file path of physionet dataset')
+|  74|parser.add_argument('--physionet', nargs='+', default=['C4', 'E1'], help='channels for physionet')
+|  75|parser.add_argument('--hsp_path', type=str, nargs='?',
+|  76|                    default='HSP_processed_0624_taiyang', help='file path of hsp dataset')
+|  77|parser.add_argument('--hsp', nargs='+', default=['C4', 'E1'], help='channels for hsp')
+|  78|args = parser.parse_args()
+|  79|args.task_num = len(args.task_names)
+|  80|
+|  81|if __name__ == '__main__':
+|* 82|    R, exp_log = train_k_fold(args)
+|* 83|    write_format(R, args, 'cl_output_record_' + args.replay_mode + '.txt', exp_log)
+|* 84|    exp_log.write()
+|* 85|    exp_log.save_params()
+
+[file_path: "GeCoSleep/HMM.py", lines_matched: 7]: 
+|*  1|import torch
+|   2|import numpy as np
+|   3|from hmmlearn import hmm
+|   4|
+|   5|
+|   6|def balance_seq(seqs, number, eps=1e-5, num_classes=5):
+|*  7|    class_counts = torch.bincount(seqs.view(-1), minlength=num_classes).float()
+|   8|    class_weights = 1.0 / (class_counts + eps)
+|   9|    class_weights = class_weights.pow(0.5)
+|  10|    class_weights = class_weights / class_weights.sum()
+|* 11|    seq_weights = torch.mean(class_weights[seqs], dim=1)
+|  12|    seq_weights = seq_weights / seq_weights.sum()
+|* 13|    idx = torch.multinomial(seq_weights, number, replacement=True)
+|  14|    return seqs[idx]
+|  15|
+|  16|
+|  17|class HMMSequenceGenerator:
+|  18|    def __init__(self, num_components, iterations, device, random_state=42):
+|  19|        self.num_components = num_components
+|  20|        self.iterations = iterations
+| ...| ... 
+|  32|        self.model.fit(seqs, lengths=num_samples)
+|  33|        self.fitted = True
+|  34|
+|  35|    def generate_one(self):
+|  36|        if not self.fitted:
+|  37|            raise RuntimeError('HMM model not fitted!')
+|  38|        gen_seq, _ = self.model.sample(self.length)
+|* 39|        output = torch.tensor(gen_seq.flatten().tolist(), dtype=torch.int64, device=self.device, requires_grad=False)
+|  40|        return output
+|  41|
+|  42|
+|  43|class HMMTaskGenerator:
+|  44|    def __init__(self, num_tasks, device):
+|  45|        self.num_tasks = num_tasks
+|  46|        self.device = device
+| ...| ... 
+|  54|        self.total_samples = 0
+|  55|
+|  56|    def add_sample(self, y):
+|  57|        self.task_samples.append(y)
+|  58|        self.total_samples += y.shape[0]
+|  59|
+|  60|    def ready(self):
+|* 61|        samples = torch.cat(self.task_samples, dim=0)
+|  62|        self.models[self.cnt].fit(samples)
+|  63|        self.cnt += 1
+|  64|
+|  65|    def generate(self, t):
+|  66|        outputs = []
+|  67|        for i in range(t.shape[0]):
+|  68|            seqs = self.models[t[i]].generate_one()
+|  69|            outputs.append(seqs.unsqueeze(dim=0))
+|* 70|        return torch.cat(outputs, dim=0)
+|  71|
+|  72|
+|  73|if __name__ == '__main__':
+|  74|    pass
+
+[file_path: "baselines/EWC.py", lines_matched: 16]: 
+|*  1|import torch.nn
+|   2|from models import *
+|   3|from clnetworks import CLnetwork
+|*  4|from torch.utils.data import DataLoader
+|   5|
+|   6|
+|   7|class EWCnetwork(CLnetwork):
+|*  8|    def __init__(self, args, fold_num, logs):
+|*  9|        super(EWCnetwork, self).__init__(args, fold_num, logs)
+|  10|        '''initialize FIM'''
+|  11|        self.fim = {}
+|  12|        for name, param in self.net.named_parameters():
+|* 13|            self.fim[name] = torch.zeros_like(param.data, dtype=torch.float32, requires_grad=False, device=self.device)
+|  14|        '''ewc settings'''
+|  15|        self.teacher_model = SleepNet(self.num_channels, args.dropout)
+|  16|        self.teacher_model.to(self.device)
+|  17|        self.reg_value = 0
+|  18|
+|  19|    def estimate_fisher(self, dataset):
+|* 20|        self.teacher_model.load_state_dict(torch.load(self.best_net_memory[-1], map_location=self.device, weights_only=True))
+|  21|        print(f'best model loaded: {self.best_net_memory[-1]}')
+|  22|        new_fim = {}
+|  23|        for name, param in self.teacher_model.named_parameters():
+|* 24|            new_fim[name] = torch.zeros_like(param.data, dtype=torch.float32, requires_grad=False, device=self.device)
+|  25|        loader = DataLoader(dataset, self.args.batch_size, True)
+|  26|        cnt, num_smaples = 0, 0
+|  27|        self.teacher_model.eval()
+|  28|        print(f'start calculating FIM on {self.args.ewc_batches} batches...')
+|  29|        for X, y in loader:
+|  30|            X, y = X.to(self.device), y.to(self.device)
+|  31|            self.teacher_model.zero_grad()
+|  32|            y_hat = self.teacher_model(X)
+|* 33|            L = torch.mean(self.loss(y_hat, y.view(-1)))
+|  34|            L.backward()
+|  35|            for name, param in self.teacher_model.named_parameters():
+|  36|                if param.grad is not None:
+|  37|                    new_fim[name] += param.grad.data.pow(2) * X.shape[0]
+|  38|                    num_smaples += X.shape[0]
+|  39|            cnt += 1
+|  40|            if cnt == self.args.ewc_batches:
+| ...| ... 
+|  49|        print('FIM updated')
+|  50|
+|  51|    def start_task(self):
+|  52|        super(EWCnetwork, self).start_task()
+|  53|        self.reg_value = 0
+|  54|        '''load teacher model'''
+|  55|        if self.task > 0:
+|* 56|            self.teacher_model.load_state_dict(torch.load(self.best_net_memory[-1], map_location=self.device, weights_only=True))
+|  57|            print(f'teacher model loaded: {self.best_net_memory[-1]}')
+|  58|
+|  59|    def start_epoch(self):
+|  60|        super(EWCnetwork, self).start_epoch()
+|  61|
+|  62|    def observe(self, X, y, first_time=False):
+|  63|        X, y = X.to(self.device), y.to(self.device)
+|* 64|        self.optimizer.zero_grad()
+|  65|        if self.task > 0:
+|  66|            self.net.freeze_parameters()
+|  67|        y_hat = self.net(X)
+|  68|        L_current = self.loss(y_hat, y.view(-1))
+|* 69|        L = torch.mean(L_current)
+|  70|        if self.task > 0:
+|  71|            '''start EWC regularization'''
+|  72|            reg = 0
+|  73|            self.teacher_model.eval()
+|  74|            for (name_new, param_new), (name_old, param_old) in zip(self.net.named_parameters(), self.teacher_model.named_parameters()):
+|  75|                if name_new in self.fim:
+|* 76|                    reg = reg + torch.sum(self.fim[name_new] * (param_new - param_old.detach()).pow(2))
+|  77|            L = L + self.args.ewc_lambda * reg
+|  78|            self.reg_value += self.args.ewc_lambda * reg.item()
+|  79|        L.backward()
+|* 80|        self.optimizer.step()
+|  81|        self.train_loss += L.item()
+|  82|        self.cnt += 1
+|  83|        self.confusion_matrix.count_task_separated(y_hat, y, 0)
+|  84|
+|  85|    def end_epoch(self, valid_dataset):
+|  86|        super(EWCnetwork, self).end_epoch(valid_dataset)
+|* 87|        self.logs.append(
+|  88|            ['train_info', f'task{self.task}_fold{self.fold_num}', f'epoch:{self.epoch - 1}', 'ewc reg'],
+|  89|            self.reg_value / self.cnt
+|  90|        )
+|  91|
+|  92|    def end_task(self, dataset=None):
+|  93|        super(EWCnetwork, self).end_task()
+|  94|        '''update FIM'''
+|  95|        self.estimate_fisher(dataset)
+|  96|
+|  97|
+|  98|if __name__ == '__main__':
+|  99|    '''
+|*100|    exp_log = LogDocument(args)
+|*101|    net = EWCnetwork(args, 0, exp_log)
+| 102|    print(net.fim)
+| 103|    '''
+| 104|    pass
+
+[file_path: "metric.py", lines_matched: 12]: 
+|   1|import copy
+|*  2|import torch
+|   3|import numpy
+|*  4|from torch.utils.data import DataLoader
+|   5|
+|   6|
+|   7|class ConfusionMatrix:
+|   8|    def __init__(self, num_tasks, num_catagories=5):
+|   9|        self.num_tasks = num_tasks
+|  10|        self.num_catagories = num_catagories
+|* 11|        self.mat = torch.zeros((num_tasks, num_catagories, num_catagories), dtype=torch.int64, requires_grad=False)
+|  12|
+|  13|    def count(self, y_hat, y, t):
+|* 14|        y_hat = torch.argmax(y_hat, dim=1)
+|  15|        y, t = y.view(-1), t.view(-1)
+|  16|        window_size = y.shape[0] // t.shape[0]
+|  17|        for idx in range(y.shape[0]):
+|  18|            self.mat[t[idx // window_size]][y_hat[idx]][y[idx]] += 1
+|  19|
+|  20|    def count_task_separated(self, y_hat, y, t):
+|* 21|        y_hat = torch.argmax(y_hat, dim=1)
+|  22|        y = y.view(-1)
+|  23|        for idx in range(y.shape[0]):
+|  24|            self.mat[t][y_hat[idx]][y[idx]] += 1
+|  25|
+|  26|    def accuracy(self, keep_list=False):
+|  27|        acc = []
+|  28|        for idx in range(self.num_tasks):
+|* 29|            total = torch.sum(self.mat[idx]).item()
+|  30|            true = 0
+|  31|            for i in range(self.num_catagories):
+|  32|                true += self.mat[idx][i][i].item()
+|  33|            acc.append(true / max(total, 1))
+|  34|        if len(acc) == 1 and not keep_list:
+|  35|            return acc[0]
+|  36|        else:
+| ...| ... 
+|  64|    def get_matrix(self):
+|  65|        return self.mat.cpu().numpy().tolist()
+|  66|
+|  67|
+|  68|def evaluate(net, loader, confusion_matrix, device):
+|  69|    net.to(device)
+|  70|    net.eval()
+|* 71|    with torch.no_grad():
+|  72|        for X, y, t in loader:
+|  73|            X, y = X.to(device), y.to(device)
+|  74|            y_hat = net(X)
+|  75|            confusion_matrix.count(y_hat, y, t)
+|  76|    return confusion_matrix
+|  77|
+|  78|
+|  79|def evaluate_tasks(net, datasets, confusion_matrix, device, batch_size=1):
+|  80|    net.to(device)
+|  81|    net.eval()
+|* 82|    with torch.no_grad():
+|  83|        for idx in range(len(datasets)):
+|  84|            loader = DataLoader(datasets[idx], batch_size=batch_size, shuffle=False)
+|  85|            for X, y in loader:
+|  86|                X, y = X.to(device), y.to(device)
+|  87|                y_hat = net(X)
+|  88|                confusion_matrix.count_task_separated(y_hat, y, idx)
+|  89|    return confusion_matrix
+|  90|
+|  91|
+|  92|def evaluate_tasks_multihead(net, datasets, confusion_matrix, device, batch_size=1, task_idx=None):
+|  93|    net.to(device)
+|  94|    net.eval()
+|* 95|    with torch.no_grad():
+|  96|        for idx in range(len(datasets)):
+|  97|            loader = DataLoader(datasets[idx], batch_size=batch_size, shuffle=False)
+|  98|            for X, y in loader:
+|  99|                X, y = X.to(device), y.to(device)
+| 100|                if task_idx is None:
+| 101|                    y_hat = net(X, idx)
+| 102|                else:
+| ...| ... 
+| 109|    using_list = clnetwork.using_list
+| 110|    grad_positions = clnetwork.grad_positions
+| 111|    for idx in range(len(datasets)):
+| 112|        masked_net = copy.deepcopy(net)
+| 113|        masked_net.to(device)
+| 114|        if idx < len(using_list):
+| 115|            print(f'start masking parameters, testing on dataset {idx}, '
+|*116|                  f'parameters size {int(torch.sum(using_list[idx]).item())}')
+| 117|            cnt = 0
+| 118|            for param in masked_net.parameters():
+| 119|                starting, ending = grad_positions[cnt][0], grad_positions[cnt][1]
+| 120|                target = using_list[idx][starting:ending].view(param.data.shape)
+| 121|                param.data *= target
+| 122|                cnt += 1
+| 123|        else:
+| 124|            print(f'start testing without masking parameters on dataset {idx}...')
+| 125|        masked_net.eval()
+| 126|        loader = DataLoader(datasets[idx], batch_size=batch_size, shuffle=False)
+|*127|        with torch.no_grad():
+| 128|            for X, y in loader:
+| 129|                X, y = X.to(device), y.to(device)
+| 130|                y_hat = masked_net(X)
+| 131|                confusion_matrix.count_task_separated(y_hat, y, idx)
+| 132|    return confusion_matrix
+| 133|
+| 134|
+| 135|def evaluate_tasks_bayes(net, datasets, confusion_matrix, device, batch_size=1):
+| 136|    net.to(device)
+| 137|    net.eval()
+|*138|    with torch.no_grad():
+| 139|        for idx in range(len(datasets)):
+| 140|            loader = DataLoader(datasets[idx], batch_size=batch_size, shuffle=False)
+| 141|            for X, y in loader:
+| 142|                X, y = X.to(device), y.to(device)
+| 143|                batch_size, window_size, num_channels, series = X.shape
+| 144|                X = X.view(batch_size * window_size, num_channels, series)
+| 145|                y = y.view(-1)
+
+[file_path: "clnetworks.py", lines_matched: 40]: 
+|   1|import math
+|*  2|import torch
+|   3|import random
+|   4|from models import *
+|   5|from metric import *
+|   6|
+|   7|
+|   8|def linear_warmup_cosine_annealing(total_epochs, warmup=10):
+|   9|    def linear_warmup_cosine_annealing_inner(epoch):
+| ...| ... 
+|  11|            return (epoch + 1) / warmup
+|  12|        else:
+|  13|            return 0.5 * (1 + math.cos(math.pi * (epoch - warmup) / (total_epochs - warmup)))
+|  14|    return linear_warmup_cosine_annealing_inner
+|  15|
+|  16|
+|  17|class CLnetwork:
+|* 18|    def __init__(self, args, fold_num, logs):
+|  19|        self.args = args
+|  20|        self.fold_num = fold_num
+|* 21|        self.logs = logs
+|  22|        self.num_channels = len(args.isruc1)
+|  23|        self.net = SleepNet(self.num_channels, args.dropout)
+|  24|        self.net.apply(init_weight)
+|  25|        self.scheduler = None
+|* 26|        self.optimizer = torch.optim.AdamW(self.net.parameters(), lr=args.lr, weight_decay=args.weight_decay)
+|  27|        self.loss = nn.CrossEntropyLoss(reduction='none')
+|  28|        self.best_train_loss, self.best_train_acc, self.best_valid_acc = 0.0, 0.0, 0.0
+|  29|        self.train_loss, self.confusion_matrix, self.cnt = 0.0, ConfusionMatrix(1), 0
+|  30|        self.best_net = None
+|  31|        self.best_net_memory = []
+|* 32|        self.device = torch.device(f'cuda:{args.cuda_idx}')
+|  33|        self.net.to(self.device)
+|  34|        self.epoch = 0
+|  35|        self.task = 0
+|  36|        self.label_cnt = None
+|  37|
+|  38|    def start_task(self):
+|  39|        self.epoch = 0
+|  40|        if self.task > 0:
+|* 41|            self.net.load_state_dict(torch.load(self.best_net_memory[-1], map_location=self.device, weights_only=True))
+|  42|        self.best_net = None
+|* 43|        self.label_cnt = torch.zeros(5, dtype=torch.float32, device=self.device, requires_grad=False)
+|  44|        self.best_train_loss, self.best_train_acc, self.best_valid_acc = 0.0, 0.0, 0.0
+|* 45|        self.optimizer = torch.optim.AdamW(self.net.parameters(), lr=self.args.lr, weight_decay=self.args.weight_decay)
+|* 46|        self.scheduler = torch.optim.lr_scheduler.LambdaLR(
+|* 47|            self.optimizer, lr_lambda=linear_warmup_cosine_annealing(self.args.num_epochs, self.args.min_epoch)
+|  48|        )
+|  49|
+|  50|    def start_epoch(self):
+|  51|        self.train_loss, self.cnt = 0.0, 0
+|  52|        self.confusion_matrix.clear()
+|  53|        self.net.train()
+|  54|
+|  55|    def observe(self, X, y, first_time=False):
+|  56|        X, y = X.to(self.device), y.to(self.device)
+|* 57|        self.optimizer.zero_grad()
+|  58|        y_hat = self.net(X)
+|  59|        L_current = self.loss(y_hat, y.view(-1))
+|* 60|        L = torch.mean(L_current)
+|  61|        L.backward()
+|* 62|        self.optimizer.step()
+|  63|        self.train_loss += L.item()
+|  64|        self.cnt += 1
+|  65|        self.confusion_matrix.count_task_separated(y_hat, y, 0)
+|  66|
+|  67|    def end_epoch(self, valid_dataset):
+|* 68|        learning_rate = self.optimizer.state_dict()['param_groups'][0]['lr']
+|  69|        train_acc, train_mf1 = self.confusion_matrix.accuracy(), self.confusion_matrix.macro_f1()
+|  70|        print(f'epoch: {self.epoch}, train loss: {self.train_loss / self.cnt:.3f}, train accuracy: {train_acc:.3f}, '
+|  71|              f"macro F1: {train_mf1:.3f}, 1000 lr: {learning_rate * 1000:.3f}")
+|* 72|        self.logs.append(['train_info', f'task{self.task}_fold{self.fold_num}', f'epoch:{self.epoch}'], {
+|  73|            'train loss': self.train_loss / self.cnt,
+|  74|            'train accuracy': train_acc,
+|  75|            'train mF1': train_mf1,
+|  76|            '1000 lr': learning_rate * 1000
+|  77|        })
+|  78|        if (self.epoch + 1) % self.args.valid_epoch == 0:
+|  79|            print(f'validating on the datasets...')
+|  80|            valid_confusion = ConfusionMatrix(1)
+|  81|            valid_confusion = evaluate_tasks(self.net, [valid_dataset], valid_confusion,
+|  82|                                             self.device, self.args.valid_batch)
+|  83|            valid_acc, valid_mf1 = valid_confusion.accuracy(), valid_confusion.macro_f1()
+|  84|            print(f'valid accuracy: {valid_acc:.3f}, valid macro F1: {valid_mf1:.3f}')
+|* 85|            self.logs.append(['train_info', f'task{self.task}_fold{self.fold_num}', f'valid epoch:{self.epoch}'], {
+|  86|                'valid accuracy': valid_acc,
+|  87|                'valid mF1': valid_mf1
+|  88|            })
+|  89|            if valid_acc + valid_mf1 > self.best_valid_acc and self.epoch + 1 >= self.args.min_epoch:
+|* 90|                self.logs.append(['train_info', f'task{self.task}_fold{self.fold_num}', f'valid epoch:{self.epoch}', 'saved'], True)
+|  91|                self.best_train_loss = self.train_loss / self.cnt
+|  92|                self.best_train_acc = train_acc
+|  93|                self.best_valid_acc = valid_acc + valid_mf1
+|  94|                self.best_net = './modelsaved/' + str(self.args.replay_mode) + '_task' + str(self.task) + '_fold' + str(self.fold_num) + '.pth'
+|  95|                print(f'model saved: {self.best_net}')
+|* 96|                torch.save(self.net.state_dict(), self.best_net)
+|  97|        self.epoch += 1
+|  98|        self.scheduler.step()
+|  99|
+| 100|    def end_task(self, dataset=None):
+| 101|        self.task += 1
+| 102|        self.best_net_memory.append(self.best_net)
+| 103|
+| 104|
+| 105|class FineTuning(CLnetwork):
+| 106|    def observe(self, X, y, first_time=False):
+| 107|        X, y = X.to(self.device), y.to(self.device)
+| 108|        if self.task > 0:
+| 109|            '''freeze feature extractor'''
+| 110|            self.net.freeze_parameters()
+|*111|        self.optimizer.zero_grad()
+| 112|        y_hat = self.net(X)
+| 113|        L_current = self.loss(y_hat, y.view(-1))
+|*114|        L = torch.mean(L_current)
+| 115|        L.backward()
+|*116|        self.optimizer.step()
+| 117|        self.train_loss += L.item()
+| 118|        self.cnt += 1
+| 119|        self.confusion_matrix.count_task_separated(y_hat, y, 0)
+| 120|
+| 121|
+| 122|class Independent(CLnetwork):
+| 123|    def start_task(self):
+| 124|        self.epoch = 0
+| 125|        if self.task > 0:
+| 126|            self.net.apply(init_weight)
+| 127|        self.best_net = None
+|*128|        self.label_cnt = torch.zeros(5, dtype=torch.float32, device=self.device, requires_grad=False)
+| 129|        self.best_train_loss, self.best_train_acc, self.best_valid_acc = 0.0, 0.0, 0.0
+|*130|        self.optimizer = torch.optim.AdamW(self.net.parameters(), lr=self.args.lr, weight_decay=self.args.weight_decay)
+|*131|        self.scheduler = torch.optim.lr_scheduler.LambdaLR(
+|*132|            self.optimizer,
+| 133|            lr_lambda=linear_warmup_cosine_annealing(self.args.num_epochs, self.args.min_epoch)
+| 134|        )
+| 135|
+| 136|
+| 137|class ExperienceReplay(CLnetwork):
+|*138|    def __init__(self, args, fold_num, logs):
+|*139|        super(ExperienceReplay, self).__init__(args, fold_num, logs)
+| 140|        self.replay_buffer_size = 0
+| 141|        self.observed_samples = 0
+| 142|        '''replay buffer settings'''
+|*143|        self.sample_buffer = torch.zeros(
+| 144|            (args.replay_buffer, args.window_size, self.num_channels, 3000),
+|*145|            dtype=torch.float32,
+| 146|            requires_grad=False,
+| 147|            device=self.device
+| 148|        )
+|*149|        self.label_buffer = torch.zeros(
+| 150|            (args.replay_buffer, args.window_size),
+|*151|            dtype=torch.int64,
+| 152|            requires_grad=False,
+| 153|            device=self.device
+| 154|        )
+|*155|        self.task_tag = torch.zeros(
+| 156|            args.replay_buffer,
+|*157|            dtype=torch.int64,
+| 158|            requires_grad=False
+| 159|        )
+| 160|
+| 161|    def start_task(self):
+| 162|        super(ExperienceReplay, self).start_task()
+| 163|
+| 164|    def update_buffer(self, X, y):
+| ...| ... 
+| 177|            self.observed_samples += 1
+| 178|
+| 179|    def start_epoch(self):
+| 180|        super(ExperienceReplay, self).start_epoch()
+| 181|
+| 182|    def observe(self, X, y, first_time=False):
+| 183|        X, y = X.to(self.device), y.to(self.device)
+|*184|        self.optimizer.zero_grad()
+| 185|        if self.task > 0:
+| 186|            self.net.freeze_parameters()
+| 187|        y_hat = self.net(X)
+| 188|        L_current = self.loss(y_hat, y.view(-1))
+|*189|        L = torch.mean(L_current)
+| 190|        if self.task > 0:
+| 191|            selected = random.sample(list(range(self.replay_buffer_size)), self.args.batch_size)
+| 192|            Xr, yr = self.sample_buffer[selected], self.label_buffer[selected]
+| 193|            Xr, yr = Xr.to(self.device), yr.to(self.device)
+| 194|            yr_hat = self.net(Xr)
+| 195|            L_replay = self.loss(yr_hat, yr.view(-1))
+|*196|            L = L + torch.mean(L_replay)
+| 197|        L.backward()
+|*198|        self.optimizer.step()
+| 199|        self.train_loss += L.item()
+| 200|        self.cnt += 1
+| 201|        self.confusion_matrix.count_task_separated(y_hat, y, 0)
+| 202|
+| 203|    def end_epoch(self, valid_dataset):
+| 204|        super(ExperienceReplay, self).end_epoch(valid_dataset)
+|*205|        distribution = torch.bincount(self.task_tag).cpu().numpy().tolist()
+|*206|        self.logs.append(['train_info', f'task{self.task}_fold{self.fold_num}', f'epoch:{self.epoch - 1}',
+| 207|                          'replay buffer size'], self.replay_buffer_size)
+|*208|        self.logs.append(['train_info', f'task{self.task}_fold{self.fold_num}', f'epoch:{self.epoch - 1}',
+| 209|                          'replay buffer distribution'], distribution)
+| 210|
+| 211|    def end_task(self, dataset=None):
+| 212|        loader = DataLoader(dataset, self.args.batch_size, True)
+| 213|        for X, y in loader:
+| 214|            self.update_buffer(X, y)
+| 215|        super(ExperienceReplay, self).end_task(dataset)
+
+[file_path: "baselines/LwF.py", lines_matched: 15]: 
+|*  1|import torch.nn
+|   2|from models import *
+|   3|from . import multihead_model
+|   4|from clnetworks import CLnetwork
+|   5|from metric import evaluate_tasks_multihead, ConfusionMatrix
+|   6|
+|   7|
+|   8|class LwFnetwork(CLnetwork):
+|*  9|    def __init__(self, args, fold_num, logs):
+|* 10|        super(LwFnetwork, self).__init__(args, fold_num, logs)
+|  11|        self.net = multihead_model.MultiHeadSleepNet(self.num_channels, args.dropout, args.task_num, self.args.enable_multihead)
+|  12|        self.net.apply(init_weight)
+|* 13|        self.optimizer = torch.optim.AdamW(self.net.parameters(), lr=args.lr, weight_decay=args.weight_decay)
+|  14|        self.loss = nn.CrossEntropyLoss(reduction='none')
+|  15|        self.net.to(self.device)
+|  16|        self.kldloss = nn.KLDivLoss(reduction='none')
+|  17|        '''distill settings'''
+|  18|        self.teacher_model = multihead_model.MultiHeadSleepNet(self.num_channels, args.dropout, args.task_num, self.args.enable_multihead)
+|  19|        self.teacher_model.to(self.device)
+|  20|
+|  21|    def start_task(self):
+|  22|        super(LwFnetwork, self).start_task()
+|  23|        '''load teacher models'''
+|  24|        if self.task > 0:
+|* 25|            self.teacher_model.load_state_dict(torch.load(self.best_net_memory[-1], map_location=self.device, weights_only=True))
+|  26|            print(f'teacher model loaded: {self.best_net_memory[-1]}')
+|  27|
+|  28|    def start_epoch(self):
+|  29|        super(LwFnetwork, self).start_epoch()
+|  30|        self.teacher_model.eval()
+|  31|
+|  32|    def observe(self, X, y, first_time=False):
+|  33|        X, y = X.to(self.device), y.to(self.device)
+|* 34|        self.optimizer.zero_grad()
+|  35|        if self.task > 0:
+|  36|            self.net.freeze_parameters()
+|  37|        y_hat = self.net(X, self.task)
+|  38|        L_current = self.loss(y_hat, y.view(-1))
+|* 39|        L = torch.mean(L_current)
+|  40|        if self.task > 0:
+|  41|            '''perform knowledge distillation'''
+|  42|            y_distill = self.teacher_model(X, self.task - 1).detach() / self.args.tau
+|* 43|            L_distill = torch.sum(self.kldloss(nn.functional.log_softmax(y_hat / self.args.tau, dim=1), y_distill.softmax(dim=1)), dim=1)
+|* 44|            L = L + torch.mean(L_distill)
+|  45|        L.backward()
+|* 46|        self.optimizer.step()
+|  47|        self.train_loss += L.item()
+|  48|        self.cnt += 1
+|  49|        self.confusion_matrix.count_task_separated(y_hat, y, 0)
+|  50|
+|  51|    def end_epoch(self, valid_dataset):
+|* 52|        learning_rate = self.optimizer.state_dict()['param_groups'][0]['lr']
+|  53|        train_acc, train_mf1 = self.confusion_matrix.accuracy(), self.confusion_matrix.macro_f1()
+|  54|        print(f'epoch: {self.epoch}, train loss: {self.train_loss / self.cnt:.3f}, train accuracy: {train_acc:.3f}, '
+|  55|              f"macro F1: {train_mf1:.3f}, 1000 lr: {learning_rate * 1000:.3f}")
+|* 56|        self.logs.append(['train_info', f'task{self.task}_fold{self.fold_num}', f'epoch:{self.epoch}'], {
+|  57|            'train loss': self.train_loss / self.cnt,
+|  58|            'train accuracy': train_acc,
+|  59|            'train mF1': train_mf1,
+|  60|            '1000 lr': learning_rate * 1000
+|  61|        })
+|  62|        if (self.epoch + 1) % self.args.valid_epoch == 0:
+|  63|            print(f'validating on the datasets...')
+|  64|            valid_confusion = ConfusionMatrix(1)
+|  65|            valid_confusion = evaluate_tasks_multihead(self.net, [valid_dataset], valid_confusion,
+|  66|                                                       self.device, self.args.valid_batch, self.task)
+|  67|            valid_acc, valid_mf1 = valid_confusion.accuracy(), valid_confusion.macro_f1()
+|  68|            print(f'valid accuracy: {valid_acc:.3f}, valid macro F1: {valid_mf1:.3f}')
+|* 69|            self.logs.append(['train_info', f'task{self.task}_fold{self.fold_num}', f'valid epoch:{self.epoch}'], {
+|  70|                'valid accuracy': valid_acc,
+|  71|                'valid mF1': valid_mf1
+|  72|            })
+|  73|            if valid_acc + valid_mf1 > self.best_valid_acc and self.epoch + 1 >= self.args.min_epoch:
+|* 74|                self.logs.append(['train_info', f'task{self.task}_fold{self.fold_num}', f'valid epoch:{self.epoch}', 'saved'], True)
+|  75|                self.best_train_loss = self.train_loss / self.cnt
+|  76|                self.best_train_acc = train_acc
+|  77|                self.best_valid_acc = valid_acc + valid_mf1
+|  78|                self.best_net = './modelsaved/' + str(self.args.replay_mode) + '_task' + str(self.task) + '_fold' + str(self.fold_num) + '.pth'
+|  79|                print(f'model saved: {self.best_net}')
+|* 80|                torch.save(self.net.state_dict(), self.best_net)
+|  81|        self.epoch += 1
+|  82|        self.scheduler.step()
+|  83|
+|  84|    def end_task(self, dataset=None):
+|  85|        super(LwFnetwork, self).end_task()
+|  86|
+|  87|
+
+[file_path: "GeCoSleep/generator.py", lines_matched: 23]: 
+|*  1|import torch
+|   2|from models import *
+|   3|from data_preprocessing import *
+|   4|# from thop import profile
+|   5|
+|   6|
+|   7|class PositionalEncoding(nn.Module):
+|   8|    def __init__(self, d_model, max_len=256, **kwargs):
+|   9|        super(PositionalEncoding, self).__init__(**kwargs)
+|* 10|        self.pe = torch.zeros((max_len, d_model), dtype=torch.float32, requires_grad=False)
+|* 11|        position = torch.arange(0, max_len, dtype=torch.float32, requires_grad=False).unsqueeze(1)
+|* 12|        div_term = torch.arange(0, d_model, 2, dtype=torch.float32, requires_grad=False)
+|* 13|        div_term = torch.exp(div_term * (-math.log(10000.0) / d_model))
+|* 14|        self.pe[:, 0::2] = torch.sin(position * div_term)
+|* 15|        self.pe[:, 1::2] = torch.cos(position * div_term)
+|  16|        self.pe = self.pe.unsqueeze(0)
+|  17|
+|  18|    def forward(self, X):
+|  19|        batch_size, seq_length, d_model = X.shape
+|  20|        X = X + self.pe[:, :seq_length, :].to(X.device)
+|  21|        return X
+|  22|
+| ...| ... 
+|  49|            nn.Linear(embeddings, hiddens), nn.ReLU(),
+|  50|            nn.Linear(hiddens, embeddings), nn.Softplus()
+|  51|        )
+|  52|
+|  53|    def forward(self, X, y, t):
+|  54|        batch_size, seq_length, embeddings = X.shape
+|  55|        t = self.task2vec(t)
+|* 56|        t = torch.unsqueeze(t, dim=1)
+|* 57|        X = torch.cat((t, X), dim=1)
+|  58|        X = self.positional_encoding(X)
+|  59|        X = self.block1(X)
+|  60|        y = y.view(batch_size * seq_length)
+|  61|        y = self.label2vec(y)
+|  62|        y = y.view(batch_size, seq_length, embeddings)
+|  63|        X[:, 1:, :] = X[:, 1:, :] + y
+|  64|        X = self.block2(X)
+| ...| ... 
+|  89|            nn.TransformerEncoderLayer(embeddings, heads, dim_feedforward=1024, dropout=dropout, batch_first=True),
+|  90|            num_layers=layers
+|  91|        )
+|  92|
+|  93|    def forward(self, X, y, t):
+|  94|        batch_size, seq_length, embeddings = X.shape
+|  95|        t = self.task2vec(t)
+|* 96|        t = torch.unsqueeze(t, dim=1)
+|* 97|        X = torch.cat((t, X), dim=1)
+|  98|        X = self.positional_encoding(X)
+|  99|        X = self.block1(X)
+| 100|        y = y.view(batch_size * seq_length)
+| 101|        y = self.label2vec(y)
+| 102|        y = y.view(batch_size, seq_length, embeddings)
+| 103|        X[:, 1:, :] = X[:, 1:, :] + y
+| 104|        X = self.block2(X)
+| 105|        X = X[:, 1:, :].contiguous()
+| 106|        return X
+| 107|
+| 108|    def generate(self, y, t):
+| 109|        batch_size, seq_length = y.shape
+|*110|        z = torch.randn((batch_size, seq_length, self.embeddings),
+|*111|                        dtype=torch.float32, requires_grad=False, device=y.device)
+| 112|        X_hat = self.forward(z, y, t)
+| 113|        return X_hat
+| 114|
+| 115|
+| 116|class SequentialVAE(nn.Module):
+| 117|    def __init__(self, embeddings, dropout, **kwargs):
+| 118|        super(SequentialVAE, self).__init__(**kwargs)
+| ...| ... 
+| 120|        self.hiddens = int(embeddings * 2)
+| 121|        self.dropout = dropout
+| 122|        self.encoder = SequentialVAEencoder(embeddings, self.hiddens, 8, 2, dropout)
+| 123|        self.decoder = SequentialVAEdecoder(embeddings, 8, 2, dropout)
+| 124|
+| 125|    def forward(self, X, y, t):
+| 126|        mu, sigma = self.encoder(X, y, t)
+|*127|        eps = torch.randn_like(mu, requires_grad=False)
+| 128|        z = eps * sigma + mu
+| 129|        X_hat = self.decoder(z, y, t)
+|*130|        kl_loss = torch.mean(-2 * torch.log(sigma) + sigma.pow(2) + mu.pow(2) - 1) * 0.5
+| 131|        return X_hat, kl_loss
+| 132|
+| 133|
+| 134|if __name__ == '__main__':
+| 135|    '''
+|*136|    X = torch.randn((4, 10, 512), dtype=torch.float32, requires_grad=False)
+|*137|    y = torch.randint(0, 5, (4, 10), dtype=torch.int64, requires_grad=False)
+|*138|    t = torch.randint(0, 4, [4], dtype=torch.int64, requires_grad=False)
+| 139|    net = SequentialVAE(512, 0)
+| 140|    X_hat, kl_loss = net(X, y, t)
+| 141|    print(X_hat.shape, kl_loss)
+|*142|    torch.save(net.state_dict(), 'EEGVAE.pth')
+|*143|    X = torch.randn((1, 10, 512), dtype=torch.float32, requires_grad=False)
+|*144|    y = torch.randint(0, 5, (1, 10), dtype=torch.int64, requires_grad=False)
+|*145|    t = torch.randint(0, 4, [1], dtype=torch.int64, requires_grad=False)
+| 146|    net = SequentialVAE(512, 0)
+| 147|    flops, params = profile(net, inputs=(X, y, t))
+| 148|    print(f"VAE FLOPs: {flops / 1e6:.2f} M")
+| 149|    print(f"VAE Params: {params / 1e6:.2f} M")
+| 150|    decoder = SequentialVAEdecoder(512, 8, 2, 0)
+|*151|    z = torch.randn((1, 10, 512), dtype=torch.float32, requires_grad=False)
+| 152|    flops, params = profile(decoder, inputs=(z, y, t))
+| 153|    print(f"Decoder FLOPs: {flops / 1e6:.2f} M")
+| 154|    print(f"Decoder Params: {params / 1e6:.2f} M")
+| 155|    '''
+| 156|    pass
+
+[file_path: "models.py", lines_matched: 16]: 
+|*  1|import torch
+|   2|import math
+|*  3|import torch.nn as nn
+|   4|# from thop import profile
+|   5|
+|   6|
+|   7|class MultiScaleCNN(nn.Module):
+|   8|    def __init__(self, input_channels, hiddens, output_channels, kernel_size, stride, pooling, dropout, **kwargs):
+|   9|        super(MultiScaleCNN, self).__init__(**kwargs)
+|  10|        self.input_channels = input_channels
+| ...| ... 
+|  55|        self.dropout_layer = nn.Dropout(dropout)
+|  56|
+|  57|    def forward(self, X):
+|  58|        X1 = self.encoder1(X)
+|  59|        X2 = self.encoder2(X)
+|  60|        X3 = self.encoder3(X)
+|  61|        X4 = self.encoder4(X)
+|* 62|        output = torch.cat((X1, X2, X3, X4), dim=2)
+|  63|        output = self.dropout_layer(output)
+|  64|        output = output.permute(0, 2, 1).contiguous()
+|  65|        return output
+|  66|
+|  67|
+|  68|class PositionalEncoding(nn.Module):
+|  69|    def __init__(self, d_model, max_len=256, **kwargs):
+|  70|        super(PositionalEncoding, self).__init__(**kwargs)
+|* 71|        self.pe = torch.zeros((max_len, d_model), dtype=torch.float32, requires_grad=False)
+|* 72|        position = torch.arange(0, max_len, dtype=torch.float32, requires_grad=False).unsqueeze(1)
+|* 73|        div_term = torch.arange(0, d_model, 2, dtype=torch.float32, requires_grad=False)
+|* 74|        div_term = torch.exp(div_term * (-math.log(10000.0) / d_model))
+|* 75|        self.pe[:, 0::2] = torch.sin(position * div_term)
+|* 76|        self.pe[:, 1::2] = torch.cos(position * div_term)
+|  77|        self.pe = self.pe.unsqueeze(0)
+|  78|
+|  79|    def forward(self, X):
+|  80|        batch_size, seq_length, d_model = X.shape
+|  81|        X = X + self.pe[:, :seq_length, :].to(X.device)
+|  82|        return X
+|  83|
+| ...| ... 
+|  91|        self.dropout = dropout
+|  92|        self.keep = keep
+|  93|        self.positional_encoding = PositionalEncoding(embeddings)
+|  94|        self.transformers = nn.TransformerEncoder(
+|  95|            nn.TransformerEncoderLayer(embeddings, heads, dim_feedforward=1024, dropout=dropout, batch_first=True),
+|  96|            num_layers=layers
+|  97|        )
+|* 98|        self.CLS_tokens = nn.Parameter(torch.randn((1, keep, embeddings), dtype=torch.float32, requires_grad=True))
+|  99|
+| 100|    def forward(self, X):
+| 101|        batch_size, seq_length, features = X.shape
+|*102|        X = torch.cat((self.CLS_tokens.expand(batch_size, self.keep, self.embeddings), X), dim=1)
+| 103|        X = self.positional_encoding(X)
+| 104|        X = self.transformers(X)
+| 105|        X = X[:, :self.keep, :]
+| 106|        X = X.view(X.shape[0], -1)
+| 107|        return X
+| 108|
+| 109|
+| ...| ... 
+| 151|    def forward(self, X):
+| 152|        batch_size, seq_length, num_channels, series = X.shape
+| 153|        X = self.cnn(X)
+| 154|        X = self.short_term_encoder(X)
+| 155|        X = X.view(batch_size, seq_length, -1)
+| 156|        r = self.resblock(X.view(batch_size * seq_length, -1))
+| 157|        X = self.long_term_encoder(X)
+|*158|        X = torch.cat((r, X), dim=1)
+| 159|        X = self.classifier(X)
+| 160|        return X
+| 161|
+| 162|    def features(self, X):
+| 163|        batch_size, seq_length, num_channels, series = X.shape
+| 164|        X = self.cnn(X)
+| 165|        X = self.short_term_encoder(X)
+| 166|        X = X.view(batch_size, seq_length, -1)
+| 167|        return X
+| 168|
+| 169|    def classify(self, X):
+| 170|        batch_size, seq_length, embeddings = X.shape
+| 171|        r = self.resblock(X.view(batch_size * seq_length, -1))
+| 172|        X = self.long_term_encoder(X)
+|*173|        X = torch.cat((r, X), dim=1)
+| 174|        X = self.classifier(X)
+| 175|        return X
+| 176|
+| 177|    def freeze_parameters(self):
+| 178|        for m in self.cnn.modules():
+| 179|            if isinstance(m, nn.BatchNorm1d):
+| 180|                m.eval()
+| ...| ... 
+| 187|def init_weight(module):
+| 188|    if isinstance(module, nn.Conv1d) or isinstance(module, nn.Linear):
+| 189|        nn.init.xavier_uniform_(module.weight)
+| 190|
+| 191|
+| 192|if __name__ == '__main__':
+| 193|    '''
+|*194|    X = torch.randn((4, 10, 2, 3000))
+| 195|    net = SleepNet(2, 0.25)
+| 196|    print(net(X).shape)
+|*197|    torch.save(net.state_dict(), 'SleepNet.pth')
+|*198|    X = torch.randn((1, 10, 2, 3000))
+| 199|    net = SleepNet(2, 0.25)
+| 200|    flops, params = profile(net, inputs=(X,))
+| 201|    print(f"FLOPs: {flops / 1e6:.2f} M")
+| 202|    print(f"Params: {params / 1e6:.2f} M")
+| 203|    '''
+| 204|    pass
+
+[file_path: "no_use.py", lines_matched: 4]: 
+|*  1|import torch
+|*  2|import torch.nn as nn
+|   3|
+|   4|from BayesEEGNet import *
+|   5|
+|   6|
+|   7|if __name__ == '__main__':
+|   8|    net = BayesEEGNet(512, 5, 512, 2, 64)
+|*  9|    X = torch.randn((320, 2, 3000), device=torch.device('cuda:0'))
+|* 10|    net.to(torch.device('cuda:0'))
+|  11|    y = net(X)
+|  12|    print(y)
+
+[file_path: "old_version_code/CGR.py", lines_matched: 49]: 
+|*  1|import torch
+|   2|import math
+|   3|import copy
+|   4|from clnetworks import *
+|   5|from generator import *
+|   6|from models import init_weight
+|   7|import numpy as np
+|   8|import matplotlib.pyplot as plt
+|   9|
+|  10|
+|  11|class CGRnetwork(NaiveCLnetwork):
+|  12|    def __init__(self, args):
+|  13|        super(CGRnetwork, self).__init__(args)
+|* 14|        self.running_mean = torch.zeros((args.channels_num * 129, 25),
+|* 15|                                        dtype=torch.float32, requires_grad=False, device=self.device)
+|* 16|        self.running_mean_sqr = torch.zeros((args.channels_num * 129, 25),
+|* 17|                                            dtype=torch.float32, requires_grad=False, device=self.device)
+|  18|        self.running_memory = []
+|  19|        self.generator = Generator(args.channels_num)
+|  20|        self.discriminator = Discriminator(args.channels_num)
+|* 21|        self.optimizerG, self.optimizerD = None, None
+|  22|        self.schedulerG, self.schedulerD = None, None
+|* 23|        self.mseloss = torch.nn.MSELoss()
+|* 24|        self.bceloss = torch.nn.BCEWithLogitsLoss()
+|  25|        self.generative_loss = [0, 0, 0]
+|  26|        self.generator.to(self.device)
+|  27|        self.discriminator.to(self.device)
+|  28|        self.generator_memory = []
+|  29|
+|  30|    def start_task(self):
+|  31|        super(CGRnetwork, self).start_task()
+|* 32|        self.running_mean = torch.zeros((self.args.channels_num * 129, 25),
+|* 33|                                        dtype=torch.float32, requires_grad=False, device=self.device)
+|* 34|        self.running_mean_sqr = torch.zeros((self.args.channels_num * 129, 25),
+|* 35|                                            dtype=torch.float32, requires_grad=False, device=self.device)
+|  36|        self.generator.apply(init_weight)
+|  37|        self.discriminator.apply(init_weight)
+|* 38|        self.optimizerG = torch.optim.Adam(self.generator.parameters(), lr=self.args.generator_lr)
+|* 39|        self.optimizerD = torch.optim.Adam(self.discriminator.parameters(), lr=self.args.generator_lr)
+|* 40|        self.schedulerG = torch.optim.lr_scheduler.StepLR(self.optimizerG, max(self.args.num_epochs // 6, 1), 0.6)
+|* 41|        self.schedulerD = torch.optim.lr_scheduler.StepLR(self.optimizerD, max(self.args.num_epochs // 6, 1), 0.6)
+|  42|
+|  43|    def start_epoch(self):
+|  44|        super(CGRnetwork, self).start_epoch()
+|  45|        self.generative_loss = [0, 0, 0]
+|  46|
+|  47|    def reservoir_sampling(self, X, y):
+|  48|        batch_size, seq_length, F, T = X.shape[0], X.shape[1], X.shape[2], X.shape[3]
+|  49|        alpha = self.observed_samples / (self.observed_samples + batch_size)
+|  50|        beta = batch_size / (self.observed_samples + batch_size)
+|  51|        '''calculate avg(X) and avg(X^2)'''
+|* 52|        mean = torch.mean(X.view(-1, X.shape[2], X.shape[3]), dim=0).to(self.device)
+|* 53|        mean_sqr = torch.mean(X.pow(2).view(-1, X.shape[2], X.shape[3]), dim=0).to(self.device)
+|  54|        '''update running avg(X) and running avg(X^2)'''
+|  55|        self.running_mean = alpha * self.running_mean + beta * mean
+|  56|        self.running_mean_sqr = alpha * self.running_mean_sqr + beta * mean_sqr
+|  57|        for idx in range(X.shape[0]):
+|  58|            self.observed_samples += 1
+|  59|            if self.data_buffer is None:
+|* 60|                self.data_buffer = torch.unsqueeze(X[idx].clone(), dim=0)
+|* 61|                self.label_buffer = torch.unsqueeze(y[idx].clone(), dim=0)
+|  62|                self.buffer_counter += 1
+|  63|                continue
+|  64|            if self.buffer_counter < self.buffer_size:
+|* 65|                data = torch.unsqueeze(X[idx].clone(), dim=0)
+|* 66|                label = torch.unsqueeze(y[idx].clone(), dim=0)
+|* 67|                self.data_buffer = torch.cat((self.data_buffer, data), dim=0)
+|* 68|                self.label_buffer = torch.cat((self.label_buffer, label), dim=0)
+|  69|                self.buffer_counter += 1
+|  70|            elif random.random() <= self.buffer_size / self.observed_samples:
+|  71|                target = random.randint(0, self.buffer_size - 1)
+|  72|                self.data_buffer[target].copy_(X[idx])
+|  73|                self.label_buffer[target].copy_(y[idx])
+|  74|
+|  75|    def observe(self, X, y, first_time=False):
+|  76|        if first_time:
+|  77|            self.reservoir_sampling(X, y)
+|  78|            print(f'sampling {self.buffer_counter} examples, labels only...')
+|  79|        X, y = X.to(self.device), y.to(self.device)
+|* 80|        self.optimizer.zero_grad()
+|  81|        y_hat = self.net(X)
+|* 82|        L_current = torch.sum(self.loss(y_hat, y.view(-1)))
+|  83|        L = L_current / X.shape[0]
+|  84|        L.backward()
+|  85|        nn.utils.clip_grad_norm_(self.net.parameters(), max_norm=20, norm_type=2)
+|* 86|        self.optimizer.step()
+|  87|        self.train_loss += L.item()
+|  88|        self.confusion_matrix.count_task_separated(y_hat, y, 0)
+|  89|        '''train generator'''
+|  90|        mean = self.running_mean
+|  91|        var = (self.running_mean_sqr - self.running_mean.pow(2)) * (self.observed_samples / (self.observed_samples - 1))
+|  92|        var = var.pow(0.5)
+|  93|        for n_generator in range(self.args.n_generator):
+|* 94|            self.optimizerG.zero_grad()
+|* 95|            self.optimizerD.zero_grad()
+|* 96|            z = torch.randn((X.shape[0], X.shape[1], 128), dtype=torch.float32, requires_grad=False, device=self.device)
+|* 97|            target = torch.ones(X.shape[0], dtype=torch.float32, requires_grad=False, device=self.device)
+|  98|            X_fake = self.generator(z, y)
+|  99|            pred_d = self.discriminator(X_fake, y)
+| 100|            L_G = self.bceloss(pred_d.view(-1), target)
+| 101|            self.generative_loss[0] += L_G.item()
+| 102|            pred_n = self.net(X_fake * var + mean)
+| 103|            L_N = self.mseloss(pred_n, y_hat.detach()) * self.args.cgr_coef
+| 104|            (L_G + L_N).backward()
+| 105|            nn.utils.clip_grad_norm_(self.generator.parameters(), max_norm=20, norm_type=2)
+|*106|            self.optimizerG.step()
+| 107|        '''train discriminator'''
+|*108|        self.optimizerG.zero_grad()
+|*109|        self.optimizerD.zero_grad()
+|*110|        z = torch.randn((X.shape[0], X.shape[1], 128), dtype=torch.float32, requires_grad=False, device=self.device)
+|*111|        target_t = torch.ones(X.shape[0], dtype=torch.float32, requires_grad=False, device=self.device)
+|*112|        target_g = torch.zeros(X.shape[0], dtype=torch.float32, requires_grad=False, device=self.device)
+| 113|        X_fake = self.generator(z, y).detach()
+| 114|        pred_t = self.discriminator(((X - mean) / (var + 1e-5)), y)
+| 115|        pred_g = self.discriminator(X_fake, y)
+| 116|        L_D = self.bceloss(pred_t.view(-1), target_t) + self.bceloss(pred_g.view(-1), target_g)
+| 117|        self.generative_loss[1] += L_D.item()
+| 118|        L_D.backward()
+| 119|        nn.utils.clip_grad_norm_(self.discriminator.parameters(), max_norm=20, norm_type=2)
+|*120|        self.optimizerD.step()
+| 121|        '''validation'''
+| 122|        pred_n = self.net(X_fake * var + mean)
+|*123|        L_N = torch.sum(self.loss(pred_n, y.view(-1))) / X.shape[0]
+| 124|        self.generative_loss[2] += L_N.item()
+| 125|
+| 126|    def end_epoch(self, valid_dataset):
+| 127|        train_acc, train_mf1 = self.confusion_matrix.accuracy(), self.confusion_matrix.macro_f1()
+| 128|        print(f'epoch: {self.epoch}, train loss: {self.train_loss:.3f}, train accuracy: {train_acc:.3f}, '
+|*129|              f"macro F1: {train_mf1:.3f}, 1000 lr: {self.optimizer.state_dict()['param_groups'][0]['lr'] * 1000:.3f}, "
+| 130|              f'generative loss: {self.generative_loss[0]:.3f}, {self.generative_loss[1]:.3f}, {self.generative_loss[2]:.3f}')
+| 131|        if (self.epoch + 1) % self.args.valid_epoch == 0:
+| 132|            print(f'validating on the datasets...')
+| 133|            valid_confusion = ConfusionMatrix(1)
+| 134|            valid_confusion = evaluate_tasks(self.net, [valid_dataset], valid_confusion,
+| 135|                                             self.device, self.args.valid_batch)
+| 136|            valid_acc, valid_mf1 = valid_confusion.accuracy(), valid_confusion.macro_f1()
+| 137|            print(f'valid accuracy: {valid_acc:.3f}, valid macro F1: {valid_mf1:.3f}')
+| 138|            if valid_acc > self.best_valid_acc:
+| 139|                self.best_train_loss = self.train_loss
+| 140|                self.best_train_acc = train_acc
+| 141|                self.best_valid_acc = valid_acc
+| 142|                self.best_net = './modelsaved/' + str(self.args.replay_mode) + '_task' + str(self.task) + '.pth'
+|*143|                torch.save(self.net.state_dict(), self.best_net)
+| 144|            if self.args.visualize:
+| 145|                mean = self.running_mean
+| 146|                var = (self.running_mean_sqr - self.running_mean.pow(2)) * (self.observed_samples / (self.observed_samples - 1))
+| 147|                var = var.pow(0.5)
+| 148|                datas, labels = self.data_buffer.to(self.device), self.label_buffer.to(self.device)
+|*149|                z = torch.randn((datas.shape[0], datas.shape[1], 128),
+|*150|                                dtype=torch.float32, requires_grad=False, device=self.device)
+| 151|                datas_fake = self.generator(z, labels)
+| 152|                datas_fake = datas_fake * var + mean
+| 153|                for idx in range(datas.shape[1]):
+| 154|                    image1 = datas[0][idx].detach()
+| 155|                    image2 = datas_fake[0][idx].detach()
+|*156|                    image3 = torch.randn(image1.shape, dtype=torch.float32, requires_grad=False, device=self.device)
+| 157|                    image3 = image3 * var + mean
+|*158|                    minn = torch.min(image1).item()
+|*159|                    maxn = torch.max(image1 - minn).item()
+|*160|                    dvdline = torch.zeros((image1.shape[0], 1), dtype=image1.dtype, device=image1.device)
+|*161|                    image = torch.cat(((image1 - minn) / maxn, dvdline, (image2 - minn) / maxn, dvdline, (image3 - minn) / maxn), dim=1)
+|*162|                    image = (torch.clamp(image, 0, 1) * 255).cpu().numpy().astype(np.uint8)
+| 163|                    plt.imsave(f'./visual/real_fake_example_{idx}.jpg', image)
+| 164|        self.epoch += 1
+| 165|        self.scheduler.step()
+| 166|        self.schedulerG.step()
+| 167|        self.schedulerD.step()
+| 168|
+| 169|    def end_task(self):
+
+[file_path: "baselines/TA_GEM.py", lines_matched: 28]: 
+|   1|import math
+|*  2|import torch
+|*  3|import torch.nn as nn
+|   4|import random
+|   5|from clnetworks import CLnetwork, ExperienceReplay
+|   6|from metric import ConfusionMatrix, evaluate_tasks
+|*  7|from torch.utils.data import DataLoader
+|   8|
+|   9|
+|  10|def get_flat_grad(model):
+|  11|    grads = []
+|  12|    for param in model.parameters():
+|  13|        if param.grad is not None:
+|  14|            grads.append(param.grad.view(-1))
+|* 15|    return torch.cat(grads) if len(grads) > 0 else None
+|  16|
+|  17|
+|  18|def set_flat_grad(model, flat_grad):
+|  19|    pointer = 0
+|  20|    for param in model.parameters():
+|  21|        if param.grad is not None:
+|  22|            num_param = param.numel()
+|  23|            param.grad.copy_(flat_grad[pointer:pointer + num_param].view(param.size()))
+|  24|            pointer += num_param
+|  25|
+|  26|
+|  27|class TAGEMnetwork(CLnetwork):
+|* 28|    def __init__(self, args, fold_num, logs):
+|* 29|        super(TAGEMnetwork, self).__init__(args, fold_num, logs)
+|  30|        self.memory_clusters = []
+|  31|        self.num_clusters = self.args.num_clusters
+|  32|        self.cluster_size = self.args.replay_buffer // self.args.num_clusters
+|  33|        self.mem_batch = self.args.batch_size
+|  34|
+|  35|    def start_task(self):
+|  36|        super(TAGEMnetwork, self).start_task()
+|  37|
+|  38|    def start_epoch(self):
+|  39|        super(TAGEMnetwork, self).start_epoch()
+|  40|    
+|  41|    def observe(self, X, y, first_time=False):
+|  42|        X, y = X.to(self.device), y.to(self.device)
+|* 43|        self.optimizer.zero_grad()
+|  44|        if self.task > 0:
+|  45|            self.net.freeze_parameters()
+|  46|        y_hat = self.net(X)
+|* 47|        L_current = torch.mean(self.loss(y_hat, y.view(-1)))
+|  48|        L_current.backward()
+|  49|        g_cur = get_flat_grad(self.net)
+|  50|        if self.memory_available():
+|  51|            mem_X, mem_y = self.sample_memory(self.mem_batch)
+|  52|            mem_X, mem_y = mem_X.to(self.device), mem_y.to(self.device)
+|* 53|            self.optimizer.zero_grad()
+|  54|            y_mem_hat = self.net(mem_X)
+|* 55|            L_mem = torch.mean(self.loss(y_mem_hat, mem_y.view(-1)))
+|  56|            L_mem.backward()
+|  57|            g_ref = get_flat_grad(self.net)
+|* 58|            prod = torch.dot(g_cur, g_ref)
+|  59|            if prod < 0:
+|  60|                proj_grad = g_cur - (prod / (g_ref.norm()**2 + 1e-12)) * g_ref
+|  61|            else:
+|  62|                proj_grad = g_cur
+|  63|            set_flat_grad(self.net, proj_grad)
+|* 64|        self.optimizer.step()
+|  65|        self.train_loss += L_current.item()
+|  66|        self.cnt += 1
+|  67|        self.confusion_matrix.count_task_separated(y_hat, y, 0)
+|  68|
+|  69|    def end_epoch(self, valid_dataset):
+|  70|        super(TAGEMnetwork, self).end_epoch(valid_dataset)
+|  71|        cluster_num_list = []
+|  72|        for cluster in self.memory_clusters:
+|  73|            cluster_num_list.append(len(cluster['samples']))
+|* 74|        self.logs.append(['train_info', f'task{self.task}_fold{self.fold_num}', f'epoch:{self.epoch - 1}',
+|  75|                          'cluster sizes: '], cluster_num_list)
+|  76|
+|  77|    def end_task(self, dataset=None):
+|  78|        self.task += 1
+|  79|        self.best_net_memory.append(self.best_net)
+|* 80|        self.net.load_state_dict(torch.load(self.best_net_memory[-1], map_location=self.device, weights_only=True))
+|  81|        print('best model loaded, start updating clusters...')
+|  82|        self.net.eval()
+|  83|        loader = DataLoader(dataset, self.args.batch_size, True)
+|  84|        for X, y in loader:
+|  85|            X, y = X.to(self.device), y.to(self.device)
+|  86|            self.update_memory(X, y)
+|  87|        print('update complete!')
+| ...| ... 
+|  96|        all_samples = []
+|  97|        all_labels = []
+|  98|        for cluster in self.memory_clusters:
+|  99|            for (X_sample, y_sample, _) in cluster['samples']:
+| 100|                all_samples.append(X_sample.unsqueeze(0))
+| 101|                all_labels.append(y_sample.unsqueeze(0))
+| 102|        if len(all_samples) == 0:
+|*103|            return torch.empty(0), torch.empty(0, dtype=torch.long)
+| 104|        indices = random.sample(list(range(len(all_samples))), batch_size)
+|*105|        mem_X = torch.cat([all_samples[i] for i in indices], dim=0)
+|*106|        mem_y = torch.cat([all_labels[i] for i in indices], dim=0)
+| 107|        return mem_X, mem_y
+| 108|
+| 109|    def update_memory(self, X, y):
+|*110|        with torch.no_grad():
+| 111|            feats = self.net.features(X)
+| 112|            feats = feats.mean(dim=1).cpu()
+| 113|        batch_size = X.shape[0]
+| 114|        for i in range(batch_size):
+| 115|            sample_X = X[i].detach().cpu()
+| 116|            sample_y = y[i].detach().cpu()
+| 117|            sample_feat = feats[i]
+| ...| ... 
+| 121|        if len(self.memory_clusters) < self.num_clusters:
+| 122|            new_cluster = {'center': sample_feat.clone(), 'samples': [(sample_X, sample_y, sample_feat.clone())]}
+| 123|            self.memory_clusters.append(new_cluster)
+| 124|            return
+| 125|        min_dist = None
+| 126|        assigned_cluster = None
+| 127|        for cluster in self.memory_clusters:
+|*128|            dist = torch.norm(sample_feat - cluster['center'])
+| 129|            if min_dist is None or dist < min_dist:
+| 130|                min_dist = dist
+| 131|                assigned_cluster = cluster
+| 132|        if len(assigned_cluster['samples']) < self.cluster_size:
+| 133|            assigned_cluster['samples'].append((sample_X, sample_y, sample_feat.clone()))
+| 134|        else:
+| 135|            assigned_cluster['samples'].pop(0)
+| 136|            assigned_cluster['samples'].append((sample_X, sample_y, sample_feat.clone()))
+| 137|        feats = [s[2] for s in assigned_cluster['samples']]
+|*138|        assigned_cluster['center'] = torch.stack(feats, dim=0).mean(dim=0)
+| 139|
+| 140|
+| 141|class AGEM(ExperienceReplay):
+|*142|    def __init__(self, args, fold_num, logs):
+|*143|        super(AGEM, self).__init__(args, fold_num, logs)
+| 144|
+| 145|    def start_task(self):
+| 146|        super(AGEM, self).start_task()
+| 147|
+| 148|    def start_epoch(self):
+| 149|        super(AGEM, self).start_epoch()
+| 150|
+| 151|    def observe(self, X, y, first_time=False):
+| 152|        X, y = X.to(self.device), y.to(self.device)
+|*153|        self.optimizer.zero_grad()
+| 154|        if self.task > 0:
+| 155|            self.net.freeze_parameters()
+| 156|        y_hat = self.net(X)
+|*157|        L_current = torch.mean(self.loss(y_hat, y.view(-1)))
+| 158|        L_current.backward()
+| 159|        g_cur = get_flat_grad(self.net)
+| 160|        if self.task > 0:
+| 161|            selected = random.sample(list(range(self.replay_buffer_size)), self.args.batch_size)
+| 162|            Xr, yr = self.sample_buffer[selected], self.label_buffer[selected]
+| 163|            Xr, yr = Xr.to(self.device), yr.to(self.device)
+|*164|            self.optimizer.zero_grad()
+| 165|            yr_hat = self.net(Xr)
+|*166|            L_replay = torch.mean(self.loss(yr_hat, yr.view(-1)))
+| 167|            L_replay.backward()
+| 168|            g_ref = get_flat_grad(self.net)
+|*169|            prod = torch.dot(g_cur, g_ref)
+| 170|            if prod < 0:
+| 171|                proj_grad = g_cur - (prod / (g_ref.norm() ** 2 + 1e-12)) * g_ref
+| 172|            else:
+| 173|                proj_grad = g_cur
+| 174|            set_flat_grad(self.net, proj_grad)
+|*175|        self.optimizer.step()
+| 176|        self.train_loss += L_current.item()
+| 177|        self.cnt += 1
+| 178|        self.confusion_matrix.count_task_separated(y_hat, y, 0)
+| 179|
+| 180|    def end_epoch(self, valid_dataset):
+| 181|        super(AGEM, self).end_epoch(valid_dataset)
+| 182|
+
+[file_path: "old_version_code/metric.py", lines_matched: 10]: 
+|   1|import copy
+|*  2|import torch
+|   3|from models import SeqSleepNet
+|*  4|from torch.utils.data import DataLoader
+|   5|
+|   6|
+|   7|class ConfusionMatrix:
+|   8|    def __init__(self, num_tasks, num_catagories=5):
+|   9|        self.num_tasks = num_tasks
+|  10|        self.num_catagories = num_catagories
+|* 11|        self.mat = torch.zeros((num_tasks, num_catagories, num_catagories), dtype=torch.int64, requires_grad=False)
+|  12|
+|  13|    def count(self, y_hat, y, t):
+|* 14|        y_hat = torch.argmax(y_hat, dim=1)
+|  15|        y, t = y.view(-1), t.view(-1)
+|  16|        window_size = y.shape[0] // t.shape[0]
+|  17|        for idx in range(y.shape[0]):
+|  18|            self.mat[t[idx // window_size]][y_hat[idx]][y[idx]] += 1
+|  19|
+|  20|    def count_task_separated(self, y_hat, y, t):
+|* 21|        y_hat = torch.argmax(y_hat, dim=1)
+|  22|        y = y.view(-1)
+|  23|        for idx in range(y.shape[0]):
+|  24|            self.mat[t][y_hat[idx]][y[idx]] += 1
+|  25|
+|  26|    def accuracy(self):
+|  27|        acc = []
+|  28|        for idx in range(self.num_tasks):
+|* 29|            total = torch.sum(self.mat[idx]).item()
+|  30|            true = 0
+|  31|            for i in range(self.num_catagories):
+|  32|                true += self.mat[idx][i][i].item()
+|  33|            acc.append(true / max(total, 1))
+|  34|        if len(acc) == 1:
+|  35|            return acc[0]
+|  36|        else:
+| ...| ... 
+|  61|    def __getitem__(self, item):
+|  62|        return self.mat[item]
+|  63|
+|  64|
+|  65|def evaluate(net, loader, confusion_matrix, device):
+|  66|    net.to(device)
+|  67|    net.eval()
+|* 68|    with torch.no_grad():
+|  69|        for X, y, t in loader:
+|  70|            X, y = X.to(device), y.to(device)
+|  71|            y_hat = net(X)
+|  72|            confusion_matrix.count(y_hat, y, t)
+|  73|    return confusion_matrix
+|  74|
+|  75|
+|  76|def evaluate_tasks(net, datasets, confusion_matrix, device, batch_size=1):
+|  77|    net.to(device)
+|  78|    net.eval()
+|* 79|    with torch.no_grad():
+|  80|        for idx in range(len(datasets)):
+|  81|            loader = DataLoader(datasets[idx], batch_size=batch_size, shuffle=False)
+|  82|            for X, y in loader:
+|  83|                X, y = X.to(device), y.to(device)
+|  84|                y_hat = net(X)
+|  85|                confusion_matrix.count_task_separated(y_hat, y, idx)
+|  86|    return confusion_matrix
+| ...| ... 
+|  90|    using_list = clnetwork.using_list
+|  91|    grad_positions = clnetwork.grad_positions
+|  92|    for idx in range(len(datasets)):
+|  93|        masked_net = copy.deepcopy(net)
+|  94|        masked_net.to(device)
+|  95|        if idx < len(using_list):
+|  96|            print(f'start masking parameters, testing on dataset {idx}, '
+|* 97|                  f'parameters size {int(torch.sum(using_list[idx]).item())}')
+|  98|            cnt = 0
+|  99|            for param in masked_net.parameters():
+| 100|                starting, ending = grad_positions[cnt][0], grad_positions[cnt][1]
+| 101|                target = using_list[idx][starting:ending].view(param.data.shape)
+| 102|                param.data *= target
+| 103|                cnt += 1
+| 104|        else:
+| 105|            print(f'start testing without masking parameters on dataset {idx}...')
+| 106|        masked_net.eval()
+| 107|        loader = DataLoader(datasets[idx], batch_size=batch_size, shuffle=False)
+|*108|        with torch.no_grad():
+| 109|            for X, y in loader:
+| 110|                X, y = X.to(device), y.to(device)
+| 111|                y_hat = masked_net(X)
+| 112|                confusion_matrix.count_task_separated(y_hat, y, idx)
+| 113|    return confusion_matrix
+| 114|
+| 115|
+
+[file_path: "old_version_code/GEM.py", lines_matched: 20]: 
+|*  1|import torch
+|   2|from clnetworks import *
+|   3|import quadprog
+|   4|import numpy as np
+|   5|
+|   6|
+|   7|class GEMCLnetwork(NaiveCLnetwork):
+|   8|    def __init__(self, args):
+|   9|        super(GEMCLnetwork, self).__init__(args)
+|* 10|        test = torch.zeros(1, args.window_size, 258, 25).to(self.device)
+|* 11|        L = torch.sum(self.net(test))
+|  12|        L.backward()
+|  13|        self.grad_number = 0
+|  14|        self.grad_positions = []
+|  15|        for param in self.net.parameters():
+|  16|            if param.grad is not None:
+|  17|                grad_length = param.grad.view(-1).shape[0]
+|  18|                self.grad_positions.append((self.grad_number, self.grad_number + grad_length))
+|  19|                self.grad_number += grad_length
+|  20|        self.G = None
+|  21|
+|  22|    def get_gradient(self):
+|* 23|        grads = torch.zeros(self.grad_number, dtype=torch.float32, requires_grad=False, device=self.device)
+|  24|        idx = 0
+|  25|        for param in self.net.parameters():
+|  26|            if param.grad is not None:
+|  27|                starting, ending = self.grad_positions[idx][0], self.grad_positions[idx][1]
+|  28|                grads[starting:ending].copy_(param.grad.view(-1))
+|  29|                idx += 1
+|  30|        return grads
+|  31|
+|  32|    def calc_old_gradient(self):
+|  33|        self.G = None
+|  34|        print(f'calculating old gradients on {len(self.memory_buffer)} tasks...')
+|  35|        for sample in self.memory_buffer:
+|* 36|            self.optimizer.zero_grad()
+|  37|            X_replay, y_replay = sample[0].to(self.device), sample[1].to(self.device)
+|  38|            y_hat_replay = self.net(X_replay)
+|* 39|            L_replay = torch.sum(self.loss(y_hat_replay, y_replay.view(-1))) / X_replay.shape[0]
+|  40|            L_replay.backward()
+|  41|            if self.G is None:
+|* 42|                self.G = torch.unsqueeze(self.get_gradient(), dim=0)
+|  43|            else:
+|* 44|                gk = torch.unsqueeze(self.get_gradient(), dim=0)
+|* 45|                self.G = torch.cat((self.G, gk), dim=0)
+|  46|
+|  47|    def gradient_projection(self, g, eps=1e-3, margin=0.01, coef=1):
+|* 48|        factor = torch.norm(g).item() / (self.G.shape[0] + 1)
+|  49|        for idx in range(self.G.shape[0]):
+|* 50|            factor += torch.norm(self.G[idx]).item() / (self.G.shape[0] + 1)
+|  51|        H = (self.G / factor) @ (self.G.T / factor)
+|  52|        H = H.cpu().numpy().astype(np.double)
+|  53|        H = 0.5 * (H + H.transpose()) + np.eye(H.shape[0]) * eps
+|* 54|        f = (self.G / factor) @ (torch.unsqueeze(g, dim=1) / factor)
+|* 55|        f = torch.squeeze(f, dim=1).cpu().numpy().astype(np.double)
+|  56|        a = np.eye(H.shape[0])
+|  57|        b = np.zeros(H.shape[0]) + margin
+|  58|        v = quadprog.solve_qp(H, -f, a, b)[0] * coef
+|  59|        print(f'projection vector: {np.round(v, 3)}')
+|* 60|        v = torch.tensor(v.astype(np.float32), dtype=torch.float32, requires_grad=False, device=self.device)
+|* 61|        g_projected = self.G.T @ torch.unsqueeze(v, dim=1)
+|* 62|        g_projected = torch.squeeze(g_projected, dim=1) + g
+|  63|        return g_projected
+|  64|
+|  65|    def rewrite_gradient(self, g_projectd):
+|  66|        idx = 0
+|  67|        for param in self.net.parameters():
+|  68|            if param.grad is not None:
+|  69|                starting, ending = self.grad_positions[idx][0], self.grad_positions[idx][1]
+| ...| ... 
+|  78|        super(GEMCLnetwork, self).start_epoch()
+|  79|
+|  80|    def observe(self, X, y, first_time=False):
+|  81|        if first_time:
+|  82|            self.reservoir_sampling(X, y)
+|  83|            print(f'sampling {self.buffer_counter} examples...')
+|  84|        X, y = X.to(self.device), y.to(self.device)
+|* 85|        self.optimizer.zero_grad()
+|  86|        y_hat = self.net(X)
+|* 87|        L_current = torch.sum(self.loss(y_hat, y.view(-1)))
+|  88|        L = L_current / X.shape[0]
+|  89|        L.backward()
+|  90|        if self.task > 0:
+|  91|            print(f'start gradient projection...')
+|  92|            g = self.get_gradient()
+|* 93|            self.optimizer.zero_grad()
+|  94|            self.calc_old_gradient()
+|  95|            g_projected = self.gradient_projection(g)
+|  96|            self.rewrite_gradient(g_projected)
+|  97|            print(f'rewrite gradient finished.')
+|  98|        nn.utils.clip_grad_norm_(self.net.parameters(), max_norm=20, norm_type=2)
+|* 99|        self.optimizer.step()
+| 100|        self.train_loss += L.item()
+| 101|        self.confusion_matrix.count_task_separated(y_hat, y, 0)
+| 102|
+| 103|    def end_epoch(self, valid_dataset):
+| 104|        super(GEMCLnetwork, self).end_epoch(valid_dataset)
+| 105|
+| 106|    def end_task(self):
+
+[file_path: "train.py", lines_matched: 38]: 
+|   1|import sys
+|   2|import random
+|   3|import numpy as np
+|   4|from clnetworks import *
+|   5|from GeCoSleep import *
+|   6|from baselines import *
+|   7|from data_preprocessing import *
+|*  8|from logs import *
+|   9|from BayesEEGNet import *
+|  10|from DeepSleepNet import *
+|  11|
+|  12|
+|  13|def set_random_seed(seed):
+|  14|    random.seed(seed)
+|  15|    np.random.seed(seed)
+|* 16|    torch.manual_seed(seed)
+|  17|
+|* 18|    if torch.cuda.is_available():
+|* 19|        torch.cuda.manual_seed(seed)
+|* 20|        torch.cuda.manual_seed_all(seed)
+|* 21|        torch.backends.cudnn.deterministic = True
+|  22|
+|  23|
+|* 24|def train_cl(args, trains, valids, tests, fold_idx, logs):
+|  25|    test_results = []
+|  26|    count_results = []
+|  27|    clnetwork = None
+|  28|    if args.replay_mode == 'none':
+|* 29|        clnetwork = CLnetwork(args, fold_idx, logs)
+|  30|    elif args.replay_mode == 'generative':
+|* 31|        clnetwork = EEGGRnetwork(args, fold_idx, logs)
+|  32|    elif args.replay_mode == 'fine_tuning':
+|* 33|        clnetwork = FineTuning(args, fold_idx, logs)
+|  34|    elif args.replay_mode == 'independent':
+|* 35|        clnetwork = Independent(args, fold_idx, logs)
+|  36|    elif args.replay_mode == 'experience':
+|* 37|        clnetwork = ExperienceReplay(args, fold_idx, logs)
+|  38|    elif args.replay_mode == 'lwf':
+|* 39|        clnetwork = LwFnetwork(args, fold_idx, logs)
+|  40|    elif args.replay_mode == 'ewc':
+|* 41|        clnetwork = EWCnetwork(args, fold_idx, logs)
+|  42|    elif args.replay_mode == 'der':
+|* 43|        clnetwork = DERnetwork(args, fold_idx, logs)
+|  44|    elif args.replay_mode == 'dtw':
+|* 45|        clnetwork = DTWnetwork(args, fold_idx, logs)
+|  46|    elif args.replay_mode == 'tagem':
+|* 47|        clnetwork = TAGEMnetwork(args, fold_idx, logs)
+|  48|    elif args.replay_mode == 'agem':
+|* 49|        clnetwork = AGEM(args, fold_idx, logs)
+|  50|    elif args.replay_mode == 'bayes':
+|* 51|        clnetwork = BayesCLNetwork(args, fold_idx, logs)
+|  52|    elif args.replay_mode == 'deep':
+|* 53|        clnetwork = DeepCLNetwork(args, fold_idx, logs)
+|  54|    confusion = ConfusionMatrix(args.task_num)
+|  55|    print('start first testing...')
+|  56|    if args.replay_mode == 'packnet':
+|  57|        confusion = evaluate_tasks_packnet(clnetwork.net, tests, confusion, clnetwork.device, clnetwork, args.valid_batch)
+|  58|    elif args.replay_mode == 'lwf' or args.replay_mode == 'generative':
+|  59|        confusion = evaluate_tasks_multihead(clnetwork.net, tests, confusion, clnetwork.device, args.valid_batch)
+|  60|    elif args.replay_mode == 'bayes':
+| ...| ... 
+|  77|                    clnetwork.observe(X, y, False)
+|  78|            clnetwork.end_epoch(valids[task_idx])
+|  79|        clnetwork.end_task(trains[task_idx])
+|  80|        confusion.clear()
+|  81|        print(f'start testing...')
+|  82|        if args.replay_mode == 'packnet':
+|  83|            bestnet = SleepNet(len(args.isruc1), args.dropout)
+|* 84|            bestnet.load_state_dict(torch.load(clnetwork.best_net_memory[task_idx], weights_only=True))
+|  85|            confusion = evaluate_tasks_packnet(bestnet, tests, confusion, clnetwork.device, clnetwork, args.valid_batch)
+|  86|        elif args.replay_mode == 'lwf' or args.replay_mode == 'generative':
+|  87|            bestnet = MultiHeadSleepNet(len(args.isruc1), args.dropout, args.task_num, args.enable_multihead)
+|* 88|            bestnet.load_state_dict(torch.load(clnetwork.best_net_memory[task_idx], weights_only=True))
+|  89|            confusion = evaluate_tasks_multihead(bestnet, tests, confusion, clnetwork.device, args.valid_batch)
+|  90|        elif args.replay_mode == 'bayes':
+|  91|            params = args.bayes_eeg_params
+|  92|            bestnet = BayesEEGNet(
+|  93|                hidden_size=params['hiddenDim'],
+|  94|                output_size=params['targetDim'],
+|  95|                graph_node_dim=params['graph_dim'],
+|  96|                num_nodes=params['num_nodes'],
+|  97|                last_dense=params['dense']
+|  98|            )
+|* 99|            bestnet.load_state_dict(torch.load(clnetwork.best_net_memory[task_idx], weights_only=True))
+| 100|            confusion = evaluate_tasks_bayes(bestnet, tests, confusion, clnetwork.device, args.valid_batch)
+| 101|        elif args.replay_mode == 'deep':
+| 102|            bestnet = DeepSleepNet(len(args.isruc1), dropout=args.dropout)
+|*103|            bestnet.load_state_dict(torch.load(clnetwork.best_net_memory[task_idx], weights_only=True))
+| 104|            confusion = evaluate_tasks(bestnet, tests, confusion, clnetwork.device, args.valid_batch)
+| 105|        else:
+| 106|            bestnet = SleepNet(len(args.isruc1), args.dropout)
+|*107|            bestnet.load_state_dict(torch.load(clnetwork.best_net_memory[task_idx], weights_only=True))
+| 108|            confusion = evaluate_tasks(bestnet, tests, confusion, clnetwork.device, args.valid_batch)
+| 109|        test_results.append((confusion.accuracy(keep_list=True), confusion.macro_f1(keep_list=True)))
+| 110|        count_results.append(confusion.get_matrix())
+| 111|    return test_results, count_results
+| 112|
+| 113|
+| 114|def allocate_fold(args):
+| ...| ... 
+| 130|        fold_task_test_idx.append(task_test_idx)
+| 131|        fold_task_valid_idx.append(task_valid_idx)
+| 132|        fold_task_train_idx.append(task_train_idx)
+| 133|    return fold_task_test_idx, fold_task_valid_idx, fold_task_train_idx
+| 134|
+| 135|
+| 136|def train_k_fold(args):
+|*137|    exp_log = LogDocument(args)
+| 138|    set_random_seed(args.random_seed)
+| 139|    fold_task_test_idx, fold_task_valid_idx, fold_task_train_idx = allocate_fold(args)
+| 140|    datas, labels = load_all_datasets(args)
+| 141|    if args.joint_training:
+| 142|        args.task_num = 1
+|*143|    total_results = torch.zeros((args.task_num + 1, args.task_num, 2), dtype=torch.float32, requires_grad=False)
+| 144|    for fold_idx in range(len(fold_task_test_idx)):
+| 145|        if args.joint_training:
+| 146|            trains, valids, tests = create_fold_monolithic(
+| 147|                fold_task_train_idx[fold_idx],
+| 148|                fold_task_valid_idx[fold_idx],
+| 149|                fold_task_test_idx[fold_idx],
+| 150|                datas,
+| ...| ... 
+| 157|                fold_task_valid_idx[fold_idx],
+| 158|                fold_task_test_idx[fold_idx],
+| 159|                datas,
+| 160|                labels,
+| 161|                args
+| 162|            )
+| 163|        print(f'start fold {fold_idx}:')
+|*164|        test_results, count_results = train_cl(args, trains, valids, tests, fold_idx, exp_log)
+|*165|        exp_log.update_test_results(test_results, count_results, fold_idx)
+|*166|        exp_log.write()
+| 167|        for i in range(args.task_num + 1):
+| 168|            for j in range(args.task_num):
+| 169|                total_results[i][j][0] += test_results[i][0][j] / len(fold_task_test_idx)
+| 170|                total_results[i][j][1] += test_results[i][1][j] / len(fold_task_test_idx)
+|*171|    return total_results, exp_log
+| 172|
+| 173|
+|*174|def write_format(R, args, filepath='cl_output_record.txt', logs=None):
+| 175|    original_stdout = sys.stdout
+|*176|    prefix = os.path.join('results', logs.dir_path)
+| 177|    with open(os.path.join(prefix, filepath), 'w') as file:
+| 178|        sys.stdout = file
+| 179|        print('tasks: ', end='')
+| 180|        for i in range(args.task_num):
+| 181|            print(f'     [{args.task_names[i]}]   ', end=' ')
+| 182|        print('   [AVG]   ')
+| 183|        print('-' * (16 * args.task_num + 24))
+| ...| ... 
+| 207|        bestacc, bestmf1 = bestacc / args.task_num, bestmf1 / args.task_num
+| 208|        aacc, bwt, fwt = aacc / args.task_num, bwt / max(args.task_num - 1, 1), fwt / max(args.task_num - 1, 1)
+| 209|        af1, bwtf1, fwtf1 = af1 / args.task_num, bwtf1 / max(args.task_num - 1, 1), fwtf1 / max(args.task_num - 1, 1)
+| 210|        print(f'average acc: {aacc:.3f}, average macro F1: {af1:.3f}')
+| 211|        print(f'best acc: {bestacc:.3f}, best macro F1: {bestmf1:.3f}')
+| 212|        print(f'BWT: {bwt:.3f}, BWT(mF1): {bwtf1:.3f}')
+| 213|        print(f'FWT: {fwt:.3f}, FWT(mF1): {fwtf1:.3f}')
+|*214|        if logs is not None:
+| 215|            def to_float(x):
+| 216|                return x if isinstance(x, float) else x.item()
+|*217|            logs.append(['performance', 'average'], {'acc': to_float(aacc), 'mF1': to_float(af1)})
+|*218|            logs.append(['performance', 'best'], {'acc': to_float(bestacc), 'mF1': to_float(bestmf1)})
+|*219|            logs.append(['performance', 'BWT'], {'acc': to_float(bwt), 'mF1': to_float(bwtf1)})
+|*220|            logs.append(['performance', 'FWT'], {'acc': to_float(fwt), 'mF1': to_float(fwtf1)})
+| 221|    sys.stdout = original_stdout
+| 222|
+| 223|
+| 224|if __name__ == '__main__':
+| 225|    pass
+
+[file_path: "old_version_code/PackNet.py", lines_matched: 18]: 
+|*  1|import torch
+|   2|from clnetworks import *
+|   3|import numpy as np
+|   4|
+|   5|
+|   6|class PackNetCLnetwork(CLnetwork):
+|   7|    def __init__(self, args):
+|   8|        super(PackNetCLnetwork, self).__init__(args)
+|*  9|        test = torch.zeros(1, args.window_size, 258, 25).to(self.device)
+|* 10|        L = torch.sum(self.net(test))
+|  11|        L.backward()
+|  12|        self.grad_number = 0
+|  13|        self.grad_positions = []
+|  14|        for param in self.net.parameters():
+|  15|            if param.grad is not None:
+|  16|                grad_length = param.grad.view(-1).shape[0]
+|  17|                self.grad_positions.append((self.grad_number, self.grad_number + grad_length))
+|  18|                self.grad_number += grad_length
+|* 19|        self.fixed = torch.ones(self.grad_number, dtype=torch.bool, requires_grad=False, device=self.device)
+|* 20|        self.using = torch.zeros(self.grad_number, dtype=torch.bool, requires_grad=False, device=self.device)
+|  21|        self.proportion = self.grad_number // args.task_num + 1
+|  22|        self.fixed_numbers = 0
+|  23|        self.start_fine_tuning = False
+|  24|        self.using_list = []
+|  25|
+|  26|    def mask_gradient(self):
+|  27|        idx = 0
+| ...| ... 
+|  33|            else:
+|  34|                target = self.fixed[starting:ending].view(param.grad.shape)
+|  35|            param.grad *= target
+|  36|            idx += 1
+|  37|
+|  38|    def mask_params(self):
+|  39|        idx = 0
+|* 40|        with torch.no_grad():
+|  41|            for param in self.net.parameters():
+|  42|                starting, ending = self.grad_positions[idx][0], self.grad_positions[idx][1]
+|  43|                target = self.using[starting:ending].view(param.data.shape)
+|  44|                param.data *= target
+|  45|                idx += 1
+|  46|
+|  47|    def get_params(self):
+|  48|        idx = 0
+|* 49|        parameters = torch.zeros(self.grad_number, dtype=torch.float32, requires_grad=False, device=self.device)
+|  50|        for param in self.net.parameters():
+|  51|            starting, ending = self.grad_positions[idx][0], self.grad_positions[idx][1]
+|  52|            parameters[starting:ending].copy_(param.data.view(-1))
+|  53|            idx += 1
+|  54|        return parameters
+|  55|
+|  56|    def sort_params(self):
+|  57|        parameters = self.get_params().pow(2) * self.fixed
+|  58|        parameters_left = self.grad_number - self.fixed_numbers
+|  59|        print(f'flexible parameters left: {parameters_left}')
+|  60|        if parameters_left <= self.proportion:
+|  61|            self.using.fill_(1)
+|  62|        else:
+|* 63|            params_sorted, idx_lst = torch.sort(parameters, descending=True)
+|  64|            self.using.index_fill_(0, idx_lst[0:self.proportion], 1)
+|  65|        print('parameter masks updated.')
+|  66|
+|  67|    def fix_params(self):
+|* 68|        self.fixed_numbers = int(torch.sum(self.using).item())
+|  69|        self.fixed.copy_(self.using ^ 1)
+|  70|        print('parameters fixed.')
+|  71|
+|  72|    def start_task(self):
+|  73|        self.epoch = 0
+|  74|        self.best_net = copy.deepcopy(self.net)
+|  75|        self.best_train_loss, self.best_train_acc, self.best_valid_acc = 0.0, 0.0, 0.0
+|* 76|        self.optimizer = torch.optim.SGD(self.net.parameters(), lr=self.args.lr * 10)
+|* 77|        self.scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer, max(self.args.num_epochs // 6, 1), 0.6)
+|  78|        self.start_fine_tuning = False
+|  79|
+|  80|    def start_epoch(self):
+|  81|        super(PackNetCLnetwork, self).start_epoch()
+|  82|
+|  83|    def observe(self, X, y, first_time=False):
+|  84|        X, y = X.to(self.device), y.to(self.device)
+|* 85|        self.optimizer.zero_grad()
+|  86|        if self.epoch >= self.args.num_epochs // 2 and not self.start_fine_tuning:
+|  87|            self.start_fine_tuning = True
+|  88|            print('start fine-tuning...')
+|  89|            self.sort_params()
+|  90|        if self.start_fine_tuning:
+|  91|            self.mask_params()
+|  92|        y_hat = self.net(X)
+|* 93|        L_current = torch.sum(self.loss(y_hat, y.view(-1)))
+|  94|        L = L_current / X.shape[0]
+|  95|        L.backward()
+|  96|        self.mask_gradient()
+|* 97|        self.optimizer.step()
+|  98|        self.train_loss += L.item()
+|  99|        self.confusion_matrix.count_task_separated(y_hat, y, 0)
+| 100|
+| 101|    def end_epoch(self, valid_dataset):
+| 102|        train_acc, train_mf1 = self.confusion_matrix.accuracy(), self.confusion_matrix.macro_f1()
+| 103|        print(f'epoch: {self.epoch}, train loss: {self.train_loss:.3f}, train accuracy: {train_acc:.3f}, '
+|*104|              f"macro F1: {train_mf1:.3f}, 1000 lr: {self.optimizer.state_dict()['param_groups'][0]['lr'] * 1000:.3f}")
+|*105|        print(f'flexible numbers: {int(torch.sum(self.fixed).item())}, ', end='')
+| 106|        if self.start_fine_tuning:
+|*107|            print(f'using numbers: {int(torch.sum(self.using).item())}')
+| 108|        else:
+| 109|            print(f'using numbers: all')
+| 110|        if (self.epoch + 1) % self.args.valid_epoch == 0:
+| 111|            print(f'validating on the datasets...')
+| 112|            valid_confusion = ConfusionMatrix(1)
+| 113|            valid_confusion = evaluate_tasks(self.net, [valid_dataset], valid_confusion,
+| 114|                                             self.device, self.args.valid_batch)
+| 115|            valid_acc, valid_mf1 = valid_confusion.accuracy(), valid_confusion.macro_f1()
+| 116|            print(f'valid accuracy: {valid_acc:.3f}, valid macro F1: {valid_mf1:.3f}')
+| 117|            if self.start_fine_tuning and valid_acc > self.best_valid_acc:
+| 118|                self.best_train_loss = self.train_loss
+| 119|                self.best_train_acc = train_acc
+| 120|                self.best_valid_acc = valid_acc
+| 121|                self.best_net = './modelsaved/' + str(self.args.replay_mode) + '_task' + str(self.task) + '.pth'
+|*122|                torch.save(self.net.state_dict(), self.best_net)
+| 123|        self.epoch += 1
+| 124|        self.scheduler.step()
+| 125|
+| 126|    def end_task(self):
+| 127|        super(PackNetCLnetwork, self).end_task()
+| 128|        self.using_list.append(self.using.clone())
+| 129|        self.fix_params()
+
+[file_path: "old_version_code/models.py", lines_matched: 10]: 
+|   1|import copy
+|*  2|import torch
+|*  3|import torch.nn as nn
+|   4|
+|   5|
+|   6|class FilterBanks(nn.Module):
+|   7|    def __init__(self, input_channels, hiddens, output_channels, features, **kwargs):
+|   8|        super(FilterBanks, self).__init__(**kwargs)
+|   9|        self.input_channels = input_channels
+|  10|        self.hiddens = hiddens
+| ...| ... 
+|  33|        self.hiddens = hiddens
+|  34|        self.dropout = dropout
+|  35|        self.layers = layers
+|  36|        self.network = nn.GRU(input_size, hiddens, num_layers=layers, batch_first=True,
+|  37|                              dropout=dropout, bidirectional=True)
+|  38|
+|  39|    def get_initial_states(self, batch_size, device):
+|* 40|        return torch.zeros((2 * self.layers, batch_size, self.hiddens), device=device)
+|  41|
+|  42|    def forward(self, X):
+|  43|        batch_size, window_size, length = X.shape[0], X.shape[1], X.shape[2]
+|  44|        X = X.view(-1, length, self.input_size)
+|  45|        H0 = self.get_initial_states(batch_size * window_size, X.device)
+|  46|        (output, Hn) = self.network(X, H0)
+|  47|        if not output.is_contiguous():
+| ...| ... 
+|  50|        return output
+|  51|
+|  52|
+|  53|class Attention(nn.Module):
+|  54|    def __init__(self, input_size, **kwargs):
+|  55|        super(Attention, self).__init__(**kwargs)
+|  56|        self.input_size = input_size
+|* 57|        self.Watt = nn.Parameter(torch.randn((input_size, 1)))
+|  58|        self.softmax = nn.Softmax(dim=2)
+|  59|
+|  60|    def forward(self, X):
+|  61|        batch_size, window_size, length = X.shape[0], X.shape[1], X.shape[2]
+|  62|        X = X.view(-1, length, self.input_size)
+|* 63|        A = torch.matmul(X, self.Watt)
+|  64|        A = A.transpose(1, 2)
+|  65|        A = self.softmax(A)
+|* 66|        X = torch.bmm(A, X)
+|* 67|        X = torch.squeeze(X, dim=1)
+|  68|        if not X.is_contiguous():
+|  69|            X = X.contiguous
+|  70|        X = X.view(batch_size, window_size, -1)
+|  71|        return X
+|  72|
+|  73|
+|  74|class LongTermGRU(nn.Module):
+| ...| ... 
+|  78|        self.hiddens = hiddens
+|  79|        self.layers = layers
+|  80|        self.dropout = dropout
+|  81|        self.network = nn.GRU(input_size, hiddens, num_layers=layers, batch_first=True,
+|  82|                              dropout=dropout, bidirectional=True)
+|  83|
+|  84|    def get_initial_states(self, batch_size, device):
+|* 85|        return torch.zeros((2 * self.layers, batch_size, self.hiddens), device=device)
+|  86|
+|  87|    def forward(self, X):
+|  88|        batch_size, length = X.shape[0], X.shape[1]
+|  89|        H0 = self.get_initial_states(batch_size, X.device)
+|  90|        (output, Hn) = self.network(X, H0)
+|  91|        if not output.is_contiguous():
+|  92|            output = output.contiguous()
+| ...| ... 
+| 123|        X = self.long_term_gru(X)
+| 124|        X = self.classifier(X)
+| 125|        return X
+| 126|
+| 127|
+| 128|if __name__ == '__main__':
+| 129|    net = SeqSleepNet()
+|*130|    X = torch.zeros(16, 10, 258, 25)
+| 131|    print(X.shape)
+| 132|    y = net(X)
+| 133|    print(y.shape)
+|*134|    torch.save(net.state_dict(), 'seqsleepnet.pth')
+
+[file_path: "old_version_code/test.py", lines_matched: 10]: 
+|   1|import numpy as np
+|*  2|import torch
+|*  3|import torch.nn as nn
+|   4|
+|   5|
+|   6|class Model(nn.Module):
+|   7|    def __init__(self, number, **kwargs):
+|   8|        super(Model, self).__init__(**kwargs)
+|*  9|        self.k = nn.Parameter(torch.ones(number, dtype=torch.float32))
+|  10|        self.sigmoid = nn.Sigmoid()
+|  11|
+|  12|    def forward(self, p):
+|* 13|        Q = torch.dot(self.sigmoid(self.k), p)
+|* 14|        return torch.min(self.sigmoid(self.k) * p / Q)
+|  15|
+|  16|    def getk(self):
+|  17|        return self.sigmoid(self.k)
+|  18|
+|  19|
+|  20|if __name__ == '__main__':
+|* 21|    num = torch.tensor([114, 25, 43, 15, 5], dtype=torch.float32)
+|* 22|    total = torch.sum(num)
+|  23|    p = num / total
+|  24|    net = Model(5)
+|  25|    num_epoch, lr = 100, 1
+|* 26|    optimizer = torch.optim.Adam(net.parameters(), lr=lr)
+|  27|    for epoch in range(num_epoch):
+|* 28|        optimizer.zero_grad()
+|  29|        L = (1 - net(p))
+|  30|        print(L.item())
+|  31|        L.backward()
+|* 32|        optimizer.step()
+|  33|    print(net.getk())
+
+[file_path: "visualization/select.ipynb", lines_matched: 5]: 
+|   4|   "cell_type": "code",
+|   5|   "execution_count": null,
+|   6|   "id": "465c254c",
+|   7|   "metadata": {},
+|   8|   "outputs": [],
+|   9|   "source": [
+|  10|    "import sys\n",
+|* 11|    "import torch\n",
+|  12|    "import numpy as np\n",
+|  13|    "sys.path.append('../')\n",
+|  14|    "from GeCoSleep import *\n",
+|  15|    "from baselines import *"
+|  16|   ]
+|  17|  },
+|  18|  {
+| ...| ... 
+|  27|    "\n",
+|  28|    "num_tasks = 4\n",
+|  29|    "num_categories = 5\n",
+|  30|    "num_samples_per_class = 200\n",
+|  31|    "\n",
+|  32|    "datas: dict[str, np.ndarray] = {}\n",
+|  33|    "for t in range(num_tasks):\n",
+|* 34|    "    feature = torch.load(f'./datacache/task{t}_feature.pt', map_location='cpu', weights_only=True)\n",
+|* 35|    "    label = torch.load(f'./datacache/task{t}_label.pt', map_location='cpu', weights_only=True)\n",
+|* 36|    "    gen_feature = torch.load(f'./datacache/task{t}_gen_feature.pt', map_location='cpu', weights_only=True)\n",
+|* 37|    "    untrained_gen_feature = torch.load(f'./datacache/task{t}_untrained_gen_feature.pt', map_location='cpu', weights_only=True)\n",
+|  38|    "    num_samples, seq_length, embeddings = feature.shape\n",
+|  39|    "    feature = feature.view(num_samples * seq_length, -1)\n",
+|  40|    "    label = label.view(num_samples * seq_length)\n",
+|  41|    "    gen_feature = gen_feature.view(num_samples * seq_length, -1)\n",
+|  42|    "    untrained_gen_feature = untrained_gen_feature.view(num_samples * seq_length, -1)\n",
+|  43|    "    for c in range(num_categories):\n",
+|  44|    "        datas[f'task{t}_class{c}_feature'] = feature[label == c].cpu().numpy()\n",
+
+[file_path: "old_version_code/clnetworks.py", lines_matched: 20]: 
+|   1|from models import *
+|   2|from metric import *
+|   3|import copy
+|*  4|import torch
+|   5|import random
+|   6|
+|   7|
+|   8|class CLnetwork:
+|   9|    def __init__(self, args):
+|  10|        self.args = args
+|  11|        self.net = SeqSleepNet(args.dropout)
+|  12|        self.net.apply(init_weight)
+|  13|        self.scheduler = None
+|* 14|        self.optimizer = torch.optim.Adam(self.net.parameters(), lr=args.lr, weight_decay=args.weight_decay)
+|  15|        self.loss = nn.CrossEntropyLoss(reduction='none')
+|  16|        self.best_train_loss, self.best_train_acc, self.best_valid_acc = 0.0, 0.0, 0.0
+|  17|        self.train_loss, self.confusion_matrix = 0.0, ConfusionMatrix(1)
+|  18|        self.best_net = None
+|  19|        self.best_net_memory = []
+|* 20|        self.device = torch.device(f'cuda:{args.cuda_idx}')
+|  21|        self.net.to(self.device)
+|  22|        self.epoch = 0
+|  23|        self.task = 0
+|  24|
+|  25|    def start_task(self):
+|  26|        self.epoch = 0
+|  27|        self.best_net = copy.deepcopy(self.net)
+|  28|        self.best_train_loss, self.best_train_acc, self.best_valid_acc = 0.0, 0.0, 0.0
+|* 29|        self.optimizer = torch.optim.Adam(self.net.parameters(), lr=self.args.lr, weight_decay=self.args.weight_decay)
+|* 30|        self.scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer, max(self.args.num_epochs // 6, 1), 0.6)
+|  31|
+|  32|    def start_epoch(self):
+|  33|        self.train_loss = 0.0
+|  34|        self.confusion_matrix.clear()
+|  35|        self.net.train()
+|  36|
+|  37|    def observe(self, X, y, first_time=False):
+|  38|        X, y = X.to(self.device), y.to(self.device)
+|* 39|        self.optimizer.zero_grad()
+|  40|        y_hat = self.net(X)
+|* 41|        L_current = torch.sum(self.loss(y_hat, y.view(-1)))
+|  42|        L = L_current / X.shape[0]
+|  43|        L.backward()
+|  44|        nn.utils.clip_grad_norm_(self.net.parameters(), max_norm=20, norm_type=2)
+|* 45|        self.optimizer.step()
+|  46|        self.train_loss += L.item()
+|  47|        self.confusion_matrix.count_task_separated(y_hat, y, 0)
+|  48|
+|  49|    def end_epoch(self, valid_dataset):
+|  50|        train_acc, train_mf1 = self.confusion_matrix.accuracy(), self.confusion_matrix.macro_f1()
+|  51|        print(f'epoch: {self.epoch}, train loss: {self.train_loss:.3f}, train accuracy: {train_acc:.3f}, '
+|* 52|              f"macro F1: {train_mf1:.3f}, 1000 lr: {self.optimizer.state_dict()['param_groups'][0]['lr'] * 1000:.3f}")
+|  53|        if (self.epoch + 1) % self.args.valid_epoch == 0:
+|  54|            print(f'validating on the datasets...')
+|  55|            valid_confusion = ConfusionMatrix(1)
+|  56|            valid_confusion = evaluate_tasks(self.net, [valid_dataset], valid_confusion,
+|  57|                                             self.device, self.args.valid_batch)
+|  58|            valid_acc, valid_mf1 = valid_confusion.accuracy(), valid_confusion.macro_f1()
+|  59|            print(f'valid accuracy: {valid_acc:.3f}, valid macro F1: {valid_mf1:.3f}')
+|  60|            if valid_acc > self.best_valid_acc:
+|  61|                self.best_train_loss = self.train_loss
+|  62|                self.best_train_acc = train_acc
+|  63|                self.best_valid_acc = valid_acc
+|  64|                self.best_net = './modelsaved/' + str(self.args.replay_mode) + '_task' + str(self.task) + '.pth'
+|* 65|                torch.save(self.net.state_dict(), self.best_net)
+|  66|        self.epoch += 1
+|  67|        self.scheduler.step()
+|  68|
+|  69|    def end_task(self):
+|  70|        self.task += 1
+|  71|        self.best_net_memory.append(self.best_net)
+|  72|
+| ...| ... 
+|  89|    def start_epoch(self):
+|  90|        super(NaiveCLnetwork, self).start_epoch()
+|  91|
+|  92|    def reservoir_sampling(self, X, y):
+|  93|        for idx in range(X.shape[0]):
+|  94|            self.observed_samples += 1
+|  95|            if self.data_buffer is None:
+|* 96|                self.data_buffer = torch.unsqueeze(X[idx].clone(), dim=0)
+|* 97|                self.label_buffer = torch.unsqueeze(y[idx].clone(), dim=0)
+|  98|                self.buffer_counter += 1
+|  99|                continue
+| 100|            if self.buffer_counter < self.buffer_size:
+|*101|                data = torch.unsqueeze(X[idx].clone(), dim=0)
+|*102|                label = torch.unsqueeze(y[idx].clone(), dim=0)
+|*103|                self.data_buffer = torch.cat((self.data_buffer, data), dim=0)
+|*104|                self.label_buffer = torch.cat((self.label_buffer, label), dim=0)
+| 105|                self.buffer_counter += 1
+| 106|            elif random.random() <= self.buffer_size / self.observed_samples:
+| 107|                target = random.randint(0, self.buffer_size - 1)
+| 108|                self.data_buffer[target].copy_(X[idx])
+| 109|                self.label_buffer[target].copy_(y[idx])
+| 110|
+| 111|    def observe(self, X, y, first_time=False):
+| 112|        if first_time:
+| 113|            self.reservoir_sampling(X, y)
+| 114|            print(f'sampling {self.buffer_counter} examples...')
+| 115|        X, y = X.to(self.device), y.to(self.device)
+|*116|        self.optimizer.zero_grad()
+| 117|        y_hat = self.net(X)
+|*118|        L_current = torch.sum(self.loss(y_hat, y.view(-1)))
+| 119|        L = L_current / X.shape[0]
+| 120|        replay_number = 0
+| 121|        for sample in self.memory_buffer:
+| 122|            replay_number += sample[0].shape[0]
+| 123|        print(f'naively replay on {len(self.memory_buffer)} tasks and {replay_number} examples...')
+| 124|        for sample in self.memory_buffer:
+| 125|            X_replay, y_replay = sample[0].to(self.device), sample[1].to(self.device)
+| 126|            y_hat_replay = self.net(X_replay)
+|*127|            L_replay = torch.sum(self.loss(y_hat_replay, y_replay.view(-1)))
+| 128|            L = L + L_replay / replay_number
+| 129|        L.backward()
+| 130|        nn.utils.clip_grad_norm_(self.net.parameters(), max_norm=20, norm_type=2)
+|*131|        self.optimizer.step()
+| 132|        self.train_loss += L.item()
+| 133|        self.confusion_matrix.count_task_separated(y_hat, y, 0)
+| 134|
+| 135|    def end_epoch(self, valid_dataset):
+| 136|        super(NaiveCLnetwork, self).end_epoch(valid_dataset)
+| 137|
+| 138|    def end_task(self):
+
+[file_path: "data_preprocessing.py", lines_matched: 31]: 
+|   1|import numpy as np
+|   2|import pickle as pkl
+|   3|import scipy.io as sio
+|   4|import pandas as pd
+|   5|import random
+|*  6|import torch
+|   7|import mne
+|   8|import os
+|   9|from scipy import signal
+|* 10|from torch.utils.data import Dataset
+|* 11|from torch.utils.data import DataLoader
+|  12|
+|  13|
+|  14|def load_data_isruc1(filepath, window_size, channels, total_num, normalize):
+|  15|    file_names = [file for file in os.listdir(filepath) if file.endswith('.mat')]
+|  16|    file_names.sort()
+|  17|    datas, labels = [], []
+|  18|    for file in file_names:
+| ...| ... 
+|  23|            data_resampled = signal.resample(raw_data[channel], 3000, axis=1)
+|  24|            if normalize:
+|  25|                mu, sigma = np.mean(data_resampled), np.std(data_resampled)
+|  26|                data_resampled = (data_resampled - mu) / sigma
+|  27|            '''
+|  28|            print(f'calculating stft for channel {channel} in isruc1...')
+|  29|            _, _, Zxx = signal.stft(data_resampled, 100, 'hann', 256)
+|* 30|            Zxx = 20 * np.log10(np.abs(Zxx))
+|  31|            '''
+|  32|            if X is None:
+|* 33|                X = torch.unsqueeze(torch.tensor(data_resampled, dtype=torch.float32, requires_grad=False), dim=1)
+|  34|            else:
+|* 35|                temp = torch.unsqueeze(torch.tensor(data_resampled, dtype=torch.float32, requires_grad=False), dim=1)
+|* 36|                X = torch.cat((X, temp), dim=1)
+|  37|        label_name = file.split('.')[0][7:] + '_1.npy'
+|  38|        label = np.load(os.path.join(filepath, 'label', label_name))
+|* 39|        y = torch.tensor(label, dtype=torch.int64, requires_grad=False)
+|  40|        data_seq, label_seq, segs = [], [], X.shape[0] // window_size
+|  41|        for idx in range(segs):
+|  42|            data_seq.append(X[idx * window_size: (idx + 1) * window_size])
+|  43|            label_seq.append(y[idx * window_size: (idx + 1) * window_size])
+|  44|        datas.append(data_seq)
+|  45|        labels.append(label_seq)
+|  46|        if len(datas) >= total_num:
+| ...| ... 
+|  68|            series = series.reshape(sleep_epoch_num, 3000)
+|  69|            if normalize:
+|  70|                mu, sigma = np.mean(series), np.std(series)
+|  71|                series = (series - mu) / sigma
+|  72|            '''
+|  73|            print(f'calculating stft for channel index {idx} in shhs...')
+|  74|            _, _, Zxx = signal.stft(series, 100, 'hann', 256)
+|* 75|            Zxx = 20 * np.log10(np.abs(Zxx))
+|  76|            '''
+|  77|            if X is None:
+|* 78|                X = torch.unsqueeze(torch.tensor(series, dtype=torch.float32, requires_grad=False), dim=1)
+|  79|            else:
+|* 80|                temp = torch.unsqueeze(torch.tensor(series, dtype=torch.float32, requires_grad=False), dim=1)
+|* 81|                X = torch.cat((X, temp), dim=1)
+|* 82|        y = torch.tensor(raw_data['stage_label'], dtype=torch.int64, requires_grad=False)
+|  83|        data_seq, label_seq, segs = [], [], X.shape[0] // window_size
+|  84|        for idx in range(segs):
+|  85|            data_seq.append(X[idx * window_size: (idx + 1) * window_size])
+|  86|            label_seq.append(y[idx * window_size: (idx + 1) * window_size])
+|  87|        datas.append(data_seq)
+|  88|        labels.append(label_seq)
+|  89|        if len(datas) >= total_num:
+| ...| ... 
+| 109|            series = raw_data_trans[idx]
+| 110|            if normalize:
+| 111|                mu, sigma = np.mean(series), np.std(series)
+| 112|                series = (series - mu) / sigma
+| 113|            '''
+| 114|            print(f'calculating stft for channel index {idx} in mass...')
+| 115|            _, _, Zxx = signal.stft(series, 100, 'hann', 256)
+|*116|            Zxx = 20 * np.log10(np.abs(Zxx))
+| 117|            '''
+| 118|            if X is None:
+|*119|                X = torch.unsqueeze(torch.tensor(series, dtype=torch.float32, requires_grad=False), dim=1)
+| 120|            else:
+|*121|                temp = torch.unsqueeze(torch.tensor(series, dtype=torch.float32, requires_grad=False), dim=1)
+|*122|                X = torch.cat((X, temp), dim=1)
+| 123|        label_name = file[:10] + '-Label.mat'
+| 124|        stage_label = sio.loadmat(os.path.join(filepath, label_name))['label']
+| 125|        stage_label = np.argmax(stage_label, axis=1)
+|*126|        y = torch.tensor(stage_label, dtype=torch.int64, requires_grad=False)
+| 127|        data_seq, label_seq, segs = [], [], X.shape[0] // window_size
+| 128|        for idx in range(segs):
+| 129|            data_seq.append(X[idx * window_size: (idx + 1) * window_size])
+| 130|            label_seq.append(y[idx * window_size: (idx + 1) * window_size])
+| 131|        datas.append(data_seq)
+| 132|        labels.append(label_seq)
+| 133|        if len(datas) >= total_num:
+| ...| ... 
+| 156|            series = raw_data_trans[idx]
+| 157|            if normalize:
+| 158|                mu, sigma = np.mean(series), np.std(series)
+| 159|                series = (series - mu) / sigma
+| 160|            '''
+| 161|            print(f'calculating stft for channel index {idx} in sleepedf...')
+| 162|            _, _, Zxx = signal.stft(series, 100, 'hann', 256)
+|*163|            Zxx = 20 * np.log10(np.abs(Zxx))
+| 164|            '''
+| 165|            if X is None:
+|*166|                X = torch.unsqueeze(torch.tensor(series, dtype=torch.float32, requires_grad=False), dim=1)
+| 167|            else:
+|*168|                temp = torch.unsqueeze(torch.tensor(series, dtype=torch.float32, requires_grad=False), dim=1)
+|*169|                X = torch.cat((X, temp), dim=1)
+|*170|        y = torch.tensor(npz_file['y'], dtype=torch.int64, requires_grad=False)
+| 171|        data_seq, label_seq, segs = [], [], X.shape[0] // window_size
+| 172|        for idx in range(segs):
+| 173|            data_seq.append(X[idx * window_size: (idx + 1) * window_size])
+| 174|            label_seq.append(y[idx * window_size: (idx + 1) * window_size])
+| 175|        datas.append(data_seq)
+| 176|        labels.append(label_seq)
+| 177|        if len(datas) >= total_num:
+| ...| ... 
+| 201|            series = raw_data_trans[idx]
+| 202|            if normalize:
+| 203|                mu, sigma = np.mean(series), np.std(series)
+| 204|                series = (series - mu) / sigma
+| 205|            '''
+| 206|            print(f'calculating stft for channel index {idx} in sleepedf...')
+| 207|            _, _, Zxx = signal.stft(series, 100, 'hann', 256)
+|*208|            Zxx = 20 * np.log10(np.abs(Zxx))
+| 209|            '''
+| 210|            if X is None:
+|*211|                X = torch.unsqueeze(torch.tensor(series, dtype=torch.float32, requires_grad=False), dim=1)
+| 212|            else:
+|*213|                temp = torch.unsqueeze(torch.tensor(series, dtype=torch.float32, requires_grad=False), dim=1)
+|*214|                X = torch.cat((X, temp), dim=1)
+|*215|        y = torch.tensor(npy_label, dtype=torch.int64, requires_grad=False)
+| 216|        data_seq, label_seq, segs = [], [], X.shape[0] // window_size
+| 217|        for idx in range(segs):
+| 218|            data_seq.append(X[idx * window_size: (idx + 1) * window_size])
+| 219|            label_seq.append(y[idx * window_size: (idx + 1) * window_size])
+| 220|        datas.append(data_seq)
+| 221|        labels.append(label_seq)
+| 222|        if len(datas) >= total_num:
+| ...| ... 
+| 320|        start_sample = (start_epoch - 1) * samples_per_epoch
+| 321|        end_sample = end_epoch * samples_per_epoch
+| 322|        xall = xall[:, start_sample:end_sample]
+| 323|        if normalize:
+| 324|            xall = (xall - np.mean(xall, axis=1, keepdims=True)) / np.std(xall, axis=1, keepdims=True)
+| 325|        num_channels = xall.shape[0]
+| 326|        xall = xall.reshape(num_channels, -1, 3000).transpose(1, 0, 2)
+|*327|        X = torch.tensor(xall, dtype=torch.float32, requires_grad=False)
+|*328|        y = torch.tensor(y_group, dtype=torch.int64, requires_grad=False)
+| 329|        data_seq, label_seq, segs = [], [], X.shape[0] // window_size
+| 330|        for idx in range(segs):
+| 331|            data_seq.append(X[idx * window_size: (idx + 1) * window_size])
+| 332|            label_seq.append(y[idx * window_size: (idx + 1) * window_size])
+| 333|        datas.append(data_seq)
+| 334|        labels.append(label_seq)
+| 335|        if len(datas) >= total_num:
+| ...| ... 
+| 346|        self.task = task
+| 347|        self.args = args
+| 348|        self.augmentation = augmentation
+| 349|
+| 350|    def __getitem__(self, item):
+| 351|        data, label = self.data[item], self.label[item]
+| 352|        if self.augmentation and random.random() < self.args.time_reverse_rate:
+|*353|            data = torch.flip(data, dims=[-1])
+| 354|        if self.task is None:
+| 355|            return data, label
+| 356|        else:
+| 357|            return data, label, self.task[item]
+| 358|
+| 359|    def __len__(self):
+| 360|        return len(self.data)
+
+[file_path: "old_version_code/train.py", lines_matched: 3]: 
+|   1|from clnetworks import *
+|*  2|from torch.utils.data import DataLoader
+|   3|from data_preprocessing import *
+|   4|from GEM import *
+|   5|from PackNet import *
+|   6|from CGR import *
+|   7|import sys
+|   8|
+|   9|
+| ...| ... 
+|  37|                else:
+|  38|                    clnetwork.observe(X, y, False)
+|  39|            clnetwork.end_epoch(valids[task_idx])
+|  40|        clnetwork.end_task()
+|  41|        confusion.clear()
+|  42|        print(f'start testing...')
+|  43|        bestnet = SeqSleepNet()
+|* 44|        bestnet.load_state_dict(torch.load(clnetwork.best_net_memory[task_idx], weights_only=True))
+|  45|        if args.replay_mode == 'packnet':
+|  46|            confusion = evaluate_tasks_packnet(bestnet, tests, confusion, clnetwork.device, clnetwork, args.valid_batch)
+|  47|        else:
+|  48|            confusion = evaluate_tasks(bestnet, tests, confusion, clnetwork.device, args.valid_batch)
+|  49|        test_results.append((confusion.accuracy(), confusion.macro_f1()))
+|  50|    return test_results
+|  51|
+|  52|
+|  53|def train_k_fold(args):
+|  54|    datas, labels = load_all_datasets(args)
+|  55|    total = args.total_num
+|  56|    fold = args.fold_num
+|  57|    assert total % fold == 0
+|  58|    total_idx = [i for i in range(total)]
+|* 59|    total_results = torch.zeros((args.task_num + 1, args.task_num, 2), dtype=torch.float32, requires_grad=False)
+|  60|    for fold_idx in range(total // fold):
+|  61|        test_idx = [i for i in range(fold_idx * fold, (fold_idx + 1) * fold)]
+|  62|        valid_idx = [(i % total) for i in range((fold_idx + 1) * fold, (fold_idx + 2) * fold)]
+|  63|        train_idx = [i for i in total_idx if (i not in valid_idx and i not in test_idx)]
+|  64|        trains, valids, tests = create_fold_task_separated(train_idx, valid_idx, test_idx, datas, labels)
+|  65|        print(f'start fold {fold_idx}:')
+|  66|        test_results = train_cl(args, trains, valids, tests)
+
+[file_path: "old_version_code/generator.py", lines_matched: 20]: 
+|*  1|import torch
+|*  2|import torch.nn as nn
+|   3|from models import *
+|   4|
+|   5|
+|   6|class Label2Vec(nn.Module):
+|   7|    def __init__(self, features, **kwargs):
+|   8|        super(Label2Vec, self).__init__(**kwargs)
+|   9|        self.features = features
+|* 10|        self.W = torch.randn((5, features), dtype=torch.float32, requires_grad=False)
+|  11|        for i in range(self.W.shape[0]):
+|  12|            alpha = self.W[i].clone()
+|  13|            for j in range(0, i):
+|* 14|                k = torch.dot(alpha, self.W[j]) / torch.dot(self.W[j], self.W[j])
+|  15|                self.W[i] -= k * self.W[j]
+|* 16|        self.W = torch.nn.functional.normalize(self.W, p=2, dim=1)
+|  17|
+|  18|    def forward(self, X):
+|* 19|        X_one_hot = torch.nn.functional.one_hot(X, 5)
+|* 20|        X_one_hot = X_one_hot.to(torch.float32)
+|  21|        self.W = self.W.to(X_one_hot.device)
+|  22|        output = X_one_hot @ self.W
+|  23|        return output
+|  24|
+|  25|
+|  26|class CNNlayer(nn.Module):
+|  27|    def __init__(self, channels_lst, kernels_lst, **kwargs):
+| ...| ... 
+|  51|        super(LongTermRNN, self).__init__(**kwargs)
+|  52|        self.input_size = input_size
+|  53|        self.hiddens = hiddens
+|  54|        self.block = nn.LSTM(input_size, hiddens, batch_first=True, bidirectional=bidirectional)
+|  55|        self.d = 2 if bidirectional else 1
+|  56|
+|  57|    def get_initial_states(self, batch_size, device):
+|* 58|        H0 = torch.zeros((self.d, batch_size, self.hiddens), device=device)
+|* 59|        C0 = torch.zeros((self.d, batch_size, self.hiddens), device=device)
+|  60|        return H0, C0
+|  61|
+|  62|    def forward(self, X):
+|  63|        batch_size, seq_length, features = X.shape[0], X.shape[1], X.shape[2]
+|  64|        H0, C0 = self.get_initial_states(batch_size, X.device)
+|  65|        output, (Hn, Cn) = self.block(X, (H0, C0))
+|  66|        if not output.is_contiguous():
+| ...| ... 
+|  68|        return output
+|  69|
+|  70|
+|  71|class Attention(nn.Module):
+|  72|    def __init__(self, input_size, **kwargs):
+|  73|        super(Attention, self).__init__(**kwargs)
+|  74|        self.input_size = input_size
+|* 75|        self.Watt = nn.Parameter(torch.randn((input_size, 1)))
+|  76|        self.softmax = nn.Softmax(dim=2)
+|  77|
+|  78|    def forward(self, X):
+|* 79|        A = torch.matmul(X, self.Watt)
+|  80|        A = A.transpose(1, 2)
+|  81|        A = self.softmax(A)
+|* 82|        X = torch.bmm(A, X)
+|* 83|        X = torch.squeeze(X, dim=1)
+|  84|        return X
+|  85|
+|  86|
+|  87|class Generator(nn.Module):
+|  88|    def __init__(self, channels_num=2, **kwargs):
+|  89|        super(Generator, self).__init__(**kwargs)
+|  90|        self.label2vec = Label2Vec(128)
+| ...| ... 
+|  92|        self.linear = nn.Sequential(nn.Linear(384, channels_num * 129), nn.ReLU())
+|  93|        self.cnn = CNNlayer((1, 64, 128, 128, 64, 25), (17, 17, 17, 17, 17))
+|  94|        self.tanh = nn.Tanh()
+|  95|
+|  96|    def forward(self, Z, y):
+|  97|        batch_size, seq_length = Z.shape[0], Z.shape[1]
+|  98|        y = self.label2vec(y)
+|* 99|        Z = torch.cat((Z, y), dim=2)
+| 100|        Z = self.rnn(Z)
+| 101|        Z = Z.view(batch_size * seq_length, -1)
+| 102|        Z = self.linear(Z)
+|*103|        Z = torch.unsqueeze(Z.view(batch_size, seq_length, -1), dim=2)
+| 104|        Z = self.cnn(Z)
+| 105|        Z = Z.transpose(2, 3)
+| 106|        return Z
+| 107|
+| 108|
+| 109|class Discriminator(nn.Module):
+| 110|    def __init__(self, channels_num=2, **kwargs):
+| ...| ... 
+| 120|        )
+| 121|
+| 122|    def forward(self, X, y):
+| 123|        batch_size, seq_length = X.shape[0], X.shape[1]
+| 124|        y = self.label2vec(y)
+| 125|        X = self.cnn(X)
+| 126|        X = X.view(batch_size, seq_length, -1)
+|*127|        X = torch.cat((X, y), dim=2)
+| 128|        X = self.rnn(X)
+| 129|        X = self.attention(X)
+| 130|        X = self.linear(X)
+| 131|        return X
+| 132|
+| 133|
+| 134|if __name__ == '__main__':
+|*135|    z = torch.randn((16, 10, 128), dtype=torch.float32, requires_grad=False, device='cpu')
+|*136|    y = torch.randint(0, 5, (16, 10), dtype=torch.int64, requires_grad=False, device='cpu')
+| 137|    netG, netD = Generator(2), Discriminator(2)
+| 138|    X_fake = netG(z, y)
+| 139|    print(X_fake.shape)
+| 140|    pred = netD(X_fake, y)
+| 141|    print(pred.shape)
+|*142|    torch.save(netG.state_dict(), 'gnerator.pth')
+|*143|    torch.save(netD.state_dict(), 'discriminator.pth')
+
+[file_path: "environment.yml", lines_matched: 9]: 
+|   1|name: lcz0312
+|   2|channels:
+|*  3|  - pytorch
+|   4|  - nvidia
+|   5|  - defaults
+|   6|dependencies:
+|   7|  - _libgcc_mutex=0.1=main
+|   8|  - _openmp_mutex=5.1=1_gnu
+|   9|  - asttokens=2.0.5=pyhd3eb1b0_0
+|  10|  - backcall=0.2.0=pyhd3eb1b0_0
+| ...| ... 
+|  99|  - prompt-toolkit=3.0.43=py39h06a4308_0
+| 100|  - ptyprocess=0.7.0=pyhd3eb1b0_2
+| 101|  - pure_eval=0.2.2=pyhd3eb1b0_0
+| 102|  - pygments=2.15.1=py39h06a4308_1
+| 103|  - pysocks=1.7.1=py39h06a4308_0
+| 104|  - python=3.9.21=he870216_1
+| 105|  - python-dateutil=2.9.0post0=py39h06a4308_2
+|*106|  - pytorch=2.4.1=py3.9_cuda12.1_cudnn9.1.0_0
+|*107|  - pytorch-cuda=12.1=ha16c6d3_5
+|*108|  - pytorch-mutex=1.0=cuda
+| 109|  - pyyaml=6.0.2=py39h5eee18b_0
+| 110|  - pyzmq=26.2.0=py39h6a678d5_0
+| 111|  - readline=8.2=h5eee18b_0
+| 112|  - requests=2.32.3=py39h06a4308_1
+| 113|  - setuptools=75.1.0=py39h06a4308_0
+| 114|  - six=1.16.0=pyhd3eb1b0_1
+| 115|  - sqlite=3.45.3=h5eee18b_0
+| 116|  - stack_data=0.2.0=pyhd3eb1b0_0
+| 117|  - sympy=1.13.3=py39h06a4308_0
+| 118|  - tbb=2021.8.0=hdb19cb5_0
+| 119|  - tk=8.6.14=h39e8969_0
+|*120|  - torchaudio=2.4.1=py39_cu121
+|*121|  - torchtriton=3.0.0=py39
+|*122|  - torchvision=0.19.1=py39_cu121
+| 123|  - tornado=6.4.2=py39h5eee18b_0
+| 124|  - traitlets=5.14.3=py39h06a4308_0
+| 125|  - typing_extensions=4.12.2=py39h06a4308_0
+| 126|  - urllib3=2.2.3=py39h06a4308_0
+| 127|  - wheel=0.44.0=py39h06a4308_0
+| 128|  - xz=5.4.6=h5eee18b_1
+| 129|  - yaml=0.2.5=h7b6447c_0
+| ...| ... 
+| 155|    - platformdirs==4.3.2
+| 156|    - pooch==1.8.2
+| 157|    - prettytable==3.11.0
+| 158|    - psutil==6.0.0
+| 159|    - pyparsing==3.1.4
+| 160|    - python-graphviz==0.20.3
+| 161|    - pythonwebhdfs==0.2.3
+|*162|    - pytorch-fid==0.3.0
+| 163|    - pytz==2024.2
+| 164|    - quadprog==0.1.12
+| 165|    - responses==0.25.3
+| 166|    - schema==0.7.7
+| 167|    - scikit-learn==1.5.2
+| 168|    - scipy==1.13.1
+| 169|    - simplejson==3.19.3
+| 170|    - threadpoolctl==3.5.0
+|*171|    - torchview==0.2.7
+| 172|    - tqdm==4.66.5
+| 173|    - typeguard==4.1.2
+| 174|    - tzdata==2024.1
+| 175|    - wcwidth==0.2.13
+| 176|    - websockets==13.0.1
+| 177|    - zipp==3.20.1
+| 178|prefix: /home/wanshaowen/miniconda3/envs/lcz0312
+
+[file_path: "joint.py", lines_matched: 3]: 
+|   2|from train import *
+|   3|from main import args
+|   4|
+|   5|args.replay_mode = 'none'
+|   6|args.joint_training = 'true'
+|   7|
+|   8|if __name__ == '__main__':
+|*  9|    R, exp_log = train_k_fold(args)
+|* 10|    write_format(R, args, 'cl_output_record_' + 'joint' + '.txt', exp_log)
+|* 11|    exp_log.write()

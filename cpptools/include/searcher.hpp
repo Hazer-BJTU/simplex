@@ -155,6 +155,13 @@ public:
     Searcher& operator = (const Searcher&) = delete;
     Searcher& operator = (Searcher&&) noexcept = delete;
 
+    void cache_expire(const PathTuple& ptuple) noexcept {
+        if (_cache.find(ptuple.full.string()) != _cache.end()) {
+            _cache.erase(ptuple.full.string());
+        }
+        return;
+    }
+
     const EntityTagList& get_file_entities(const PathTuple& ptuple) {
         try {
             auto it = _cache.find(ptuple.full.string());

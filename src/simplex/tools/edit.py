@@ -1,7 +1,9 @@
 import os
 import json
 import uuid
+import pathlib
 
+from pathlib import Path
 from enum import Enum, auto
 from typing import Optional, List, Dict, Callable, TYPE_CHECKING
 
@@ -12,7 +14,8 @@ from simplex.basics import (
     ModelInput,
     WebsocketClient,
     UnbuiltError,
-    RequestError
+    RequestError,
+    EntityInitializationError
 )
 from simplex.tools.base import ToolCollection
 
@@ -42,6 +45,7 @@ class EditTools(ToolCollection):
 
     def __init__(
         self,
+        base_dir: str | Path,
         client: WebsocketClient,
         instance_id: str = uuid.uuid4().hex, 
         rename_mapping: Dict[str, str] = {
@@ -58,6 +62,8 @@ class EditTools(ToolCollection):
         
         self.client = client
         self.names = rename_mapping
+
+        self.base_dir: Path = Path(base_dir)
         self.initialized: bool = False
 
         self.view_workspace_schema = {
@@ -250,6 +256,14 @@ class EditTools(ToolCollection):
         try:
             await self.client.build()
             self.initialized = True
+
+            query: Dict = {
+                'type': 'set_working_dir',
+                'base_dir': str(self.base_dir.absolute())
+            }
+            response: str = await self.client.exchange(json.dumps(query))
+            if response is None:
+                raise RequestError(content = f'unable to access {self.client.url}')
         except Exception:
             raise
 

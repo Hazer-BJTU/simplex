@@ -232,7 +232,8 @@ PathTuple PathReader::touch(const boost::filesystem::path& path, const std::stri
             throw;
         }
     }
-    std::ofstream file_out(full_path, std::ios::out | std::ios::app);
+    // std::ofstream file_out(full_path, std::ios::out | std::ios::app);
+    std::ofstream file_out(full_path, std::ios::out);
     if (!file_out.is_open()) {
         throw std::runtime_error((boost::format("failed to create or open file: %s") % path).str());
     }
