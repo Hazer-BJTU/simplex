@@ -378,7 +378,7 @@ SIMPLEX_COMMAND_DEF(not_support) {
 }
 
 simplex::WebsocketServer::TransferFunction TFGenerator(std::shared_ptr<simplex::WebsocketServer> _server_ptr, size_t session_id) noexcept {
-    auto _searcher = std::make_shared<simplex::Searcher<simplex::GlobalDispatcher>>();
+    auto _searcher = std::make_shared<simplex::Searcher<simplex::GlobalDispatcher>>(GLOBAL_ARGS["concurrent"].as<size_t>());
     auto _path_reader = simplex::get_global_pathreader(".");
     return [
         session_id,
@@ -433,8 +433,9 @@ int main(int argc, char** argv) {
     arguments.add_options()
     ("help,h", "guide for command line arguments")
     ("port,p", boost::program_options::value<unsigned short>()->required(), "port number to listen on (required)")
-    ("jobs,j", boost::program_options::value<size_t>()->default_value(1), "number of workers (default to 1)")
-    ("head-n,n", boost::program_options::value<size_t>()->default_value(20), "number of lines for file preview (default to 20)");
+    ("jobs,j", boost::program_options::value<size_t>()->default_value(1), "number of workers for asynchronous server (default to 1)")
+    ("head-n,n", boost::program_options::value<size_t>()->default_value(20), "number of lines for file preview (default to 20)")
+    ("concurrent,c", boost::program_options::value<size_t>()->default_value(4), "number of threads for concurrent search (default to 4)");
 
     boost::program_options::store(boost::program_options::parse_command_line(argc, argv, arguments), GLOBAL_ARGS);
     if(GLOBAL_ARGS.count("help")) {

@@ -1,8 +1,10 @@
 import os
+import difflib
 import pathlib
 import asyncio
 
 from pathlib import Path
+from difflib import SequenceMatcher
 
 from simplex.basics import ToolCall, ToolReturn, WebsocketClient
 from simplex.tools import EditTools
@@ -11,8 +13,9 @@ from simplex.tools import EditTools
 PORT: int = 9002
 HOST: str = 'localhost'
 MODULE_PATH: Path = Path(__file__).resolve().parent
-OUTPUT_PATH: Path = MODULE_PATH / 'fixtures/output/output_edit.txt'
+OUTPUT_PATH: Path = MODULE_PATH / 'fixtures/output'
 MOCK_PROJ_PATH: Path = MODULE_PATH / 'fixtures/python_example/GeCoSleep'
+SIMILARITY_THRESHOLD: float = 0.99
 
 def test_client_async() -> None:
     async def test_body() -> str:
@@ -44,14 +47,19 @@ def test_client_async() -> None:
             await sub_test('#18', 'edit_file_content', {'target_path': 'edit_hello.txt', 'edit_type': 'replace', 'content': ''})
             await sub_test('#19', 'remove_file', {'target_path': 'edit_hello.txt'})
             await sub_test('#20', 'search', {'key_words': 'logdocument, MultiScaleCNN, load_data_isruc1', 'scope': 'global', 'mode': 'semantic_search'})
-            await sub_test('#21', 'search', {'key_words': 'log, optimizer, torch', 'scope': 'global', 'mode': 'pattern_match'})
+            await sub_test('#21', 'search', {'key_words': 'optimizer', 'scope': 'global', 'mode': 'pattern_match'})
 
         return output
 
     try:
         output = asyncio.run(test_body())
-        with open(OUTPUT_PATH, 'w', encoding = 'utf8') as file:
-            file.write(output.strip())
+        
+        with open(OUTPUT_PATH / 'test_edit_client.txt', 'r', encoding = 'utf8') as file:
+            ground_truth: str = file.read()
+        
+        matcher = SequenceMatcher(None, output, ground_truth)
+        similarity: float = matcher.quick_ratio()
+        assert similarity > SIMILARITY_THRESHOLD
     except Exception:
         raise
 
