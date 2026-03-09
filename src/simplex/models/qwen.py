@@ -4,13 +4,18 @@ import copy
 
 from typing import List, Dict
 
-import simplex.basics.exception
-import simplex.basics.dataclass
+import simplex.basics
 import simplex.models.base
 
-from simplex.basics.exception import RequestError, ParameterError
+from simplex.basics import (
+    ModelInput, 
+    ModelResponse, 
+    ToolCall, 
+    ToolReturn, 
+    RequestError, 
+    ParameterError
+)
 from simplex.models.base import EmbeddingModel, ConversationModel
-from simplex.basics.dataclass import ModelInput, ModelResponse, ToolCall, ToolReturn
 
 
 class QwenConversationModel(ConversationModel):
@@ -25,7 +30,13 @@ class QwenConversationModel(ConversationModel):
         enable_thinking: bool = True,
         thinking_budget: int = 1024
     ) -> None:
-        super().__init__(base_url, api_key, client_configs, default_generate_configs, instance_id)
+        super().__init__(
+            base_url, 
+            api_key, 
+            client_configs, 
+            default_generate_configs, 
+            instance_id
+        )
         
         self.qwen_model = qwen_model
         self.enable_thinking = enable_thinking
@@ -45,7 +56,10 @@ class QwenConversationModel(ConversationModel):
 
     async def generate(self, model_input: ModelInput) -> ModelResponse:
         try:
-            completion = await self.client.chat.completions.create(**(self.default_generate_configs | model_input.dict | self.completion_extras))
+            assert self.client is not None
+            completion = await self.client.chat.completions.create(**(self.default_generate_configs | self.translator(model_input) | self.completion_extras))
+        except AssertionError:
+            raise
         except Exception as e:
             raise RequestError(original = e)
 
@@ -98,8 +112,8 @@ class QwenConversationModel(ConversationModel):
             }
         )
 
-    async def batch_response(self, inputs: List[ModelInput]) -> ModelResponse:
-        return ModelResponse(response='not supported yet..')
+    async def batch_response(self, inputs: List[ModelInput]) -> List[ModelResponse]:
+        return [ ModelResponse(response='not supported yet..') ]
     
     def tool_return_integrate(self, input: ModelInput, response: ModelResponse, tool_return: List[ToolReturn], **kwargs) -> ModelInput:
         if response.tool_call is None or len(response.tool_call) == 0:

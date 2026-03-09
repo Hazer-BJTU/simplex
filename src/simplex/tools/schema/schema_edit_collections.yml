@@ -1,0 +1,142 @@
+view_workspace:
+  description: >-
+    Used to retrieve the current workspace file structure.
+    In some editing operations, updated workspace information may be provided directly,
+    eliminating the need for repeated retrieval.
+  params: []
+
+show_details:
+  description: >-
+    Used to display detailed information about a directory or file in the workspace.
+    For a directory, list all its subdirectories and files;
+    for a file, attempt to analyze its source code structure or provide a content preview.
+    You can navigate directly to the corresponding target without concerning current the workspace view.
+    It is a good practice to use this method to show a structural preview before browsing the file content directly.
+  params:
+    - field: target_path
+      type: string
+      description: 
+        Indicates the target file path. Please use the relative path in the workspace!
+      required: True
+
+view_file_content:
+  description: 
+    Used to browse the specific content of a file.
+  params:
+    - field: target_path
+      type: string
+      description:
+        Indicates the target file path. Please use the relative path in the workspace!
+      required: True
+
+    - feild: line_start
+      type: int
+      description: >-
+        Indicates the starting line number, where line numbering begins at 1 in a file.
+        If not specified, the default value is 1.
+      required: False
+    
+    - field: line_end
+      type: int
+      description: >-
+        Indicates the ending line number (inclusive).
+        If not specified, the tool server will browse the file until EOF is reached.
+      required: False
+
+edit_file_content:
+  description: >-
+    Used for editing text content. There are two modes: 'replace' and 'insert'.
+    In 'insert' mode, the 'content' is inserted AFTER the specified 'line_start' line.
+    In 'replace' mode, the original text between line numbers 'line_start' and 'line_end' (inclusive) is replaced with 'content'.
+    Replacing text with empty 'content' is equivalent to deleting the original text.
+    You can judge whether the edit is correct based on the feedback.
+    Pay attention to indentation alignment.
+  params:
+    - field: target_path
+      type: string
+      description:
+        Indicates the target file path. Please use the relative path in the workspace!
+      required: True
+
+    - field: edit_type
+      type: string
+      description:
+        Choose between 'replace' and 'insert'.
+      required: True
+
+    - field: content
+      type: string
+      description: >-
+        The content to be inserted or to replace the original text.
+        Pay special attention to indentation when writing content,
+        especially for languages like Python that enforce indentation alignment.
+      required: True
+
+    - field: line_start
+      type: int
+      description: >-
+        Indicates the starting line number, where line numbering begins at 1 in a file.
+        If not specified, the tool server will directly append 'content' to the end of the file under 'insert' mode,
+        while throwing an exception under 'replace' mode.
+      required: False
+
+    - field: line_end
+      type: int
+      description:
+        Indicates the ending line number (inclusive). This parameter is ignored in 'insert' mode.
+      required: False
+
+search:
+  description: >-
+    Used for keyword retrieval. There are two modes: 'semantic_search' and 'pattern_match'.
+    In 'semantic_search' mode, the tool server attempts to search within code elements (such as class names, method names).
+    In 'pattern_match' mode, the tool server will retrieve content throw pattern matching.
+    When calling this function, try to avoid using overly broad keywords (e.g., '__init__').
+    Two retrieval scopes are supported: 'workspace' and 'global'.
+    The 'workspace' scope only searches in files explicitly listed in a tree structure within the most recent workspace view from the history.
+    The 'global' scope searches in all files in the project (entire working directory).
+  params:
+    - field: key_words
+      type: string
+      description:
+        Give a set of keywords separated by commas, e.g., 'vector, matrix, tensor'.
+      required: True
+
+    - field: mode
+      type: string
+      description:
+        Choose between 'semantic_search' or 'pattern_match'.
+      required: True
+
+    - field: scope
+      type: string
+      description:
+        Choose between 'global' or 'workspace'.
+      required: True
+
+create:
+  description: >-
+    Used to create a new file with initial content.
+    The parent directory will be automatically created (exist is ok).
+  params:
+    - field: target_path
+      type: string
+      description: 
+        Indicates the target file path. Please use the relative path in the workspace!
+      required: True
+    
+    - field: content
+      type: string
+      description:
+        Initial content will be written into the created file.
+      required: True
+
+remove:
+  description:
+    Used to remove a file or directory. The files will be gone forever!
+  params:
+    - field: target_path
+      type: string
+      description: 
+        Indicates the target file path. Please use the relative path in the workspace!
+      required: True

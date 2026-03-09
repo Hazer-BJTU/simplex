@@ -232,7 +232,8 @@ PathTuple PathReader::touch(const boost::filesystem::path& path, const std::stri
             throw;
         }
     }
-    std::ofstream file_out(full_path, std::ios::out | std::ios::app);
+    // std::ofstream file_out(full_path, std::ios::out | std::ios::app);
+    std::ofstream file_out(full_path, std::ios::out);
     if (!file_out.is_open()) {
         throw std::runtime_error((boost::format("failed to create or open file: %s") % path).str());
     }
@@ -254,7 +255,8 @@ PathTuple PathReader::remove(const boost::filesystem::path& path) {
         throw std::runtime_error((boost::format("target not exists: %s") % path).str());
     }
     try {
-        boost::filesystem::remove(full_path);
+        // boost::filesystem::remove(full_path);
+        boost::filesystem::remove_all(full_path);
         _update_workspace();
     } catch(boost::filesystem::filesystem_error) {
         throw;

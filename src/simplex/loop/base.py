@@ -5,17 +5,23 @@ import asyncio
 from abc import ABC, abstractmethod
 from typing import List, Dict, Optional, Any
 
-import simplex.basics.dataclass
-import simplex.basics.exception
-import simplex.context.base
-import simplex.models.base
-import simplex.tools.base
+import simplex.basics
+import simplex.context
+import simplex.models
+import simplex.tools
 
-from simplex.basics.dataclass import ToolCall, ToolReturn, ModelInput, ModelResponse
-from simplex.basics.exception import ConflictError, EntityInitializationError
-from simplex.context.base import ContextPlugin
-from simplex.models.base import ConversationModel
-from simplex.tools.base import ToolCollection
+from simplex.basics import (
+    ModelInput,
+    ModelResponse,
+    ToolCall,
+    ToolReturn,
+    ToolSchema,
+    ConflictError,
+    EntityInitializationError
+)
+from simplex.context import ContextPlugin
+from simplex.models import ConversationModel
+from simplex.tools import ToolCollection
 
 
 def call_coroutine_functions(target_list: List, name: str, *args, **kwargs) -> List[Any]:
@@ -75,7 +81,7 @@ class AgentLoop(ABC):
                     pass
             
             self.tool_mapping: Dict[str, ToolCollection] = {}
-            self.tool_schemas: List[Dict] = []
+            self.tool_schemas: List[ToolSchema] = []
 
             for tool in self.tools_list:
                 self.tool_schemas.extend(tool.get_tools())
@@ -119,6 +125,12 @@ class AgentLoop(ABC):
                 original_call = original_call
             )
         
+        async def tool_exception(original_call: ToolCall, e: Exception):
+            return ToolReturn(
+                content = f'[ERROR]: An exception has occurred during tool call: {e}. Please try again.',
+                original_call = original_call
+            )
+        
         initial_prompt = ModelInput(messages = [], tools = self.tool_schemas)
 
         call_functions(self.context_list, 'on_start_procedure', agent = self)
@@ -136,17 +148,43 @@ class AgentLoop(ABC):
                 tool_call_tasks: List = []
                 for tool_call in output.tool_call:
                     if tool_call.name in self.tool_mapping:
-                        tool_call_tasks.append(self.tool_mapping[tool_call.name](tool_call))
+                        try:
+                            dispatched = self.tool_mapping[tool_call.name](tool_call)
+                        except Exception as e:
+                            dispatched = tool_exception(tool_call, e)
+                        tool_call_tasks.append(dispatched)
                     else:
                         tool_call_tasks.append(tool_not_exists(tool_call))
-                tool_returns = await asyncio.gather(*tool_call_tasks)
-                call_functions(self.context_list, 'on_tool_return', tool_return = tool_returns, agent = self)
-                input = self.agent_model.tool_return_integrate(input, output, tool_returns)
+                tool_returns = await asyncio.gather(*tool_call_tasks, return_exceptions = True)
+                tool_returns_no_exception: List[ToolReturn] = []
+                for idx, tool_return in enumerate(tool_returns):
+                    if isinstance(tool_return, TypeError):
+                        original_call: ToolCall = output.tool_call[idx]
+                        error_message: str = f"Parameter error of tool call \'{original_call.name}\'. " \
+                                             f"Please double-check the parameter requirements. " \
+                                             f"Error: {tool_return}. "
+                        tool_returns_no_exception.append(ToolReturn(error_message, original_call))
+                    elif isinstance(tool_return, Exception):
+                        original_call: ToolCall = output.tool_call[idx]
+                        error_message: str = f"An error has occurred during tool call \'{original_call.name}\': {tool_return}."
+                        tool_returns_no_exception.append(ToolReturn(error_message, original_call))
+                    else:
+                        tool_returns_no_exception.append(tool_return) #type: ignore
+                call_functions(self.context_list, 'on_tool_return', tool_return = tool_returns_no_exception, agent = self)
+                input = self.agent_model.tool_return_integrate(input, output, tool_returns_no_exception)
 
             if output.response != '':
                 call_functions(self.context_list, 'on_final_answer', model_response = output, agent = self)
                 if output.tool_call is None or len(output.tool_call) == 0:
                     break
+
+    async def __aenter__(self):
+        await self.build()
+        return self
+    
+    async def __aexit__(self, exc_type, exc, tb):
+        await self.release()
+        return False
 
 if __name__ == '__main__':
     pass

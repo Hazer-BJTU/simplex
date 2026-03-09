@@ -1,22 +1,33 @@
 import os
 import json
 import uuid
+import pathlib
 
+from pathlib import Path
 from enum import Enum, auto
 from typing import Optional, List, Dict, Callable, TYPE_CHECKING
 
-import simplex.basics.exception
-import simplex.basics.dataclass
-import simplex.basics.client
+import simplex.basics
 import simplex.tools.base
 
-from simplex.basics.exception import UnbuiltError, RequestError
-from simplex.basics.dataclass import ModelInput
-from simplex.basics.client import WebsocketClient
-from simplex.tools.base import ToolCollection
+from simplex.basics import (
+    ModelInput,
+    WebsocketClient,
+    UnbuiltError,
+    RequestError,
+    EntityInitializationError
+)
+from simplex.tools.base import (
+    ToolCollection,
+    ToolSchema,
+    load_tool_definitions,
+    load_schema
+)
 
 if TYPE_CHECKING:
-    from simplex.loop.base import AgentLoop
+    import simplex.loop
+
+    from simplex.loop import AgentLoop
 
 
 class EditTools(ToolCollection):
@@ -26,19 +37,21 @@ class EditTools(ToolCollection):
         view_file_content = auto()
         edit_file_content = auto()
         search = auto()
-        create_file = auto()
-        remove_file = auto()
+        create = auto()
+        remove = auto()
 
+    SCHEMA_FILE: str = 'schema_edit_collections'
     VIEW_WORKSPACE = Operation.view_workspace.name
     SHOW_DETAILS = Operation.show_details.name
     VIEW_FILE_CONTENT = Operation.view_file_content.name
     EDIT_FILE_CONTENT = Operation.edit_file_content.name
     SEARCH = Operation.search.name
-    CREATE_FILE = Operation.create_file.name
-    REMOVE_FILE = Operation.remove_file.name
+    CREATE = Operation.create.name
+    REMOVE = Operation.remove.name
 
     def __init__(
         self,
+        base_dir: str | Path,
         client: WebsocketClient,
         instance_id: str = uuid.uuid4().hex, 
         rename_mapping: Dict[str, str] = {
@@ -47,206 +60,49 @@ class EditTools(ToolCollection):
             VIEW_FILE_CONTENT: 'view_file_content',
             EDIT_FILE_CONTENT: 'edit_file_content',
             SEARCH: 'search',
-            CREATE_FILE: 'create_file',
-            REMOVE_FILE: 'remove_file'
+            CREATE: 'create',
+            REMOVE: 'remove'
         }
     ) -> None:
         super().__init__(instance_id, { value: f"_tool_{key}" for key, value in rename_mapping.items() })
         
         self.client = client
         self.names = rename_mapping
+
+        self.base_dir: Path = Path(base_dir)
         self.initialized: bool = False
 
-        self.view_workspace_schema = {
-            "type": "function",
-            "function": {
-                "name": self.names[self.VIEW_WORKSPACE],
-                "description": "Used to retrieve the current workspace file structure. " \
-                               "In some editing operations, updated workspace information may be provided directly, " \
-                               "eliminating the need for repeated retrieval.",
-                "parameters": {
-                    "type": "object",
-                    "properties": {},
-                    "required": []
-                }
-            }
-        }
+        self.tool_definitions = load_tool_definitions(self.SCHEMA_FILE)
+        self.view_workspace_schema = load_schema(self.SCHEMA_FILE, self.VIEW_WORKSPACE, self.names[self.VIEW_WORKSPACE])
+        self.show_details_schema = load_schema(self.SCHEMA_FILE, self.SHOW_DETAILS, self.names[self.SHOW_DETAILS])
+        self.view_file_content_schema = load_schema(self.SCHEMA_FILE, self.VIEW_FILE_CONTENT, self.names[self.VIEW_FILE_CONTENT])
+        self.edit_file_content_schema = load_schema(self.SCHEMA_FILE, self.EDIT_FILE_CONTENT, self.names[self.EDIT_FILE_CONTENT])
+        self.search_schema = load_schema(self.SCHEMA_FILE, self.SEARCH, self.names[self.SEARCH])
+        self.create_schema = load_schema(self.SCHEMA_FILE, self.CREATE, self.names[self.CREATE])
+        self.remove_schema = load_schema(self.SCHEMA_FILE, self.REMOVE, self.names[self.REMOVE])
 
-        self.show_details_schema = {
-            "type": "function",
-            "function": {
-                "name": self.names[self.SHOW_DETAILS],
-                "description": "Used to display detailed information about a directory or file in the workspace. " \
-                               "For a directory, list all its subdirectories and files; for a file, attempt to analyze its source code structure or provide a content preview. " \
-                               "You can navigate directly to the corresponding target without concerning current the workspace view. " \
-                               "It is a good practice to use this method to show a structural preview before browsing the file content directly.",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "target_path": {
-                            "type": "string",
-                            "description": "Please use the relative path in the workspace!"
-                        }
-                    },
-                    "required": ["target_path"]
-                }
-            }
-        }
-
-        self.view_file_content_schema = {
-            "type": "function",
-            "function": {
-                "name": self.names[self.VIEW_FILE_CONTENT],
-                "description": "Used to browse the specific content of a file, with each line of the file displayed with a line number.",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "target_path": {
-                            "type": "string",
-                            "description": "Please use the relative path in the workspace!"
-                        },
-                        "line_start": {
-                            "type": "int",
-                            "description": "Indicates the starting line number, where line numbering begins at 1."
-                        },
-                        "line_end": {
-                            "type": "int",
-                            "description": "Indicates the ending line number (inclusive)."
-                        }
-                    },
-                    "required": ["target_path"]
-                }
-            }
-        }
-
-        self.edit_file_content_schema = {
-            "type": "function",
-            "function": {
-                "name": self.names[self.EDIT_FILE_CONTENT],
-                "description": "Used for editing text content. There are two modes: \'replace\' and \'insert\'. " \
-                               "In \'insert\' mode, the \'content\' is inserted \'after\' the specified \'line_start\' line number. " \
-                               "In \'replace\' mode, the \'content\' between line numbers [\'line_start\', \'line_end\'] inclusive is replaced with \'content\'. " \
-                               "You can judge whether the edit is correct based on the feedback. " \
-                               "Pay attention to indentation alignment.",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "target_path": {
-                            "type": "string",
-                            "description": "Please use the relative path in the workspace!"
-                        },
-                        "edit_type": {
-                            "type": "string",
-                            "description": "\'replace\' or \'insert\'"
-                        },
-                        "content": {
-                            "type": "string",
-                            "description": "Pay special attention to indentation when writing content, " \
-                                           "especially for languages like Python that enforce indentation alignment."
-                        },
-                        "line_start": {
-                            "type": "int",
-                            "description": "Indicates the starting line number, where line numbering begins at 1."
-                        },
-                        "line_end": {
-                            "type": "int",
-                            "description": "Indicates the ending line number (inclusive). This parameter is ignored in \'insert\' mode."
-                        }
-                    },
-                    "required": ["target_path", "edit_type", "content"]
-                }
-            }
-        }
-
-        self.search_schema = {
-            "type": "function",
-            "function": {
-                "name": self.names[self.SEARCH],
-                "description": "Used for keyword retrieval. " \
-                               "For a given set of keywords, \'semantic_search\' attempts to search within code elements (such as class names, method names). " \
-                               "If no matches are found, try to fall back to \'pattern_match\' retrieval. " \
-                               "During the retrieval process, try to avoid using overly broad keywords (e.g., '__init__'). " \
-                               "Two retrieval scopes are supported: \'workspace\' and \'global\'.",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "key_words": {
-                            "type": "string",
-                            "description": "Given a set of keywords separated by commas, e.g., \'vector, matrix, tensor\'."
-                        },
-                        "scope": {
-                            "type": "string",
-                            "description": "Choose between \'global\' or \'workspace\'. " \
-                                           "The \'workspace\' scope only looks for files explicitly listed in a tree structure within the most recent workspace from the history. " \
-                                           "The \'global\' scope is independent of the workspace view. " \
-                                           "Use \'global\' unless you are certain about the search scope. "
-                        },
-                        "mode": {
-                            "type": "string",
-                            "description": "Choose between \'semantic_search\' or \'pattern_match\'. " \
-                                           "The \'semantic_search\' attempts to search within code elements. " \
-                                           "The \'pattern_match\' only performs pattern matching. "
-                        }
-                    },
-                    "required": ["key_words", "scope", "mode"]
-                }
-            }
-        }
-        
-        self.create_file_schema = {
-            "type": "function",
-            "function": {
-                "name": self.names[self.CREATE_FILE],
-                "description": "Used for \'touch\' a new file with initial content.",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "target_path": {
-                            "type": "string",
-                            "description": "Please use the relative path in the workspace!"
-                        },
-                        "content": {
-                            "type": "string",
-                            "description": "Initial content will be written into the file."
-                        }
-                    },
-                    "required": ["target_path", "content"]
-                }
-            }
-        }
-
-        self.remove_file_schema = {
-            "type": "function",
-            "function": {
-                "name": self.names[self.REMOVE_FILE],
-                "description": "Used for \'rm\' a file.",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "target_path": {
-                            "type": "string",
-                            "description": "Please use the relative path in the workspace!"
-                        }
-                    },
-                    "required": ["target_path"]
-                }
-            }
-        }
-
-        self.schemas: Dict[str, Dict] = {
+        self.schemas: Dict[str, ToolSchema] = {
             self.VIEW_FILE_CONTENT: self.view_file_content_schema,
             self.SHOW_DETAILS: self.show_details_schema,
             self.VIEW_FILE_CONTENT: self.view_file_content_schema,
             self.EDIT_FILE_CONTENT: self.edit_file_content_schema,
             self.SEARCH: self.search_schema,
-            self.CREATE_FILE: self.create_file_schema,
-            self.REMOVE_FILE: self.remove_file_schema
+            self.CREATE: self.create_schema,
+            self.REMOVE: self.remove_schema
         }
 
     async def build(self) -> None:
         try:
             await self.client.build()
             self.initialized = True
+
+            query: Dict = {
+                'type': 'set_working_dir',
+                'base_dir': str(self.base_dir.absolute())
+            }
+            response: str = await self.client.exchange(json.dumps(query))
+            if response is None:
+                raise RequestError(content = f'unable to access {self.client.url}')
         except Exception:
             raise
 
@@ -263,11 +119,11 @@ class EditTools(ToolCollection):
     def get_names(self) -> List[str]:
         return list(self.names.values())
 
-    def get_tools(self) -> List[Dict]:
+    def get_tools(self) -> List[ToolSchema]:
         return list(self.schemas.values())
     
-    def tools_descriptions(self) -> List[Dict]:
-        return list(self.schemas.values())
+    def tools_descriptions(self) -> str:
+        return self.tool_definitions
     
     def on_init_output(self, model_input: ModelInput, agent: "AgentLoop") -> None:
         pass
@@ -384,7 +240,7 @@ class EditTools(ToolCollection):
         except Exception:
             raise
     
-    async def _tool_create_file(self, target_path: str, content: str, **kwargs) -> str:
+    async def _tool_create(self, target_path: str, content: str, **kwargs) -> str:
         if not self.initialized:
             raise UnbuiltError(self.__class__.__name__)
         
@@ -402,7 +258,7 @@ class EditTools(ToolCollection):
         except Exception:
             raise
     
-    async def _tool_remove_file(self, target_path: str, **kwargs) -> str:
+    async def _tool_remove(self, target_path: str, **kwargs) -> str:
         if not self.initialized:
             raise UnbuiltError(self.__class__.__name__)
         

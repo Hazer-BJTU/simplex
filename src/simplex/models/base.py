@@ -1,16 +1,23 @@
 import os
 import uuid
 
-from typing import Dict, List
+from typing import Dict, List, Any
 from openai import AsyncOpenAI
 from abc import ABC, abstractmethod
 
-import simplex.basics.exception
-import simplex.basics.exception
-import simplex.basics.dataclass
+import simplex.basics
+import simplex.tools
 
-from simplex.basics.exception import EntityInitializationError
-from simplex.basics.dataclass import ModelInput, ModelResponse, DocumentEntry, ToolReturn
+from simplex.basics import (
+    ToolSchema,
+    ModelInput, 
+    ModelResponse, 
+    DocumentEntry, 
+    ToolReturn, 
+    EntityInitializationError
+)
+from simplex.tools import to_openai_function_calling_schema
+
 
 class BaseModel(ABC):
     def __init__(
@@ -19,7 +26,8 @@ class BaseModel(ABC):
         api_key: str, 
         client_configs: Dict = {}, 
         default_generate_configs: Dict = {},
-        instance_id: str = uuid.uuid4().hex
+        instance_id: str = uuid.uuid4().hex,
+        disable_openai_backend: bool = False
     ) -> None:
         super().__init__()
         self.base_url = base_url
@@ -27,9 +35,14 @@ class BaseModel(ABC):
         self.client_configs = client_configs
         self.default_generate_configs = default_generate_configs
         self.instance_id = instance_id
+        self.disable_openai_backend = disable_openai_backend
+        self.translator = OpenaiTranslator()
 
         try:
-            self.client = AsyncOpenAI(base_url=self.base_url, api_key=self.api_key)
+            if not self.disable_openai_backend:
+                self.client = AsyncOpenAI(base_url=self.base_url, api_key=self.api_key)
+            else:
+                self.client = None
         except Exception as e:
             raise EntityInitializationError(self.__class__.__name__, e)
         
@@ -60,9 +73,17 @@ class EmbeddingModel(BaseModel):
         api_key: str, 
         client_configs: Dict = {}, 
         default_generate_configs: Dict = {},
-        instance_id: str = uuid.uuid4().hex
+        instance_id: str = uuid.uuid4().hex,
+        disable_openai_backend: bool = False
     ) -> None:
-        super().__init__(base_url, api_key, client_configs, default_generate_configs, instance_id)
+        super().__init__(
+            base_url, 
+            api_key, 
+            client_configs, 
+            default_generate_configs, 
+            instance_id,
+            disable_openai_backend
+        )
 
     async def build(self) -> None:
         return
@@ -77,7 +98,7 @@ class EmbeddingModel(BaseModel):
         return ModelResponse()
     
     @abstractmethod
-    async def batch_embedding(self, documents: List[DocumentEntry]) -> ModelResponse:
+    async def batch_embedding(self, documents: List[DocumentEntry]) -> List[ModelResponse]:
         pass
     
 class ConversationModel(BaseModel):
@@ -87,9 +108,17 @@ class ConversationModel(BaseModel):
         api_key: str, 
         client_configs: Dict = {}, 
         default_generate_configs: Dict = {},
-        instance_id: str = uuid.uuid4().hex
+        instance_id: str = uuid.uuid4().hex,
+        disable_openai_backend: bool = False
     ) -> None:
-        super().__init__(base_url, api_key, client_configs, default_generate_configs, instance_id)
+        super().__init__(
+            base_url, 
+            api_key, 
+            client_configs, 
+            default_generate_configs, 
+            instance_id,
+            disable_openai_backend
+        )
 
     async def build(self) -> None:
         return
@@ -104,12 +133,30 @@ class ConversationModel(BaseModel):
         return ModelResponse()
 
     @abstractmethod
-    async def batch_response(self, inputs: List[ModelInput]) -> ModelResponse:
+    async def batch_response(self, inputs: List[ModelInput]) -> List[ModelResponse]:
         pass
 
     @abstractmethod
     def tool_return_integrate(self, input: ModelInput, response: ModelResponse, tool_return: List[ToolReturn], **kwargs) -> ModelInput:
         pass
+
+class Translator(ABC):
+    @abstractmethod
+    def __call__(self, input: ModelInput) -> Any:
+        pass
+
+class OpenaiTranslator(Translator):
+    def __call__(self, input: ModelInput) -> Dict:
+        input_dict: Dict = input.dict
+        tools: List = input_dict.get('tools', [])
+        translated_tools: List = []
+        for tool in tools:
+            if isinstance(tool, ToolSchema):
+                translated_tools.append(to_openai_function_calling_schema(tool))
+            else:
+                translated_tools.append(tool)
+        input_dict['tools'] = translated_tools
+        return input_dict
 
 if __name__ == '__main__':
     pass

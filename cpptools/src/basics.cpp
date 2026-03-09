@@ -33,7 +33,11 @@ LineRecords view_file_content(const PathTuple& ptuple, const std::string& conten
     static const int default_context_window = 7;
     std::istringstream iss(content);
 
-    if (line_end == -1) {
+    if (line_start < 0) {
+        line_start = 0;
+    }
+
+    if (line_end < 0) {
         line_end = std::numeric_limits<int>::max();
     } else if (line_end < line_start) {
         line_end = line_start + default_context_window - 1;

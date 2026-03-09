@@ -1,0 +1,11 @@
+pyinterpreter:
+  description: >-
+    Execute given python scripts and return program results.
+    Remember to use 'print' function to output to stdout!
+  params:
+    - field: script
+      type: string
+      description:
+        A python script, e.g., 'import math; print(math.sqrt(math.sin(math.pi)))'.
+      required: True
+      
