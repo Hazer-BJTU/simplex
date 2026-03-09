@@ -1,4 +1,5 @@
 import os
+import pytest
 import difflib
 import pathlib
 import asyncio
@@ -17,6 +18,8 @@ OUTPUT_PATH: Path = MODULE_PATH / 'fixtures/output'
 MOCK_PROJ_PATH: Path = MODULE_PATH / 'fixtures/python_example/GeCoSleep'
 SIMILARITY_THRESHOLD: float = 0.99
 
+@pytest.mark.tools_module
+@pytest.mark.tool_server_required
 def test_client_async() -> None:
     async def test_body() -> str:
         output: str = ''

@@ -1,5 +1,6 @@
 import simplex.tools.base
 import simplex.tools.edit
+import simplex.tools.mock
 import simplex.tools.pyinterpreter
 
 from simplex.tools.base import (
@@ -9,6 +10,7 @@ from simplex.tools.base import (
     to_openai_function_calling_schema
 )
 from simplex.tools.edit import EditTools
+from simplex.tools.mock import MockCalculator
 from simplex.tools.pyinterpreter import PythonInterpreter
 
 

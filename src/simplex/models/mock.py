@@ -3,6 +3,7 @@ import json
 import copy
 import uuid
 
+from dataclasses import asdict
 from typing import Optional, List, Dict, Callable
 
 import simplex.basics
@@ -48,7 +49,8 @@ class MockConversationModel(ConversationModel):
                     self.iterator = 0
                 else:
                     raise RuntimeError(content = f"{self.__class__.__name__} has run out of expected responses")
-            response = self.expected_responses[self.iterator]
+            response = copy.deepcopy(self.expected_responses[self.iterator])
+            response.extras = {'translated_input': self.translator(model_input)}
             self.iterator += 1
             return response
     

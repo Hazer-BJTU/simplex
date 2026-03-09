@@ -33,7 +33,7 @@ class MockCalculator(ToolCollection):
 
     def __init__(
         self, 
-        instance_id: str, 
+        instance_id: str = uuid.uuid4().hex, 
         rename: str = 'calculator'
     ) -> None:
         super().__init__(instance_id, { rename: '_tool_calculator' })
@@ -61,10 +61,10 @@ class MockCalculator(ToolCollection):
     def tools_descriptions(self) -> str:
         return self.tool_definition
     
-    def on_init_output(self, model_input: ModelInput, agent: simplex.tools.base.AgentLoop) -> None:
+    def on_init_output(self, model_input: ModelInput, agent: "AgentLoop") -> None:
         pass
 
-    def _tool_calculator(self, operation: str, operand1: float, operand2: float) -> str:
+    async def _tool_calculator(self, operation: str, operand1: float, operand2: float) -> str:
         if operation == 'add' or operation == '+':
             return str(operand1 + operand2)
         elif operation == 'subtract' or operation == '-':

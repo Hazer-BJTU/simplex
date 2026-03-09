@@ -15,6 +15,7 @@ from simplex.basics import (
     ModelResponse,
     ToolCall,
     ToolReturn,
+    ToolSchema,
     ConflictError,
     EntityInitializationError
 )
@@ -80,7 +81,7 @@ class AgentLoop(ABC):
                     pass
             
             self.tool_mapping: Dict[str, ToolCollection] = {}
-            self.tool_schemas: List[Dict] = []
+            self.tool_schemas: List[ToolSchema] = []
 
             for tool in self.tools_list:
                 self.tool_schemas.extend(tool.get_tools())
@@ -162,6 +163,14 @@ class AgentLoop(ABC):
                 call_functions(self.context_list, 'on_final_answer', model_response = output, agent = self)
                 if output.tool_call is None or len(output.tool_call) == 0:
                     break
+
+    async def __aenter__(self):
+        await self.build()
+        return self
+    
+    async def __aexit__(self, exc_type, exc, tb):
+        await self.release()
+        return False
 
 if __name__ == '__main__':
     pass

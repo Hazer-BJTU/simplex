@@ -138,7 +138,7 @@ class TrajectoryLogContext(ContextPlugin):
         return
     
     def on_prompt_ready(self, model_input: ModelInput, agent: "AgentLoop") -> None:
-        self.log.append(model_input.dict | {'iter': 'initial_input'})
+        self.log.append(asdict(model_input) | {'iter': 'initial_input'})
     
     def on_model_response(self, model_response: ModelResponse, agent: "AgentLoop") -> None:
         info: Dict = {'iter': agent.iter}

@@ -57,7 +57,7 @@ class QwenConversationModel(ConversationModel):
     async def generate(self, model_input: ModelInput) -> ModelResponse:
         try:
             assert self.client is not None
-            completion = await self.client.chat.completions.create(**(self.default_generate_configs | model_input.dict | self.completion_extras))
+            completion = await self.client.chat.completions.create(**(self.default_generate_configs | self.translator(model_input) | self.completion_extras))
         except AssertionError:
             raise
         except Exception as e:

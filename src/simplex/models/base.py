@@ -1,19 +1,22 @@
 import os
 import uuid
 
-from typing import Dict, List
+from typing import Dict, List, Any
 from openai import AsyncOpenAI
 from abc import ABC, abstractmethod
 
 import simplex.basics
+import simplex.tools
 
 from simplex.basics import (
+    ToolSchema,
     ModelInput, 
     ModelResponse, 
     DocumentEntry, 
     ToolReturn, 
     EntityInitializationError
 )
+from simplex.tools import to_openai_function_calling_schema
 
 
 class BaseModel(ABC):
@@ -33,6 +36,7 @@ class BaseModel(ABC):
         self.default_generate_configs = default_generate_configs
         self.instance_id = instance_id
         self.disable_openai_backend = disable_openai_backend
+        self.translator = OpenaiTranslator()
 
         try:
             if not self.disable_openai_backend:
@@ -135,6 +139,24 @@ class ConversationModel(BaseModel):
     @abstractmethod
     def tool_return_integrate(self, input: ModelInput, response: ModelResponse, tool_return: List[ToolReturn], **kwargs) -> ModelInput:
         pass
+
+class Translator(ABC):
+    @abstractmethod
+    def __call__(self, input: ModelInput) -> Any:
+        pass
+
+class OpenaiTranslator(Translator):
+    def __call__(self, input: ModelInput) -> Dict:
+        input_dict: Dict = input.dict
+        tools: List = input_dict.get('tools', [])
+        translated_tools: List = []
+        for tool in tools:
+            if isinstance(tool, ToolSchema):
+                translated_tools.append(to_openai_function_calling_schema(tool))
+            else:
+                translated_tools.append(tool)
+        input_dict['tools'] = translated_tools
+        return input_dict
 
 if __name__ == '__main__':
     pass
