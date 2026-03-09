@@ -64,7 +64,7 @@ class MockCalculator(ToolCollection):
     def on_init_output(self, model_input: ModelInput, agent: "AgentLoop") -> None:
         pass
 
-    async def _tool_calculator(self, operation: str, operand1: float, operand2: float) -> str:
+    async def _tool_calculator(self, operation: str, operand1: float, operand2: float, **kwargs) -> str:
         if operation == 'add' or operation == '+':
             return str(operand1 + operand2)
         elif operation == 'subtract' or operation == '-':
@@ -73,7 +73,7 @@ class MockCalculator(ToolCollection):
             return str(operand1 * operand2)
         elif operation == 'divide' or operation == '/':
             if abs(operand2) < 1e-8:
-                raise ZeroDivisionError
+                raise ZeroDivisionError('operand2 should not be zero when performing division')
             return str(operand1 / operand2)
         else:
             raise ParameterError(

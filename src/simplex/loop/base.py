@@ -150,14 +150,28 @@ class AgentLoop(ABC):
                     if tool_call.name in self.tool_mapping:
                         try:
                             dispatched = self.tool_mapping[tool_call.name](tool_call)
-                            tool_call_tasks.append(dispatched)
                         except Exception as e:
-                            tool_call_tasks.append(tool_exception(tool_call, e))
+                            dispatched = tool_exception(tool_call, e)
+                        tool_call_tasks.append(dispatched)
                     else:
                         tool_call_tasks.append(tool_not_exists(tool_call))
-                tool_returns = await asyncio.gather(*tool_call_tasks)
-                call_functions(self.context_list, 'on_tool_return', tool_return = tool_returns, agent = self)
-                input = self.agent_model.tool_return_integrate(input, output, tool_returns)
+                tool_returns = await asyncio.gather(*tool_call_tasks, return_exceptions = True)
+                tool_returns_no_exception: List[ToolReturn] = []
+                for idx, tool_return in enumerate(tool_returns):
+                    if isinstance(tool_return, TypeError):
+                        original_call: ToolCall = output.tool_call[idx]
+                        error_message: str = f"Parameter error of tool call \'{original_call.name}\'. " \
+                                             f"Please double-check the parameter requirements. " \
+                                             f"Error: {tool_return}. "
+                        tool_returns_no_exception.append(ToolReturn(error_message, original_call))
+                    elif isinstance(tool_return, Exception):
+                        original_call: ToolCall = output.tool_call[idx]
+                        error_message: str = f"An error has occurred during tool call \'{original_call.name}\': {tool_return}."
+                        tool_returns_no_exception.append(ToolReturn(error_message, original_call))
+                    else:
+                        tool_returns_no_exception.append(tool_return) #type: ignore
+                call_functions(self.context_list, 'on_tool_return', tool_return = tool_returns_no_exception, agent = self)
+                input = self.agent_model.tool_return_integrate(input, output, tool_returns_no_exception)
 
             if output.response != '':
                 call_functions(self.context_list, 'on_final_answer', model_response = output, agent = self)
