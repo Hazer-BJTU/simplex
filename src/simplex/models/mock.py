@@ -113,6 +113,16 @@ class MockConversationModel(ConversationModel):
             })
 
         return new_input
+    
+    def set_generator(self, generator: Callable[[ModelInput], ModelResponse]) -> None:
+        self.generator = generator
+        return
+    
+    def set_expected(self, expected_responses: List[ModelResponse]) -> None:
+        self.expected_responses = expected_responses
+        self.length = len(self.expected_responses)
+        self.iterator = 0
+        return
 
 if __name__ == '__main__':
     pass

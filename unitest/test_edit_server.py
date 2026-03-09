@@ -57,7 +57,7 @@ def test_client_async() -> None:
         with open(OUTPUT_PATH / 'test_edit_client.txt', 'r', encoding = 'utf8') as file:
             ground_truth: str = file.read()
         
-        matcher = SequenceMatcher(None, output, ground_truth)
+        matcher = SequenceMatcher(None, output.strip(), ground_truth.strip())
         similarity: float = matcher.quick_ratio()
         assert similarity > SIMILARITY_THRESHOLD
     except Exception:

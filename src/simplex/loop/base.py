@@ -124,6 +124,12 @@ class AgentLoop(ABC):
                 original_call = original_call
             )
         
+        async def tool_exception(original_call: ToolCall, e: Exception):
+            return ToolReturn(
+                content = f'[ERROR]: An exception has occurred during tool call: {e}. Please try again.',
+                original_call = original_call
+            )
+        
         initial_prompt = ModelInput(messages = [], tools = self.tool_schemas)
 
         call_functions(self.context_list, 'on_start_procedure', agent = self)
@@ -141,7 +147,11 @@ class AgentLoop(ABC):
                 tool_call_tasks: List = []
                 for tool_call in output.tool_call:
                     if tool_call.name in self.tool_mapping:
-                        tool_call_tasks.append(self.tool_mapping[tool_call.name](tool_call))
+                        try:
+                            dispatched = self.tool_mapping[tool_call.name](tool_call)
+                            tool_call_tasks.append(dispatched)
+                        except Exception as e:
+                            tool_call_tasks.append(tool_exception(tool_call, e))
                     else:
                         tool_call_tasks.append(tool_not_exists(tool_call))
                 tool_returns = await asyncio.gather(*tool_call_tasks)
