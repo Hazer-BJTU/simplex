@@ -70,11 +70,11 @@ class ToolCollection(ABC):
         pass
 
     @abstractmethod
-    def get_tools(self) -> List[Dict]:
+    def get_tools(self) -> List[ToolSchema]:
         pass
 
     @abstractmethod
-    def tools_descriptions(self) -> List[Dict]:
+    def tools_descriptions(self) -> str:
         pass
 
     @abstractmethod

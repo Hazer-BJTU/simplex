@@ -11,9 +11,15 @@ from simplex.basics import (
     ModelInput,
     ContainerManager,
     UnbuiltError,
-    EntityInitializationError
+    EntityInitializationError,
+    ParameterError
 )
-from simplex.tools.base import ToolCollection
+from simplex.tools.base import (
+    ToolSchema,
+    ToolCollection,
+    load_schema,
+    load_tool_definitions
+)
 
 if TYPE_CHECKING:
     import simplex.loop
@@ -22,6 +28,9 @@ if TYPE_CHECKING:
 
 
 class MockCalculator(ToolCollection):
+    SCHEMA_FILE: str = 'schema_mock_calculator'
+    CALCULATOR: str = 'calculator'
+
     def __init__(
         self, 
         instance_id: str, 
@@ -31,24 +40,8 @@ class MockCalculator(ToolCollection):
 
         self.name = rename
 
-        self.schema = {
-            "type": "function",
-            "function": {
-                "name": self.name,
-                "description": "Execute given python scripts and return program results. " \
-                                "Remember to use 'print' function to output to stdout!",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "script": {
-                            "type": "string",
-                            "description": "a python script, e.g., 'import math; print(math.sqrt(math.sin(math.pi)))'",
-                        }
-                    },
-                    "required": ["script"],
-                },
-            }
-        }
+        self.tool_definition = load_tool_definitions(self.SCHEMA_FILE)
+        self.schema = load_schema(self.SCHEMA_FILE, self.CALCULATOR)
 
     async def build(self) -> None:
         pass
@@ -60,7 +53,36 @@ class MockCalculator(ToolCollection):
         pass
 
     def get_names(self) -> List[str]:
-        return [ self.name ]
+        return [self.name]
     
-    def get_tools(self) -> List[Dict]:
-        return [  ]
+    def get_tools(self) -> List[ToolSchema]:
+        return [self.schema]
+    
+    def tools_descriptions(self) -> str:
+        return self.tool_definition
+    
+    def on_init_output(self, model_input: ModelInput, agent: simplex.tools.base.AgentLoop) -> None:
+        pass
+
+    def _tool_calculator(self, operation: str, operand1: float, operand2: float) -> str:
+        if operation == 'add' or operation == '+':
+            return str(operand1 + operand2)
+        elif operation == 'subtract' or operation == '-':
+            return str(operand1 - operand2)
+        elif operation == 'multiply' or operation == '*':
+            return str(operand1 * operand2)
+        elif operation == 'divide' or operation == '/':
+            if abs(operand2) < 1e-8:
+                raise ZeroDivisionError
+            return str(operand1 / operand2)
+        else:
+            raise ParameterError(
+                '_tool_calculator',
+                'operation',
+                f"unknown: {operation}",
+                'string',
+                self.__class__.__name__
+            )
+
+if __name__ == '__main__':
+    pass

@@ -3,8 +3,7 @@ view_workspace:
     Used to retrieve the current workspace file structure.
     In some editing operations, updated workspace information may be provided directly,
     eliminating the need for repeated retrieval.
-  params:
-    # empty
+  params: []
 
 show_details:
   description: >-
@@ -115,9 +114,10 @@ search:
         Choose between 'global' or 'workspace'.
       required: True
 
-create_file:
-  description:
-    Used for 'touch' a new file with initial content.
+create:
+  description: >-
+    Used to create a new file with initial content.
+    The parent directory will be automatically created (exist is ok).
   params:
     - field: target_path
       type: string
@@ -131,9 +131,9 @@ create_file:
         Initial content will be written into the created file.
       required: True
 
-remove_file:
+remove:
   description:
-    Used for 'rm' a file or directory. The files will be gone forever!
+    Used to remove a file or directory. The files will be gone forever!
   params:
     - field: target_path
       type: string

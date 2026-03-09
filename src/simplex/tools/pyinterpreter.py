@@ -13,7 +13,12 @@ from simplex.basics import (
     UnbuiltError,
     EntityInitializationError
 )
-from simplex.tools.base import ToolCollection
+from simplex.tools.base import (
+    ToolSchema,
+    ToolCollection,
+    load_schema,
+    load_tool_definitions
+)
 
 if TYPE_CHECKING:
     import simplex.loop
@@ -22,6 +27,9 @@ if TYPE_CHECKING:
 
 
 class PythonInterpreter(ToolCollection):
+    SCHEMA_FILE: str = 'schema_pyinterpreter'
+    PYINTERPRETER: str = 'pyinterpreter'
+
     def __init__(
         self, 
         instance_id: str = uuid.uuid4().hex,
@@ -45,24 +53,8 @@ class PythonInterpreter(ToolCollection):
             if self.use_container == True:
                 assert self.container_manager is not None, "argument 'container_manager' must not be None when use_container is True"
 
-            self.pyinterpreter_schema = {
-                "type": "function",
-                "function": {
-                    "name": self.name,
-                    "description": "Execute given python scripts and return program results. " \
-                                   "Remember to use 'print' function to output to stdout!",
-                    "parameters": {
-                        "type": "object",
-                        "properties": {
-                            "script": {
-                                "type": "string",
-                                "description": "a python script, e.g., 'import math; print(math.sqrt(math.sin(math.pi)))'",
-                            }
-                        },
-                        "required": ["script"],
-                    },
-                },
-            }
+            self.tool_definitions = load_tool_definitions(self.SCHEMA_FILE)
+            self.pyinterpreter_schema = load_schema(self.SCHEMA_FILE, self.PYINTERPRETER, self.name)
         except Exception as e:
             raise EntityInitializationError(self.__class__.__name__, e)
 
@@ -88,18 +80,11 @@ class PythonInterpreter(ToolCollection):
     def get_names(self) -> List[str]:
         return [self.name]
     
-    def get_tools(self) -> List[Dict]:
+    def get_tools(self) -> List[ToolSchema]:
         return [self.pyinterpreter_schema]
     
-    def tools_descriptions(self) -> List[Dict]:
-        return [
-            {
-                'tool_name': self.name,
-                'description': 'execute given python scripts and return program output',
-                'input': 'script: string',
-                'output': 'program execution results'
-            }
-        ]
+    def tools_descriptions(self) -> str:
+        return self.tool_definitions
     
     def on_init_output(self, model_input: ModelInput, agent: "AgentLoop") -> None:
         pass

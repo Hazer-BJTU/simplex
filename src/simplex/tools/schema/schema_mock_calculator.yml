@@ -1,0 +1,19 @@
+calculator:
+  description: 
+    This calculator is used to generate mock data for testing purposes.
+  params:
+    - field: operation
+      type: string
+      description:
+        The operation to perform. Supported operations include 'add', 'subtract', 'multiply', and 'divide'.
+      required: True
+
+    - field: operand1
+      type: float
+      description: The first operand for the calculation.
+      required: True
+
+    - field: operand2
+      type: float
+      description: The second operand for the calculation.
+      required: True
