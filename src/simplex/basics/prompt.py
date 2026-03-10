@@ -30,13 +30,13 @@ class PromptTemplate:
     
     def add_block(self, text: str | List[str], title: Optional[str] = None, block: str = '', as_whole: bool = False) -> "PromptTemplate":
         if isinstance(text, str):
-            flattened: str = f"```{block}\n{text.strip()}\n```"
+            flattened: str = f"`````{block}\n{text.strip()}\n`````"
         elif isinstance(text, List):
             if as_whole:
                 flattened: str = '\n\n'.join([component.strip() for component in text])
-                flattened = f"```{block}\n{flattened}\n```"
+                flattened = f"`````{block}\n{flattened}\n`````"
             else:
-                flattened: str = '\n\n'.join([f"```{block}\n{component.strip()}\n```" for component in text])
+                flattened: str = '\n\n'.join([f"`````{block}\n{component.strip()}\n`````" for component in text])
 
         if title is not None:
             self.content += f"## {title}\n\n{flattened}\n\n"

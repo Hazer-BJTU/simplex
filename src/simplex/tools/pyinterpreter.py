@@ -1,4 +1,5 @@
 import os
+import re
 import uuid
 import asyncio
 
@@ -126,6 +127,10 @@ class PythonInterpreter(ToolCollection):
     async def _tool_python_interpreter(self, script: str, **kwargs) -> str:
         if not self.initialized:
             raise UnbuiltError(self.__class__.__name__)
+        
+        script = script.strip()
+        if script.startswith('```python') and script.endswith('```'):
+            script = script[9:-3].strip()
 
         if self.use_container and self.container_manager is not None:
             return await self._execute_container(script, **kwargs)
