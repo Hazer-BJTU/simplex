@@ -40,6 +40,7 @@ Using Python and NumPy, solve the following tasks:
 - Print all results clearly (label each output).
 - The final results must be verifiable with manual calculation.
 """
+DEFAULT_IMAGE: str = 'playground-v1'
 
 @pytest.mark.model_api_required
 def test_pyinterpreter_qwen() -> None:
@@ -51,12 +52,12 @@ def test_pyinterpreter_qwen() -> None:
             enable_thinking = False
         )
 
-        container = ContainerManager(name = 'testbed', default_image = '4edc0fac6cca')
+        container = ContainerManager(name = 'test_pyinterpreter_qwen', default_image = DEFAULT_IMAGE)
 
         interpreter = PythonInterpreter(
             use_container = True, 
             container_manager = container,
-            exec_command = lambda script: ['conda', 'run', '-n', 'testbed', 'python', '-c', script]
+            exec_command = lambda script: ['python', '-c', script]
         )
 
         async with AgentLoop(
@@ -66,12 +67,13 @@ def test_pyinterpreter_qwen() -> None:
             interpreter
         ) as loop:
             await loop.procedure()
-
             log_content = loop['log'].get()
-
             print(json.dumps(log_content, indent = 2))
 
-    asyncio.run(test_body())
+    try:
+        asyncio.run(test_body())
+    except Exception:
+        raise
 
 if __name__ == '__main__':
     pass

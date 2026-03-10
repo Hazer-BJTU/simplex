@@ -36,8 +36,11 @@ def test_mock_loop() -> None:
             log_content = loop['log'].get()
 
         print(json.dumps(log_content, indent = 2))
-        
-    asyncio.run(test_body())
+    
+    try:
+        asyncio.run(test_body())
+    except Exception:
+        raise
 
 if __name__ == '__main__':
     pass
