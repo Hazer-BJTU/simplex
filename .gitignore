@@ -7,3 +7,4 @@ proto/
 __pycache__/
 /dev/
 /unitest/output/
+uv.lock

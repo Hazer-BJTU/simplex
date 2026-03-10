@@ -114,12 +114,17 @@ class TrajectoryLogContext(ContextPlugin):
     def __init__(
         self, 
         instance_id: str = uuid.uuid4().hex,
-        empty_on_reset: bool = True
+        empty_on_reset: bool = True,
+        line_width: int = 100
     ) -> None:
         super().__init__(instance_id)
 
-        self.log: List[Dict] = []
         self.empty_on_reset = empty_on_reset
+        self.line_width = line_width
+
+        self.log: List[Dict] = []
+        self.training_log: List[Dict] = []
+        self.markdown: str = ''
 
     async def build(self) -> None:
         return
@@ -130,6 +135,9 @@ class TrajectoryLogContext(ContextPlugin):
     async def reset(self) -> None:
         if self.empty_on_reset:
             self.log = []
+            self.training_log = []
+            self.markdown = ''
+        return
 
     def on_start_procedure(self, agent: "AgentLoop") -> None:
         return
@@ -138,9 +146,19 @@ class TrajectoryLogContext(ContextPlugin):
         return
     
     def on_prompt_ready(self, model_input: ModelInput, agent: "AgentLoop") -> None:
+        # log details
         self.log.append(asdict(model_input) | {'iter': 'initial_input'})
+        
+        # log markdown
+        if model_input.tools:
+            self.markdown += 'Tools available:\n---\n```yaml\n'
+            for schema in model_input.tools:
+                self.markdown += schema.human_readable_descriptions(self.line_width) + '\n\n'
+            self.markdown += '```\n'
+        return
     
     def on_model_response(self, model_response: ModelResponse, agent: "AgentLoop") -> None:
+        # log details
         info: Dict = {'iter': agent.iter}
         if model_response.reasoning_content:
             info['reasoning_content'] = model_response.reasoning_content
@@ -151,18 +169,47 @@ class TrajectoryLogContext(ContextPlugin):
         if model_response.response:
             info['response'] = model_response.response
         self.log.append(info)
+
+        # log markdown
+        if model_response.reasoning_content:
+            self.markdown += f"Reason #{agent.iter + 1}:\n---\n{model_response.reasoning_content}\n"
+        if model_response.tool_call:
+            self.markdown += f"Function Calling #{agent.iter + 1}:\n---\n```yaml\n"
+            for tool_call in model_response.tool_call:
+                self.markdown += tool_call.human_readable_descriptions(self.line_width) + '\n\n'
+            self.markdown += '```\n'
+        if model_response.response:
+            self.markdown += f"Response #{agent.iter + 1}:\n---\n{model_response.response}\n"
+        return
     
     def on_tool_return(self, tool_return: List[ToolReturn], agent: "AgentLoop") -> None:
+        # log details
         for ret in tool_return:
             info: Dict = {'iter': agent.iter}
             info['tool_return'] = asdict(ret)
-            self.log.append(info)    
+            self.log.append(info)
+
+        # log markdown
+        if tool_return:
+            self.markdown += f"Tool Return #{agent.iter + 1}:\n---\n"
+        for ret in tool_return:
+            self.markdown += f"```\n{ret.content}\n```\n"
+        return
     
     def on_final_answer(self, model_response: ModelResponse, agent: "AgentLoop") -> None:
         return
 
-    def get(self) -> List[Dict]:
+    @property
+    def detailed(self) -> List[Dict]:
         return self.log
+    
+    @property
+    def human_readable(self) -> str:
+        return self.markdown
+    
+    @property
+    def for_training(self) -> List[Dict]:
+        return self.training_log
 
 if __name__ == '__main__':
     pass

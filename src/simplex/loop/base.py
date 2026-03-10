@@ -1,5 +1,6 @@
 import os
 import copy
+import inspect
 import asyncio
 
 from abc import ABC, abstractmethod
@@ -30,7 +31,7 @@ def call_coroutine_functions(target_list: List, name: str, *args, **kwargs) -> L
         if not hasattr(target, name):
             continue
         target_function = getattr(target, name)
-        if not callable(target_function) or not asyncio.iscoroutinefunction(target_function):
+        if not callable(target_function) or not inspect.iscoroutinefunction(target_function):
             continue
         try:
             result_list.append(target_function(*args, **kwargs))

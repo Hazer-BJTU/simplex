@@ -39,12 +39,12 @@ def test_mock_loop() -> None:
 
         async with AgentLoop(model, InitPromptContext('This is a test.'), TrajectoryLogContext(instance_id = 'log'), MockCalculator()) as loop:
             await loop.procedure()
-            log_content = loop['log'].get()
+            log_content = loop['log'].human_readable
 
-        target_path = OUTPUT_PATH / 'test_mock_loop.txt'
+        target_path = OUTPUT_PATH / 'test_mock_loop.md'
         target_path.parent.mkdir(parents = True, exist_ok = True)
         with open(target_path, 'w', encoding = 'utf8') as file:
-            file.write(json.dumps(log_content, indent = 2))
+            file.write(log_content)
     
     try:
         asyncio.run(test_body())

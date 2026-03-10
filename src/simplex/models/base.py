@@ -147,7 +147,7 @@ class Translator(ABC):
 
 class OpenaiTranslator(Translator):
     def __call__(self, input: ModelInput) -> Dict:
-        input_dict: Dict = input.dict
+        input_dict: Dict = input.to_dict()
         tools: List = input_dict.get('tools', [])
         translated_tools: List = []
         for tool in tools:
