@@ -14,6 +14,7 @@ from simplex.tools import EditTools
 PORT: int = 9002
 HOST: str = 'localhost'
 MODULE_PATH: Path = Path(__file__).resolve().parent
+OUTPUT_PATH: Path = MODULE_PATH / 'output/test_edit'
 MOCK_PROJ_PATH: Path = MODULE_PATH / 'fixtures/python_example/GeCoSleep'
 
 @pytest.mark.tool_server_required
@@ -47,7 +48,10 @@ def test_client_async() -> None:
             await sub_test('#19', 'remove', {'target_path': 'edit_hello.txt'})
             await sub_test('#20', 'search', {'key_words': 'logdocument, MultiScaleCNN, load_data_isruc1', 'scope': 'global', 'mode': 'semantic_search'})
             await sub_test('#21', 'search', {'key_words': 'optimizer', 'scope': 'global', 'mode': 'pattern_match'})
-        print(output)
+        target_path = OUTPUT_PATH / 'test_client_async.txt'
+        target_path.parent.mkdir(parents = True, exist_ok = True)
+        with open(target_path, 'w', encoding = 'utf8') as file:
+            file.write(output)
 
     try:
         output = asyncio.run(test_body())

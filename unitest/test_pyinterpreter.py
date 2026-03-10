@@ -1,8 +1,11 @@
 import os
 import json
 import uuid
+import pathlib
 import pytest
 import asyncio
+
+from pathlib import Path
 
 import simplex.basics
 import simplex.context
@@ -41,6 +44,8 @@ Using Python and NumPy, solve the following tasks:
 - The final results must be verifiable with manual calculation.
 """
 DEFAULT_IMAGE: str = 'playground-v1'
+MODULE_PATH: Path = Path(__file__).resolve().parent
+OUTPUT_PATH: Path = MODULE_PATH / 'output/test_pyinterpreter'
 
 @pytest.mark.model_api_required
 def test_pyinterpreter_qwen() -> None:
@@ -68,7 +73,10 @@ def test_pyinterpreter_qwen() -> None:
         ) as loop:
             await loop.procedure()
             log_content = loop['log'].get()
-            print(json.dumps(log_content, indent = 2))
+            target_path = OUTPUT_PATH / 'test_pyinterpreter_qwen.txt'
+            target_path.parent.mkdir(parents = True, exist_ok = True)
+            with open(target_path, 'w', encoding = 'utf8') as file:
+                file.write(json.dumps(log_content, indent = 2))
 
     try:
         asyncio.run(test_body())

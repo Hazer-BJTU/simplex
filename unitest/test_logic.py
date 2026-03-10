@@ -1,8 +1,11 @@
 import os
 import json
 import uuid
+import pathlib
 import pytest
 import asyncio
+
+from pathlib import Path
 
 import simplex.basics
 import simplex.context
@@ -16,6 +19,9 @@ from simplex.models import MockConversationModel
 from simplex.tools import MockCalculator
 from simplex.loop import AgentLoop
 
+
+MODULE_PATH: Path = Path(__file__).resolve().parent
+OUTPUT_PATH: Path = MODULE_PATH / 'output/test_logic'
 
 @pytest.mark.no_requirements
 def test_mock_loop() -> None:
@@ -35,7 +41,10 @@ def test_mock_loop() -> None:
             await loop.procedure()
             log_content = loop['log'].get()
 
-        print(json.dumps(log_content, indent = 2))
+        target_path = OUTPUT_PATH / 'test_mock_loop.txt'
+        target_path.parent.mkdir(parents = True, exist_ok = True)
+        with open(target_path, 'w', encoding = 'utf8') as file:
+            file.write(json.dumps(log_content, indent = 2))
     
     try:
         asyncio.run(test_body())

@@ -6,4 +6,4 @@ build/
 proto/
 __pycache__/
 /dev/
-/unitest/fixtures/playground/
+/unitest/output/
