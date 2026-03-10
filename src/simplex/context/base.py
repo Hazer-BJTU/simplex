@@ -174,10 +174,9 @@ class TrajectoryLogContext(ContextPlugin):
         if model_response.reasoning_content:
             self.markdown += f"Reason #{agent.iter + 1}:\n---\n{model_response.reasoning_content}\n"
         if model_response.tool_call:
-            self.markdown += f"Function Calling #{agent.iter + 1}:\n---\n```yaml\n"
+            self.markdown += f"Function Calling #{agent.iter + 1}:\n---\n"
             for tool_call in model_response.tool_call:
-                self.markdown += tool_call.human_readable_descriptions(self.line_width) + '\n\n'
-            self.markdown += '```\n'
+                self.markdown += f"```\n{tool_call.human_readable_descriptions(self.line_width)}\n```\n"
         if model_response.response:
             self.markdown += f"Response #{agent.iter + 1}:\n---\n{model_response.response}\n"
         return

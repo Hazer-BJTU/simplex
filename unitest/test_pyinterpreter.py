@@ -72,11 +72,11 @@ def test_pyinterpreter_qwen() -> None:
             interpreter
         ) as loop:
             await loop.procedure()
-            log_content = loop['log'].get()
-            target_path = OUTPUT_PATH / 'test_pyinterpreter_qwen.txt'
+            log_content = loop['log'].human_readable
+            target_path = OUTPUT_PATH / 'test_pyinterpreter_qwen.md'
             target_path.parent.mkdir(parents = True, exist_ok = True)
             with open(target_path, 'w', encoding = 'utf8') as file:
-                file.write(json.dumps(log_content, indent = 2))
+                file.write(log_content)
 
     try:
         asyncio.run(test_body())

@@ -44,18 +44,12 @@ class ToolCall:
         return asdict(self)
     
     def human_readable_descriptions(self, text_width = 30) -> str:
-        output: str = f"{self.name}:\n  arguments:\n"
+        output: str = f"name: {self.name}\narguments:\n"
         for key, value in self.arguments.items():
-            output += f"    {key}:\n"
-            output += textwrap.fill(
-                repr(value),
-                width = text_width,
-                initial_indent = '      ',
-                subsequent_indent = '      ',
-                replace_whitespace = False,
-                drop_whitespace = True
-            )
-            output += '\n'
+            if len(str(value)) <= text_width:
+                output += f"{key}: {value}\n"
+            else:
+                output += f"{key}:\n{value}\n"
         return output.strip()
 
 @dataclass
@@ -164,9 +158,8 @@ class ModelInput:
     tools: Optional[List[ToolSchema]] = None
     input: Optional[str | List] = None
     extras: Optional[Dict] = None
-
-    @property
-    def dict(self) -> Dict:
+    
+    def to_dict(self) -> Dict:
         output_dict: Dict = {}
         if self.model is not None:
             output_dict['model'] = self.model
@@ -179,9 +172,6 @@ class ModelInput:
         if self.extras is not None:
             output_dict |= self.extras
         return output_dict
-    
-    def to_dict(self) -> Dict:
-        return  asdict(self)
     
 @dataclass
 class PromptTemplate:

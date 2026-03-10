@@ -41,7 +41,7 @@ class MockCalculator(ToolCollection):
         self.name = rename
 
         self.tool_definition = load_tool_definitions(self.SCHEMA_FILE)
-        self.schema = load_schema(self.SCHEMA_FILE, self.CALCULATOR)
+        self.schema = load_schema(self.SCHEMA_FILE, self.CALCULATOR, self.name)
 
     async def build(self) -> None:
         pass
