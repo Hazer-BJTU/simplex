@@ -172,10 +172,6 @@ class ModelInput:
         if self.extras is not None:
             output_dict |= self.extras
         return output_dict
-    
-@dataclass
-class PromptTemplate:
-    pass
 
 if __name__ == '__main__':
     pass

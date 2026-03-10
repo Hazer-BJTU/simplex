@@ -2,6 +2,7 @@ import simplex.basics.client
 import simplex.basics.container
 import simplex.basics.dataclass
 import simplex.basics.exception
+import simplex.basics.prompt
 
 from simplex.basics.client import WebsocketClient, WebsocketClientSync
 from simplex.basics.container import ContainerManager
@@ -23,6 +24,7 @@ from simplex.basics.exception import (
     ConflictError,
     RuntimeError
 )
+from simplex.basics.prompt import PromptTemplate
 
 
 __all__ = [
@@ -42,5 +44,6 @@ __all__ = [
     "EnvironmentError",
     "UnbuiltError",
     "ConflictError",
-    "RuntimeError"
+    "RuntimeError",
+    "PromptTemplate"
 ]

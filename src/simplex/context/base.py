@@ -11,7 +11,8 @@ import simplex.basics
 from simplex.basics import (
     ModelInput,
     ModelResponse,
-    ToolReturn
+    ToolReturn,
+    PromptTemplate
 )
 
 if TYPE_CHECKING:
@@ -115,7 +116,7 @@ class TrajectoryLogContext(ContextPlugin):
         self, 
         instance_id: str = uuid.uuid4().hex,
         empty_on_reset: bool = True,
-        line_width: int = 100
+        line_width: int = 150
     ) -> None:
         super().__init__(instance_id)
 
@@ -124,7 +125,7 @@ class TrajectoryLogContext(ContextPlugin):
 
         self.log: List[Dict] = []
         self.training_log: List[Dict] = []
-        self.markdown: str = ''
+        self.markdown: PromptTemplate = PromptTemplate()
 
     async def build(self) -> None:
         return
@@ -136,7 +137,7 @@ class TrajectoryLogContext(ContextPlugin):
         if self.empty_on_reset:
             self.log = []
             self.training_log = []
-            self.markdown = ''
+            self.markdown = PromptTemplate()
         return
 
     def on_start_procedure(self, agent: "AgentLoop") -> None:
@@ -147,52 +148,39 @@ class TrajectoryLogContext(ContextPlugin):
     
     def on_prompt_ready(self, model_input: ModelInput, agent: "AgentLoop") -> None:
         # log details
-        self.log.append(asdict(model_input) | {'iter': 'initial_input'})
+        self.log.append(model_input.to_dict() | {'iter': 'initial_input'})
         
         # log markdown
+        self.markdown.add_main_title('Initial states')
         if model_input.tools:
-            self.markdown += 'Tools available:\n---\n```yaml\n'
-            for schema in model_input.tools:
-                self.markdown += schema.human_readable_descriptions(self.line_width) + '\n\n'
-            self.markdown += '```\n'
+            self.markdown.add_block([schema.human_readable_descriptions(self.line_width) for schema in model_input.tools], 'Tools available', 'yaml')
+        if model_input.messages:
+            for message in model_input.messages:
+                if 'role' in message and 'content' in message:
+                    self.markdown.add_simple(message['content'], message['role'])
         return
     
     def on_model_response(self, model_response: ModelResponse, agent: "AgentLoop") -> None:
         # log details
-        info: Dict = {'iter': agent.iter}
-        if model_response.reasoning_content:
-            info['reasoning_content'] = model_response.reasoning_content
-        if model_response.tool_call:
-            info['tool_call'] = [asdict(call) for call in model_response.tool_call]
-        if model_response.extras:
-            info['extras'] = model_response.extras
-        if model_response.response:
-            info['response'] = model_response.response
-        self.log.append(info)
+        self.log.append(model_response.to_dict() | {'iter': agent.iter})
 
         # log markdown
+        self.markdown.add_main_title(f"Agent iteration #{agent.iter}")
         if model_response.reasoning_content:
-            self.markdown += f"Reason #{agent.iter + 1}:\n---\n{model_response.reasoning_content}\n"
+            self.markdown.add_simple(model_response.reasoning_content, "Reason content")
         if model_response.tool_call:
-            self.markdown += f"Function Calling #{agent.iter + 1}:\n---\n"
-            for tool_call in model_response.tool_call:
-                self.markdown += f"```\n{tool_call.human_readable_descriptions(self.line_width)}\n```\n"
+            self.markdown.add_block([tool_call.human_readable_descriptions(self.line_width) for tool_call in model_response.tool_call], 'Function calling')
         if model_response.response:
-            self.markdown += f"Response #{agent.iter + 1}:\n---\n{model_response.response}\n"
+            self.markdown.add_simple(model_response.response, "Model Response")
         return
     
     def on_tool_return(self, tool_return: List[ToolReturn], agent: "AgentLoop") -> None:
         # log details
-        for ret in tool_return:
-            info: Dict = {'iter': agent.iter}
-            info['tool_return'] = asdict(ret)
-            self.log.append(info)
+        self.log.append({'iter': agent.iter, 'tool_returns': [ret.to_dict() for ret in tool_return]})
 
         # log markdown
         if tool_return:
-            self.markdown += f"Tool Return #{agent.iter + 1}:\n---\n"
-        for ret in tool_return:
-            self.markdown += f"```\n{ret.content}\n```\n"
+            self.markdown.add_block([ret.content for ret in tool_return], "Tool returns")
         return
     
     def on_final_answer(self, model_response: ModelResponse, agent: "AgentLoop") -> None:
@@ -204,7 +192,7 @@ class TrajectoryLogContext(ContextPlugin):
     
     @property
     def human_readable(self) -> str:
-        return self.markdown
+        return str(self.markdown)
     
     @property
     def for_training(self) -> List[Dict]:
