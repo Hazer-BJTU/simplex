@@ -161,13 +161,12 @@ class AgentLoop(ABC):
                 for idx, tool_return in enumerate(tool_returns):
                     if isinstance(tool_return, TypeError):
                         original_call: ToolCall = output.tool_call[idx]
-                        error_message: str = f"Parameter error of tool call \'{original_call.name}\'. " \
-                                             f"Please double-check the parameter requirements. " \
-                                             f"Error: {tool_return}. "
+                        error_message: str = f"[ERROR]: Parameter error of tool call \'{original_call.name}\'. " \
+                                             f"Please double-check the parameter requirements. {tool_return}"
                         tool_returns_no_exception.append(ToolReturn(error_message, original_call))
                     elif isinstance(tool_return, Exception):
                         original_call: ToolCall = output.tool_call[idx]
-                        error_message: str = f"An error has occurred during tool call \'{original_call.name}\': {tool_return}."
+                        error_message: str = f"[ERROR]: An exception has occurred during tool call \'{original_call.name}\': {tool_return}."
                         tool_returns_no_exception.append(ToolReturn(error_message, original_call))
                     else:
                         tool_returns_no_exception.append(tool_return) #type: ignore
