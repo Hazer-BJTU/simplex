@@ -7,7 +7,7 @@ import asyncio
 
 from datetime import datetime
 from abc import ABC, abstractmethod
-from typing import TypeAlias, List, Dict, Optional, Any
+from typing import Coroutine, List, Dict, Optional, Any
 
 import simplex.basics
 import simplex.context
@@ -525,13 +525,15 @@ class AgentLoop:
                     self.__exception_handler(e, Notice(f"agent loop quit"))
                     return None
             
-            assert model_response is not None, f"failed to receive from model endpoint after {max_retry} attempts"
+            # assert model_response is not None, f"failed to receive from model endpoint after {max_retry} attempts"
+            if model_response is None:
+                raise RuntimeError(f"failed to receive from model endpoint after {max_retry} attempts")
             # Step 4.2: Post-model-response hook (contexts only)
             await call_coroutine_functions(self.__contexts, self.STATE_ON_MODEL_RESPONSE, {'model_input': model_input, 'model_response': model_response, 'agent': self}, self.__exception_handler) # contexts only
 
             # Step 4.3: Handle tool calls (if any)
             if model_response.tool_call is not None and len(model_response.tool_call) > 0:
-                tasks: List = []
+                tasks: List = [Coroutine[Any, Any, ToolReturn]]
                 for call in model_response.tool_call:
                     if call.name in self.__tool_mapping:
                         tasks.append(self.__tool_mapping[call.name](call))
@@ -569,7 +571,9 @@ class AgentLoop:
                 # Update model input for next iteration
                 model_input = self.__model.tool_return_integrate(model_input, model_response, pure_tool_return)
             
-            elif model_response.response and len(model_response.response) > 0:
+            elif (model_response.response is not None and 
+                  isinstance(model_response.response, str) and 
+                  len(model_response.response.strip()) > 0):
                 # Step 4.5: Handle final answer (no tool calls)
                 await call_coroutine_functions(self.__contexts, self.STATE_ON_FINAL_ANSWER, {'model_response': model_response, 'agent': self}, self.__exception_handler) # contexts only
                 break # Terminate loop (final answer generated)
