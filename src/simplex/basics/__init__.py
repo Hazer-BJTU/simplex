@@ -22,7 +22,8 @@ from simplex.basics.exception import (
     EnvironmentError,
     UnbuiltError,
     ConflictError,
-    RuntimeError
+    RuntimeError,
+    Notice
 )
 from simplex.basics.prompt import PromptTemplate
 
@@ -45,5 +46,6 @@ __all__ = [
     "UnbuiltError",
     "ConflictError",
     "RuntimeError",
-    "PromptTemplate"
+    "PromptTemplate",
+    "Notice"
 ]
