@@ -1,8 +1,8 @@
 #pragma once
 
-#include "languages/plainintegrate.h"
-#include "languages/pyintegrate.h"
-#include "pathreader.h"
+#include "languages/plaintext.h"
+#include "languages/pylang.h"
+#include "locate.h"
 
 #include <boost/filesystem.hpp>
 
