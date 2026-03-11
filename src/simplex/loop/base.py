@@ -245,6 +245,44 @@ def call_functions(
     exception_handler(result_list)
     return result_list
 
+'''
+class AgentLoopBase(ABC):
+    def __init__(self) -> None:
+        super().__init__()
+
+    @abstractmethod
+    def __getitem__(self, instance_key: str) -> ToolCollection | ContextPlugin:
+        pass
+
+    @abstractmethod
+    async def build(self) -> None:
+        pass
+
+    @abstractmethod
+    async def release(self) -> None:
+        pass
+
+    @abstractmethod
+    async def reset(self) -> None:
+        pass
+
+    @abstractmethod
+    def clone(self) -> "AgentLoopBase":
+        pass
+
+    @abstractmethod
+    async def complete(self, *args, **kwargs) -> Optional[ModelResponse]:
+        pass
+
+    async def __aenter__(self):
+        await self.build()
+        return self
+    
+    async def __exit__(self, exc_type, exc, tb):
+        await self.release()
+        return False
+'''
+        
 class AgentLoop:
     """
     Core loop controller for agent execution with state management.
@@ -266,15 +304,15 @@ class AgentLoop:
         STATE_ON_FINAL_ANSWER: State when final answer is generated
     """
 
-    STATE_BUILD: str = 'build'
-    STATE_RELEASE: str = 'release'
-    STATE_RESET: str = 'reset'
-    STATE_ON_START_PROCEDURE: str = 'on_start_procedure'
-    STATE_ON_PROCESS_PROMPT: str = 'on_process_prompt'
-    STATE_ON_PROMPT_READY: str = 'on_prompt_ready'
-    STATE_ON_MODEL_RESPONSE: str = 'on_model_response'
-    STATE_ON_TOOL_RETURN: str = 'on_tool_return'
-    STATE_ON_FINAL_ANSWER: str = 'on_final_answer'
+    STATE_BUILD: str = 'build'       # async, all instances, no parameters
+    STATE_RELEASE: str = 'release'   # async, all instances, no parameters
+    STATE_RESET: str = 'reset'       # async, all instances, no parameters
+    STATE_ON_START_PROCEDURE: str = 'on_start_procedure' # sync, all instances,  params: agent: AgentLoop
+    STATE_ON_PROCESS_PROMPT: str = 'on_process_prompt'   # sync, all instances,  params: system: PromptTemplate, user: PromptTemplate, agent: AgentLoop
+    STATE_ON_PROMPT_READY: str = 'on_prompt_ready'       # sync, all instances,  params: model_input: ModelInput, agent: AgentLoop
+    STATE_ON_MODEL_RESPONSE: str = 'on_model_response'   # async, contexts only, params: model_input: ModelInput, model_response: ModelResponse, agent: AgentLoop
+    STATE_ON_TOOL_RETURN: str = 'on_tool_return'         # async, contexts only, params: tool_return: List[ToolReturn], agent: AgentLoop
+    STATE_ON_FINAL_ANSWER: str = 'on_final_answer'       # async, contexts only, params: model_response: ModelResponse, agent: AgentLoop
 
     def __init__(
         self,
@@ -316,12 +354,12 @@ class AgentLoop:
                 elif isinstance(instance, ContextPlugin):
                     self.__contexts.append(instance)
 
-                for tool in self.__tools:
-                    self.__tool_schemas.extend(tool.get_tools())
-                    for name in tool.get_names():
-                        if name in self.__tool_mapping:
-                            raise ConflictError(f"duplicated tool name \'{name}\' from collection: {repr(tool)}")
-                        self.__tool_mapping[name] = tool
+            for tool in self.__tools:
+                self.__tool_schemas.extend(tool.get_tools())
+                for name in tool.get_names():
+                    if name in self.__tool_mapping:
+                        raise ConflictError(f"duplicated tool name \'{name}\' from collection: {repr(tool)}")
+                    self.__tool_mapping[name] = tool
         except Exception as e:
             raise EntityInitializationError(self.__class__.__name__, e)
 
@@ -485,14 +523,11 @@ class AgentLoop:
                     self.__exception_handler(e, Notice(f"model endpoint retry attempt [{attempt + 1}/{max_retry}]"))
                 except Exception as e:
                     self.__exception_handler(e, Notice(f"agent loop quit"))
-                    raise e
-                
-                if attempt + 1 == max_retry:
-                    raise RuntimeError(f"failed to receive from model endpoint after {max_retry} attempts")
+                    return None
             
-            assert model_response is not None, "model response is None after all retry attempts"
+            assert model_response is not None, f"failed to receive from model endpoint after {max_retry} attempts"
             # Step 4.2: Post-model-response hook (contexts only)
-            call_functions(self.__contexts, self.STATE_ON_MODEL_RESPONSE, {'model_input': model_input, 'model_response': model_response, 'agent': self}, self.__exception_handler) # contexts only
+            await call_coroutine_functions(self.__contexts, self.STATE_ON_MODEL_RESPONSE, {'model_input': model_input, 'model_response': model_response, 'agent': self}, self.__exception_handler) # contexts only
 
             # Step 4.3: Handle tool calls (if any)
             if model_response.tool_call is not None and len(model_response.tool_call) > 0:
@@ -530,13 +565,13 @@ class AgentLoop:
                 # Notify exception handler of tool execution results
                 self.__exception_handler(tool_return)
                 # Step 4.4: Post-tool-return hook (contexts only)
-                call_functions(self.__contexts, self.STATE_ON_TOOL_RETURN, {'tool_return': pure_tool_return, 'agent': self}, self.__exception_handler) # contexts only
+                await call_coroutine_functions(self.__contexts, self.STATE_ON_TOOL_RETURN, {'tool_return': pure_tool_return, 'agent': self}, self.__exception_handler) # contexts only
                 # Update model input for next iteration
                 model_input = self.__model.tool_return_integrate(model_input, model_response, pure_tool_return)
             
             elif model_response.response and len(model_response.response) > 0:
                 # Step 4.5: Handle final answer (no tool calls)
-                call_functions(self.__contexts, self.STATE_ON_FINAL_ANSWER, {'model_response': model_response, 'agent': self}, self.__exception_handler) # contexts only
+                await call_coroutine_functions(self.__contexts, self.STATE_ON_FINAL_ANSWER, {'model_response': model_response, 'agent': self}, self.__exception_handler) # contexts only
                 break # Terminate loop (final answer generated)
         
         return model_response
