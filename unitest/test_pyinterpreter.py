@@ -13,11 +13,11 @@ import simplex.models
 import simplex.tools
 import simplex.loop
 
-from simplex.basics import ModelInput, ModelResponse, ToolCall, ContainerManager
-from simplex.context import TrajectoryLogContext, InitPromptContext
+from simplex.basics import ContainerManager, PromptTemplate
+from simplex.context import TrajectoryLogContext
 from simplex.models import QwenConversationModel
-from simplex.tools import MockCalculator, PythonInterpreter
-from simplex.loop import AgentLoop
+from simplex.tools import PythonInterpreter
+from simplex.loop import AgentLoop, LogExceptionHandler
 
 
 PROBLEM_STATEMENT: str = """Please solve the following promblem.
@@ -67,12 +67,15 @@ def test_pyinterpreter_qwen() -> None:
 
         async with AgentLoop(
             model, 
-            InitPromptContext(user_instruction = PROBLEM_STATEMENT), 
+            LogExceptionHandler(),
             TrajectoryLogContext(instance_id = 'log'),
             interpreter
         ) as loop:
-            await loop.procedure()
-            log_content = loop['log'].human_readable
+            result = await loop.complete(
+                PromptTemplate('You are a helpful assistant.'),
+                PromptTemplate(PROBLEM_STATEMENT)
+            )
+            log_content = loop['log'].human_readable # type: ignore
             target_path = OUTPUT_PATH / 'test_pyinterpreter_qwen.md'
             target_path.parent.mkdir(parents = True, exist_ok = True)
             with open(target_path, 'w', encoding = 'utf8') as file:

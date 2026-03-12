@@ -3,6 +3,7 @@ import copy
 import uuid
 
 from abc import ABC
+from dataclasses import asdict
 from typing import Dict, List, Any
 
 import simplex.basics
@@ -98,7 +99,7 @@ class TrajectoryLogContext(ContextPlugin):
 
     async def start_loop_async(self, model_input: ModelInput, **kwargs) -> Any:
         # log details
-        self.log.append(model_input.to_dict() | {'iter': 'initial_input'})
+        self.log.append(asdict(model_input) | {'iter': 'initial_input'})
         
         # log markdown
         self.markdown.add_main_title('Initial states')
@@ -112,7 +113,7 @@ class TrajectoryLogContext(ContextPlugin):
     
     async def after_final_response_async(self, iter: int, model_response: ModelResponse, **kwargs) -> Any:
         # log details
-        self.log.append(model_response.to_dict() | {'iter': iter})
+        self.log.append(asdict(model_response) | {'iter': iter})
 
         # log markdown
         self.markdown.add_main_title(f"Agent iteration #{iter}")
@@ -126,7 +127,7 @@ class TrajectoryLogContext(ContextPlugin):
     
     async def after_tool_call_async(self, iter: int, tool_returns: List[ToolReturn], **kwargs) -> Any:
         # log details
-        self.log.append({'iter': iter, 'tool_returns': [ret.to_dict() for ret in tool_returns]})
+        self.log.append({'iter': iter, 'tool_returns': [asdict(ret) for ret in tool_returns]})
 
         # log markdown
         if tool_returns:
