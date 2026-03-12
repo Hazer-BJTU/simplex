@@ -2,9 +2,8 @@ import os
 import copy
 import uuid
 
-from dataclasses import asdict
-from abc import ABC, abstractmethod
-from typing import Optional, Dict, List, TYPE_CHECKING
+from abc import ABC
+from typing import Dict, List, Any
 
 import simplex.basics
 
@@ -15,101 +14,64 @@ from simplex.basics import (
     PromptTemplate
 )
 
-if TYPE_CHECKING:
-    import simplex.loop
-
-    from simplex.loop import AgentLoop
-
-
 class ContextPlugin(ABC):
-    def __init__(
-        self, 
-        instance_id: str
-    ) -> None:
-        self.instance_id = instance_id
+    def __init__(self, instance_id: str) -> None:
+        self.__instance_id = instance_id
 
     @property
     def key(self) -> str:
-        return self.instance_id
-
-    @abstractmethod
+        return self.__instance_id
+    
     async def build(self) -> None:
         pass
 
-    @abstractmethod
     async def release(self) -> None:
         pass
 
-    @abstractmethod
     async def reset(self) -> None:
         pass
 
-    @abstractmethod
-    def on_start_procedure(self, agent: "AgentLoop") -> None:
-        pass
-
-    @abstractmethod
-    def on_process_prompt(self, model_input: ModelInput, agent: "AgentLoop") -> None:
-        pass
-
-    @abstractmethod
-    def on_prompt_ready(self, model_input: ModelInput, agent: "AgentLoop") -> None:
-        pass
-
-    @abstractmethod
-    def on_model_response(self, model_response: ModelResponse, agent: "AgentLoop") -> None:
-        pass
-
-    @abstractmethod
-    def on_tool_return(self, tool_return: List[ToolReturn], agent: "AgentLoop") -> None:
-        pass
-
-    @abstractmethod
-    def on_final_answer(self, model_response: ModelResponse, agent: "AgentLoop") -> None:
-        pass
-
-class InitPromptContext(ContextPlugin):
-    def __init__(
-        self, 
-        user_instruction: str,
-        instance_id: str = uuid.uuid4().hex,
-        system_prompt: str = 'You are a helpful assistant.',
-        chat_history: Optional[List[Dict]] = None
-    ) -> None:
-        super().__init__(instance_id)
-
-        self.message: List[Dict] = []
-        self.message.append({'role': 'system', 'content': system_prompt})
-        if chat_history is not None:
-            self.message.extend(chat_history)
-        self.message.append({'role': 'user', 'content': user_instruction})
-
-    async def build(self) -> None:
-        return
-
-    async def release(self) -> None:
-        return
-
-    async def reset(self) -> None:
-        return
+    def clone(self) -> "ContextPlugin":
+        return copy.deepcopy(self)
     
-    def on_start_procedure(self, agent: "AgentLoop") -> None:
-        return
+    def process_prompt(self, *args, **kwargs) -> Any:
+        pass
 
-    def on_process_prompt(self, model_input: ModelInput, agent: "AgentLoop") -> None:
-        model_input.messages = copy.deepcopy(self.message)
+    def start_loop(self, *args, **kwargs) -> Any:
+        pass
 
-    def on_prompt_ready(self, model_input: ModelInput, agent: "AgentLoop") -> None:
-        return
-    
-    def on_model_response(self, model_response: ModelResponse, agent: "AgentLoop") -> None:
-        return
-    
-    def on_tool_return(self, tool_return: List[ToolReturn], agent: "AgentLoop") -> None:
-        return
-    
-    def on_final_answer(self, model_response: ModelResponse, agent: "AgentLoop") -> None:
-        return
+    async def start_loop_async(self, *args, **kwargs) -> Any:
+        pass
+
+    def before_response(self, *args, **kwargs) -> Any:
+        pass
+
+    async def before_response_async(self, *args, **kwargs) -> Any:
+        pass
+
+    def after_response(self, *args, **kwargs) -> Any:
+        pass
+
+    async def after_response_async(self, *args, **kwargs) -> Any:
+        pass
+
+    def after_tool_call(self, *args, **kwargs) -> Any:
+        pass
+
+    async def after_tool_call_async(self, *args, **kwargs) -> Any:
+        pass
+
+    def after_final_response(self, *args, **kwargs) -> Any:
+        pass
+
+    async def after_final_response_async(self, *args, **kwargs) -> Any:
+        pass
+
+    def on_loop_end(self, *args, **kwargs) -> Any:
+        pass
+
+    async def on_loop_end_async(self, *args, **kwargs) -> Any:
+        pass
 
 class TrajectoryLogContext(ContextPlugin):
     def __init__(
@@ -126,12 +88,6 @@ class TrajectoryLogContext(ContextPlugin):
         self.log: List[Dict] = []
         self.training_log: List[Dict] = []
         self.markdown: PromptTemplate = PromptTemplate()
-
-    async def build(self) -> None:
-        return
-    
-    async def release(self) -> None:
-        return
     
     async def reset(self) -> None:
         if self.empty_on_reset:
@@ -140,13 +96,7 @@ class TrajectoryLogContext(ContextPlugin):
             self.markdown = PromptTemplate()
         return
 
-    def on_start_procedure(self, agent: "AgentLoop") -> None:
-        return
-    
-    def on_process_prompt(self, model_input: ModelInput, agent: "AgentLoop") -> None:
-        return
-    
-    def on_prompt_ready(self, model_input: ModelInput, agent: "AgentLoop") -> None:
+    async def start_loop_async(self, model_input: ModelInput, **kwargs) -> Any:
         # log details
         self.log.append(model_input.to_dict() | {'iter': 'initial_input'})
         
@@ -160,12 +110,12 @@ class TrajectoryLogContext(ContextPlugin):
                     self.markdown.add_simple(message['content'], message['role'])
         return
     
-    def on_model_response(self, model_response: ModelResponse, agent: "AgentLoop") -> None:
+    async def after_final_response_async(self, iter: int, model_response: ModelResponse, **kwargs) -> Any:
         # log details
-        self.log.append(model_response.to_dict() | {'iter': agent.iter})
+        self.log.append(model_response.to_dict() | {'iter': iter})
 
         # log markdown
-        self.markdown.add_main_title(f"Agent iteration #{agent.iter}")
+        self.markdown.add_main_title(f"Agent iteration #{iter}")
         if model_response.reasoning_content:
             self.markdown.add_simple(model_response.reasoning_content, "Reason content")
         if model_response.tool_call:
@@ -174,16 +124,13 @@ class TrajectoryLogContext(ContextPlugin):
             self.markdown.add_simple(model_response.response, "Model Response")
         return
     
-    def on_tool_return(self, tool_return: List[ToolReturn], agent: "AgentLoop") -> None:
+    async def after_tool_call_async(self, iter: int, tool_returns: List[ToolReturn], **kwargs) -> Any:
         # log details
-        self.log.append({'iter': agent.iter, 'tool_returns': [ret.to_dict() for ret in tool_return]})
+        self.log.append({'iter': iter, 'tool_returns': [ret.to_dict() for ret in tool_returns]})
 
         # log markdown
-        if tool_return:
-            self.markdown.add_block([ret.content for ret in tool_return], "Tool returns")
-        return
-    
-    def on_final_answer(self, model_response: ModelResponse, agent: "AgentLoop") -> None:
+        if tool_returns:
+            self.markdown.add_block([ret.content for ret in tool_returns], "Tool returns")
         return
 
     @property
