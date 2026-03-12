@@ -5,7 +5,7 @@ import pathlib
 
 from pathlib import Path
 from enum import Enum, auto
-from typing import Optional, List, Dict, Callable, TYPE_CHECKING
+from typing import Optional, List, Dict
 
 import simplex.basics
 import simplex.tools.base
@@ -23,12 +23,6 @@ from simplex.tools.base import (
     load_tool_definitions,
     load_schema
 )
-
-if TYPE_CHECKING:
-    import simplex.loop
-
-    from simplex.loop import AgentLoop
-
 
 class EditTools(ToolCollection):
     class Operation(Enum):
@@ -124,9 +118,6 @@ class EditTools(ToolCollection):
     
     def tools_descriptions(self) -> str:
         return self.tool_definitions
-    
-    def on_init_output(self, model_input: ModelInput, agent: "AgentLoop") -> None:
-        pass
 
     async def _tool_view_workspace(self, **kwargs) -> str:
         if not self.initialized:

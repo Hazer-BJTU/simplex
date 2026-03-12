@@ -3,8 +3,8 @@
 #include <iostream>
 
 #include "server.h"
-#include "pathreader.h"
-#include "searcher.hpp"
+#include "locate.h"
+#include "search.hpp"
 #include "dispatcher.hpp"
 
 #include <nlohmann/json.hpp>

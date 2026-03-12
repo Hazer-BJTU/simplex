@@ -49,6 +49,10 @@ class BaseModel(ABC):
     @property
     def key(self) -> str:
         return self.instance_id
+    
+    @abstractmethod
+    def clone(self) -> "BaseModel":
+        pass
         
     @abstractmethod
     async def build(self) -> None:
@@ -85,6 +89,9 @@ class EmbeddingModel(BaseModel):
             disable_openai_backend
         )
 
+    def clone(self) -> "EmbeddingModel":
+        return None # type: ignore
+
     async def build(self) -> None:
         return
     
@@ -120,6 +127,9 @@ class ConversationModel(BaseModel):
             disable_openai_backend
         )
 
+    def clone(self) -> "ConversationModel":
+        return None # type: ignore
+
     async def build(self) -> None:
         return
 
@@ -147,7 +157,7 @@ class Translator(ABC):
 
 class OpenaiTranslator(Translator):
     def __call__(self, input: ModelInput) -> Dict:
-        input_dict: Dict = input.dict
+        input_dict: Dict = input.to_dict()
         tools: List = input_dict.get('tools', [])
         translated_tools: List = []
         for tool in tools:

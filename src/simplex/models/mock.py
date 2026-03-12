@@ -37,6 +37,9 @@ class MockConversationModel(ConversationModel):
         self.length: int = len(expected_responses)
         self.iterator: int = 0
 
+    def clone(self) -> "MockConversationModel":
+        return copy.deepcopy(self)
+
     async def generate(self, model_input: ModelInput) -> ModelResponse:
         if self.generator is not None:
             try:

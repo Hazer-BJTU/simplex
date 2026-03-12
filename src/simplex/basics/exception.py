@@ -1,5 +1,6 @@
 from typing import Optional
 
+
 class CustomException(Exception):
     pass
 
@@ -67,7 +68,11 @@ class RuntimeError(CustomException):
         if original is not None:
             super().__init__(f"runtime error due to exception: {self.original}")
         else:
-            super().__init__(f"{content}")
+            super().__init__(content)
+
+class Notice(CustomException):
+    def __init__(self, content: str = '') -> None:
+        super().__init__(content)
 
 if __name__ == '__main__':
     pass

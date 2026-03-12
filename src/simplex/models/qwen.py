@@ -54,6 +54,18 @@ class QwenConversationModel(ConversationModel):
                 'thinking_budget': self.thinking_budget
             }
 
+    def clone(self) -> "QwenConversationModel":
+        return QwenConversationModel(
+            self.base_url,
+            self.api_key,
+            self.client_configs,
+            self.default_generate_configs,
+            self.instance_id,
+            self.qwen_model,
+            self.enable_thinking,
+            self.thinking_budget
+        )
+
     async def generate(self, model_input: ModelInput) -> ModelResponse:
         try:
             assert self.client is not None

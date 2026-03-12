@@ -1,10 +1,11 @@
 import os
 import uuid
 import hashlib
+import textwrap
 import numpy as np
 
 from typing import Dict, Optional, List
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, asdict
 
 
 @dataclass
@@ -29,12 +30,27 @@ class DocumentEntry:
     def size(self) -> int:
         return len(self.content)
     
+    def to_dict(self) -> Dict:
+        return asdict(self)
+    
 @dataclass
 class ToolCall:
     id: str
     name: str
     arguments: Dict
     extras: Optional[Dict] = None
+
+    def to_dict(self) -> Dict:
+        return asdict(self)
+    
+    def human_readable_descriptions(self, text_width = 30) -> str:
+        output: str = f"name: {self.name}\narguments:\n"
+        for key, value in self.arguments.items():
+            if len(str(value)) <= text_width:
+                output += f"{key}: {value}\n"
+            else:
+                output += f"{key}:\n{value}\n"
+        return output.strip()
 
 @dataclass
 class ToolReturn:
@@ -53,7 +69,9 @@ class ToolReturn:
     @property
     def arguments(self) -> Dict:
         return self.original_call.arguments
-
+    
+    def to_dict(self) -> Dict:
+        return asdict(self)
     
 @dataclass
 class ModelResponse:
@@ -64,28 +82,8 @@ class ModelResponse:
     embedding: Optional[np.ndarray] = None
     extras: Optional[Dict] = None
 
-@dataclass
-class ModelInput:
-    model: Optional[str] = None
-    messages: Optional[List[Dict]] = None
-    tools: Optional[List] = None
-    input: Optional[str | List] = None
-    extras: Optional[Dict] = None
-
-    @property
-    def dict(self) -> Dict:
-        output_dict: Dict = {}
-        if self.model is not None:
-            output_dict['model'] = self.model
-        if self.messages is not None:
-            output_dict['messages'] = self.messages
-        if self.tools is not None:
-            output_dict['tools'] = self.tools
-        if self.input is not None:
-            output_dict['input'] = self.input
-        if self.extras is not None:
-            output_dict |= self.extras
-        return output_dict
+    def to_dict(self) -> Dict:
+        return asdict(self)
     
 @dataclass
 class ToolSchema:
@@ -96,9 +94,8 @@ class ToolSchema:
         description: str
         required: bool = True
         extras: Optional[Dict] = None
-
-        @property
-        def dict(self) -> Dict:
+        
+        def to_dict(self) -> Dict:
             result = {
                 'field': self.field,
                 'type': self.type,
@@ -116,10 +113,35 @@ class ToolSchema:
 
     @property
     def param_dict(self) -> Dict:
-        return { param.field: param.dict for param in self.params }
-
-    @property
-    def dict(self) -> Dict:
+        return { param.field: param.to_dict() for param in self.params }
+    
+    def human_readable_descriptions(self, text_width = 30) -> str:
+        output: str = f"{self.name}:\n  description:\n"
+        output += textwrap.fill(
+            self.description, 
+            width = text_width,
+            initial_indent = '    ',
+            subsequent_indent = '    ',
+            replace_whitespace = False,
+            drop_whitespace = True
+        )
+        output += '\n  parameters:\n'
+        for param in self.params:
+            output += f"    {param.field}:\n"
+            output += f"      type: {param.type}\n"
+            output += f"      description:\n"
+            output += textwrap.fill(
+                param.description,
+                width = text_width,
+                initial_indent = '        ',
+                subsequent_indent = '        ',
+                replace_whitespace = False,
+                drop_whitespace = True
+            )
+            output += f"\n      required: {param.required}\n"
+        return output.strip()
+    
+    def to_dict(self) -> Dict:
         result = {
             'name': self.name,
             'description': self.description,
@@ -128,6 +150,28 @@ class ToolSchema:
         if self.extras is not None:
             result['extras'] = self.extras
         return result
+    
+@dataclass
+class ModelInput:
+    model: Optional[str] = None
+    messages: Optional[List[Dict]] = None
+    tools: Optional[List[ToolSchema]] = None
+    input: Optional[str | List] = None
+    extras: Optional[Dict] = None
+    
+    def to_dict(self) -> Dict:
+        output_dict: Dict = {}
+        if self.model is not None:
+            output_dict['model'] = self.model
+        if self.messages is not None:
+            output_dict['messages'] = self.messages
+        if self.tools is not None:
+            output_dict['tools'] = self.tools
+        if self.input is not None:
+            output_dict['input'] = self.input
+        if self.extras is not None:
+            output_dict |= self.extras
+        return output_dict
 
 if __name__ == '__main__':
     pass

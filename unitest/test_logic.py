@@ -1,8 +1,11 @@
 import os
 import json
 import uuid
+import pathlib
 import pytest
 import asyncio
+
+from pathlib import Path
 
 import simplex.basics
 import simplex.context
@@ -10,12 +13,15 @@ import simplex.models
 import simplex.tools
 import simplex.loop
 
-from simplex.basics import ModelInput, ModelResponse, ToolCall
-from simplex.context import TrajectoryLogContext, InitPromptContext
+from simplex.basics import PromptTemplate, ModelResponse, ToolCall
+from simplex.context import TrajectoryLogContext
 from simplex.models import MockConversationModel
 from simplex.tools import MockCalculator
-from simplex.loop import AgentLoop
+from simplex.loop import AgentLoop, LogExceptionHandler
 
+
+MODULE_PATH: Path = Path(__file__).resolve().parent
+OUTPUT_PATH: Path = MODULE_PATH / 'output/test_logic'
 
 @pytest.mark.no_requirements
 def test_mock_loop() -> None:
@@ -31,13 +37,28 @@ def test_mock_loop() -> None:
             ]
         )
 
-        async with AgentLoop(model, InitPromptContext('This is a test.'), TrajectoryLogContext(instance_id = 'log'), MockCalculator()) as loop:
-            await loop.procedure()
-            log_content = loop['log'].get()
+        async with AgentLoop(model, LogExceptionHandler(), TrajectoryLogContext(instance_id = 'log'), MockCalculator()) as loop:
+            response = await loop.complete(
+                system = PromptTemplate('You are a helpful assistant'),
+                user = PromptTemplate('This is a test.')
+            )
+            detailed_log = loop['log'].detailed # type: ignore
+            markdown_log = loop['log'].human_readable # type: ignore
 
-        print(json.dumps(log_content, indent = 2))
-        
-    asyncio.run(test_body())
+        target_path = OUTPUT_PATH / 'test_mock_loop_markdown.md'
+        target_path.parent.mkdir(parents = True, exist_ok = True)
+        with open(target_path, 'w', encoding = 'utf8') as file:
+            file.write(markdown_log)
+
+        target_path = OUTPUT_PATH / 'test_mock_loop_detailed.txt'
+        target_path.parent.mkdir(parents = True, exist_ok = True)
+        with open(target_path, 'w', encoding = 'utf8') as file:
+            file.write(json.dumps(detailed_log, indent = 2))
+    
+    try:
+        asyncio.run(test_body())
+    except Exception:
+        raise
 
 if __name__ == '__main__':
     pass

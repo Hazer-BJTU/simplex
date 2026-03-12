@@ -1,8 +1,10 @@
 import simplex.loop.base
 
-from simplex.loop.base import AgentLoop
+from simplex.loop.base import AgentLoop, LoopAction, LogExceptionHandler
 
 
 __all__ = [
-    "AgentLoop"
+    "AgentLoop",
+    "LoopAction",
+    "LogExceptionHandler"
 ]

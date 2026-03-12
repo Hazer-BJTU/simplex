@@ -2,7 +2,7 @@ import os
 import uuid
 import asyncio
 
-from typing import Optional, List, Dict, Callable, TYPE_CHECKING
+from typing import List
 
 import simplex.basics
 import simplex.tools.base
@@ -21,12 +21,6 @@ from simplex.tools.base import (
     load_tool_definitions
 )
 
-if TYPE_CHECKING:
-    import simplex.loop
-
-    from simplex.loop import AgentLoop
-
-
 class MockCalculator(ToolCollection):
     SCHEMA_FILE: str = 'schema_mock_calculator'
     CALCULATOR: str = 'calculator'
@@ -41,7 +35,7 @@ class MockCalculator(ToolCollection):
         self.name = rename
 
         self.tool_definition = load_tool_definitions(self.SCHEMA_FILE)
-        self.schema = load_schema(self.SCHEMA_FILE, self.CALCULATOR)
+        self.schema = load_schema(self.SCHEMA_FILE, self.CALCULATOR, self.name)
 
     async def build(self) -> None:
         pass
@@ -60,9 +54,6 @@ class MockCalculator(ToolCollection):
     
     def tools_descriptions(self) -> str:
         return self.tool_definition
-    
-    def on_init_output(self, model_input: ModelInput, agent: "AgentLoop") -> None:
-        pass
 
     async def _tool_calculator(self, operation: str, operand1: float, operand2: float, **kwargs) -> str:
         if operation == 'add' or operation == '+':

@@ -1,4 +1,4 @@
-#include "languages/plainintegrate.h"
+#include "languages/plaintext.h"
 
 namespace simplex {
 

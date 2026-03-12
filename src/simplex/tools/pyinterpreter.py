@@ -1,8 +1,9 @@
 import os
+import re
 import uuid
 import asyncio
 
-from typing import Optional, List, Dict, Callable, TYPE_CHECKING
+from typing import Optional, List, Callable
 
 import simplex.basics
 import simplex.tools.base
@@ -19,12 +20,6 @@ from simplex.tools.base import (
     load_schema,
     load_tool_definitions
 )
-
-if TYPE_CHECKING:
-    import simplex.loop
-
-    from simplex.loop import AgentLoop
-
 
 class PythonInterpreter(ToolCollection):
     SCHEMA_FILE: str = 'schema_pyinterpreter'
@@ -86,9 +81,6 @@ class PythonInterpreter(ToolCollection):
     def tools_descriptions(self) -> str:
         return self.tool_definitions
     
-    def on_init_output(self, model_input: ModelInput, agent: "AgentLoop") -> None:
-        pass
-    
     async def _execute_locally(self, script: str, **kwargs) -> str:
         process = await asyncio.create_subprocess_exec(
             *self.exec_command(script), 
@@ -126,6 +118,10 @@ class PythonInterpreter(ToolCollection):
     async def _tool_python_interpreter(self, script: str, **kwargs) -> str:
         if not self.initialized:
             raise UnbuiltError(self.__class__.__name__)
+        
+        script = script.strip()
+        if script.startswith('```python') and script.endswith('```'):
+            script = script[9:-3].strip()
 
         if self.use_container and self.container_manager is not None:
             return await self._execute_container(script, **kwargs)
