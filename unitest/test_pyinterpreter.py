@@ -21,7 +21,9 @@ from simplex.loop import AgentLoop, LogExceptionHandler
 
 
 PROBLEM_STATEMENT: str = """Please solve the following promblem.
+
 #### Problem Statement
+
 A small retail store tracks the daily sales of 5 different products over a week (7 days). The sales data (in units sold) is given as follows:
 
 | Product/Day | Monday | Tuesday | Wednesday | Thursday | Friday | Saturday | Sunday |
@@ -39,6 +41,7 @@ Using Python and NumPy, solve the following tasks:
 4. Find the **maximum number of units sold** for any product on a single day, and identify which product (A/B/C/D/E) and day (Monday-Sunday) it corresponds to.
 
 #### Requirements
+
 - Write a complete Python script using NumPy to solve all tasks.
 - Print all results clearly (label each output).
 - The final results must be verifiable with manual calculation.
