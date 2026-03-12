@@ -299,7 +299,7 @@ class AgentLoop:
     def __init__(
         self,
         model: ConversationModel,
-        exception_handler: ExceptionHandler = LogExceptionHandler(),
+        exception_handler: ExceptionHandler,
         *args: ToolCollection | ContextPlugin
     ) -> None:
         """
@@ -532,14 +532,14 @@ class AgentLoop:
             Exception: For fatal errors during execution
         """
          
-        def _capture() -> Dict:
+        def _capture(deep_copy = False) -> Dict:
             """
             Capture current loop state for lifecycle hook arguments
             
             Returns:
                 Dictionary containing current loop state variables
             """
-            return {
+            captured_states = {
                 'iter': self.__iter,  # read only
                 'system_prompt': self.__system_prompt,
                 'user_prompt': self.__user_prompt,
@@ -548,6 +548,7 @@ class AgentLoop:
                 'tool_returns': self.__tool_returns,
                 'exit_flag': self.__exit_flag
             }
+            return copy.deepcopy(captured_states) if deep_copy else captured_states
         
         async def tool_not_exists(original_call: ToolCall):
             """
@@ -589,7 +590,7 @@ class AgentLoop:
         self.__model_input = ModelInput(messages = history, tools = self.__tool_schemas)
 
         # Execute pre-loop lifecycle hooks (async first to avoid state modification)
-        await self._call_async('start_loop_async', **_capture())
+        await self._call_async('start_loop_async', **_capture(deep_copy = True))
         self._call_sequential('start_loop', **_capture())
 
         # Main iteration loop
@@ -597,7 +598,7 @@ class AgentLoop:
             self.__iter = curr_iter
             
             # Pre-response lifecycle hooks
-            await self._call_async('before_response_async', **_capture())
+            await self._call_async('before_response_async', **_capture(deep_copy = True))
             self._call_sequential('before_response', **_capture())
             
             # Model generation with retry logic
@@ -618,7 +619,7 @@ class AgentLoop:
                 break
             
             # Post-response lifecycle hooks
-            await self._call_async('after_response_async', **_capture())
+            await self._call_async('after_response_async', **_capture(deep_copy = True))
             self._call_sequential('after_response', **_capture())
             
             # Process tool calls if present in response
@@ -657,7 +658,7 @@ class AgentLoop:
                 self.__exception_handler(tool_return_with_exceptions)
 
                 # Post-tool-execution lifecycle hooks
-                await self._call_async('after_tool_call_async', **_capture())
+                await self._call_async('after_tool_call_async', **_capture(deep_copy = True))
                 self._call_sequential('after_tool_call', **_capture())
 
                 # Update model input for next iteration
@@ -665,12 +666,12 @@ class AgentLoop:
 
             elif self.__model_response.response is not None and len(self.__model_response.response) > 0:
                 # Post-final-response lifecycle hooks
-                await self._call_async('after_final_response_async', **_capture())
+                await self._call_async('after_final_response_async', **_capture(deep_copy = True))
                 self._call_sequential('after_final_response', **_capture())
                 break # Terminate loop (final answer generated)
             
             # End-of-iteration lifecycle hooks
-            await self._call_async('on_loop_end_async', **_capture())
+            await self._call_async('on_loop_end_async', **_capture(deep_copy = True))
             self._call_sequential('on_loop_end', **_capture())
 
             # Check for early exit flag
