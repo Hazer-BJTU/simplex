@@ -49,6 +49,10 @@ class BaseModel(ABC):
     @property
     def key(self) -> str:
         return self.instance_id
+    
+    @abstractmethod
+    def clone(self) -> "BaseModel":
+        pass
         
     @abstractmethod
     async def build(self) -> None:
@@ -85,6 +89,9 @@ class EmbeddingModel(BaseModel):
             disable_openai_backend
         )
 
+    def clone(self) -> "EmbeddingModel":
+        return None # type: ignore
+
     async def build(self) -> None:
         return
     
@@ -119,6 +126,9 @@ class ConversationModel(BaseModel):
             instance_id,
             disable_openai_backend
         )
+
+    def clone(self) -> "ConversationModel":
+        return None # type: ignore
 
     async def build(self) -> None:
         return
