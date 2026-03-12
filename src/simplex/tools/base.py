@@ -1,4 +1,5 @@
 import os
+import copy
 import uuid
 import yaml
 import pathlib
@@ -7,7 +8,7 @@ import asyncio
 
 from pathlib import Path
 from abc import ABC, abstractmethod
-from typing import Dict, List, Tuple, Optional, TYPE_CHECKING
+from typing import Dict, List, Any, Optional
 
 import simplex.basics
 
@@ -20,27 +21,17 @@ from simplex.basics import (
     ImplementationError
 )
 
-if TYPE_CHECKING:
-    import simplex.loop
-
-    from simplex.loop import AgentLoop
-
-
 MODULE_PATH: Path = Path(__file__).resolve().parent
 SCHEMA_DIR: Path = MODULE_PATH / 'schema'
 
 class ToolCollection(ABC):
-    def __init__(
-        self,
-        instance_id: str,
-        name_mapping: Dict
-    ) -> None:
-        self.instance_id = instance_id
-        self.name_mapping: Dict = name_mapping
+    def __init__(self, instance_id: str, name_mapping: Dict) -> None:
+        self.__instance_id = instance_id
+        self.__name_mapping: Dict = name_mapping
 
     @property
     def key(self) -> str:
-        return self.instance_id
+        return self.__instance_id
 
     async def __call__(self, tool_call: ToolCall) -> ToolReturn:
         return await self.dispatch(tool_call)
@@ -52,17 +43,56 @@ class ToolCollection(ABC):
     async def __aexit__(self, exc_type, exc, tb):
         await self.release()
         return False
-
-    @abstractmethod
+    
     async def build(self) -> None:
         pass
 
-    @abstractmethod
     async def release(self) -> None:
         pass
 
-    @abstractmethod
     async def reset(self) -> None:
+        pass
+
+    def clone(self) -> "ToolCollection":
+        return copy.deepcopy(self)
+    
+    def process_prompt(self, *args, **kwargs) -> Any:
+        pass
+
+    def start_loop(self, *args, **kwargs) -> Any:
+        pass
+
+    async def start_loop_async(self, *args, **kwargs) -> Any:
+        pass
+
+    def before_response(self, *args, **kwargs) -> Any:
+        pass
+
+    async def before_response_async(self, *args, **kwargs) -> Any:
+        pass
+
+    def after_response(self, *args, **kwargs) -> Any:
+        pass
+
+    async def after_response_async(self, *args, **kwargs) -> Any:
+        pass
+
+    def after_tool_call(self, *args, **kwargs) -> Any:
+        pass
+
+    async def after_tool_call_async(self, *args, **kwargs) -> Any:
+        pass
+
+    def after_final_response(self, *args, **kwargs) -> Any:
+        pass
+
+    async def after_final_response_async(self, *args, **kwargs) -> Any:
+        pass
+
+    def on_loop_end(self, *args, **kwargs) -> Any:
+        pass
+
+    async def on_loop_end_async(self, *args, **kwargs) -> Any:
         pass
 
     @abstractmethod
@@ -76,22 +106,18 @@ class ToolCollection(ABC):
     @abstractmethod
     def tools_descriptions(self) -> str:
         pass
-
-    @abstractmethod
-    def on_init_output(self, model_input: ModelInput, agent: "AgentLoop") -> None:
-        pass 
     
     async def dispatch(self, tool_call: ToolCall) -> ToolReturn:
         function_name: str = tool_call.name
         arguments: Dict = tool_call.arguments
 
         try:
-            member_name: str = self.name_mapping[function_name]
+            member_name: str = self.__name_mapping[function_name]
         except KeyError:
             raise ParameterError(
                 'dispatch',
                 'tool_call',
-                f'tool_call.name should be one of {str(self.name_mapping)}',
+                f'tool_call.name should be one of {str(self.__name_mapping)}',
                 type_hint='ToolCall',
                 class_name=self.__class__.__name__
             )

@@ -3,7 +3,7 @@ import re
 import uuid
 import asyncio
 
-from typing import Optional, List, Dict, Callable, TYPE_CHECKING
+from typing import Optional, List, Callable
 
 import simplex.basics
 import simplex.tools.base
@@ -20,12 +20,6 @@ from simplex.tools.base import (
     load_schema,
     load_tool_definitions
 )
-
-if TYPE_CHECKING:
-    import simplex.loop
-
-    from simplex.loop import AgentLoop
-
 
 class PythonInterpreter(ToolCollection):
     SCHEMA_FILE: str = 'schema_pyinterpreter'
@@ -86,9 +80,6 @@ class PythonInterpreter(ToolCollection):
     
     def tools_descriptions(self) -> str:
         return self.tool_definitions
-    
-    def on_init_output(self, model_input: ModelInput, agent: "AgentLoop") -> None:
-        pass
     
     async def _execute_locally(self, script: str, **kwargs) -> str:
         process = await asyncio.create_subprocess_exec(
