@@ -7,7 +7,7 @@ import asyncio
 
 from datetime import datetime
 from abc import ABC, abstractmethod
-from typing import Coroutine, List, Dict, Optional, Any
+from typing import Literal, Coroutine, List, Dict, Optional, Any
 
 import simplex.basics
 import simplex.context
@@ -66,10 +66,13 @@ class ExceptionHandler(ABC):
         for arg in args:
             if isinstance(arg, Exception):
                 self.handle_exception(arg)
-            elif isinstance(arg, List):
+            elif isinstance(arg, list):
                 for item in arg:
                     if isinstance(item, Exception):
                         self.handle_exception(item)
+
+    def clone(self) -> "ExceptionHandler":
+        return copy.deepcopy(self)
 
 class LogExceptionHandler(ExceptionHandler):
     def __init__(self, instance_id = uuid.uuid4().hex) -> None:
@@ -245,103 +248,49 @@ def call_functions(
     exception_handler(result_list)
     return result_list
 
-'''
-class AgentLoopBase(ABC):
-    def __init__(self) -> None:
-        super().__init__()
+LoopAction = Literal[
+    'build',
+    'release',
+    'reset',
+    'clone',
+    'process_prompt',
+    'start_loop',
+    'start_loop_async',
+    'before_response',
+    'before_response_async',
+    'after_response',
+    'after_response_async',
+    'after_tool_call',
+    'after_tool_call_async',
+    'after_final_response',
+    'after_final_response_async',
+    'on_loop_end',
+    'on_loop_end_async'
+]
 
-    @abstractmethod
-    def __getitem__(self, instance_key: str) -> ToolCollection | ContextPlugin:
-        pass
-
-    @abstractmethod
-    async def build(self) -> None:
-        pass
-
-    @abstractmethod
-    async def release(self) -> None:
-        pass
-
-    @abstractmethod
-    async def reset(self) -> None:
-        pass
-
-    @abstractmethod
-    def clone(self) -> "AgentLoopBase":
-        pass
-
-    @abstractmethod
-    async def complete(self, *args, **kwargs) -> Optional[ModelResponse]:
-        pass
-
-    async def __aenter__(self):
-        await self.build()
-        return self
-    
-    async def __exit__(self, exc_type, exc, tb):
-        await self.release()
-        return False
-'''
-        
 class AgentLoop:
-    """
-    Core loop controller for agent execution with state management.
-    
-    This class manages the full lifecycle of an agent, including initialization,
-    state transitions (build/release/reset), prompt processing, model interaction,
-    tool execution, and exception handling. It follows an async context manager
-    pattern for resource management.
-
-    Class Attributes:
-        STATE_BUILD: State for initializing resources (tools/contexts)
-        STATE_RELEASE: State for cleaning up resources
-        STATE_RESET: State for resetting agent state (e.g., iteration counter)
-        STATE_ON_START_PROCEDURE: State before prompt initialization
-        STATE_ON_PROCESS_PROMPT: State for prompt template processing
-        STATE_ON_PROMPT_READY: State when model input is fully prepared
-        STATE_ON_MODEL_RESPONSE: State after receiving model response
-        STATE_ON_TOOL_RETURN: State after tool execution completes
-        STATE_ON_FINAL_ANSWER: State when final answer is generated
-    """
-
-    STATE_BUILD: str = 'build'       # async, all instances, no parameters
-    STATE_RELEASE: str = 'release'   # async, all instances, no parameters
-    STATE_RESET: str = 'reset'       # async, all instances, no parameters
-    STATE_ON_START_PROCEDURE: str = 'on_start_procedure' # sync, all instances,  params: agent: AgentLoop
-    STATE_ON_PROCESS_PROMPT: str = 'on_process_prompt'   # sync, all instances,  params: system: PromptTemplate, user: PromptTemplate, agent: AgentLoop
-    STATE_ON_PROMPT_READY: str = 'on_prompt_ready'       # sync, all instances,  params: model_input: ModelInput, agent: AgentLoop
-    STATE_ON_MODEL_RESPONSE: str = 'on_model_response'   # async, contexts only, params: model_input: ModelInput, model_response: ModelResponse, agent: AgentLoop
-    STATE_ON_TOOL_RETURN: str = 'on_tool_return'         # async, contexts only, params: tool_return: List[ToolReturn], agent: AgentLoop
-    STATE_ON_FINAL_ANSWER: str = 'on_final_answer'       # async, contexts only, params: model_response: ModelResponse, agent: AgentLoop
-
     def __init__(
         self,
         model: ConversationModel,
         exception_handler: ExceptionHandler = LogExceptionHandler(),
         *args: ToolCollection | ContextPlugin
     ) -> None:
-        """
-        Initialize the AgentLoop with model and plugin/tool instances.
-
-        Args:
-            model: Conversation model for generating responses
-            exception_handler: Handler for processing exceptions (defaults to LogExceptionHandler)
-            *args: Variable list of ToolCollection/ContextPlugin instances
-
-        Raises:
-            EntityInitializationError: If initialization fails (e.g., duplicate keys/names)
-            ConflictError: If duplicate instance keys or tool names are detected
-        """
-
         self.__model = model
         self.__exception_handler = exception_handler
 
-        self.__iter: int = 0
         self.__tools: List[ToolCollection] = []
         self.__contexts: List[ContextPlugin] = []
         self.__instances: Dict[str, ToolCollection | ContextPlugin] = {}
         self.__tool_mapping: Dict[str, ToolCollection] = {}
         self.__tool_schemas: List[ToolSchema] = []
+
+        self.__iter: int = 0
+        self.__system_prompt: PromptTemplate = PromptTemplate()
+        self.__user_prompt: PromptTemplate = PromptTemplate()
+        self.__model_input: ModelInput = ModelInput()
+        self.__model_response: ModelResponse = ModelResponse()
+        self.__tool_returns: List[ToolReturn] = []
+        self.__exit_flag: List[bool] = [False]
 
         try:
             for instance in args:
@@ -355,253 +304,213 @@ class AgentLoop:
                     self.__contexts.append(instance)
 
             for tool in self.__tools:
-                self.__tool_schemas.extend(tool.get_tools())
-                for name in tool.get_names():
-                    if name in self.__tool_mapping:
-                        raise ConflictError(f"duplicated tool name \'{name}\' from collection: {repr(tool)}")
-                    self.__tool_mapping[name] = tool
+                schemas = tool.get_tools()
+                for schema in schemas:
+                    if schema.name in self.__tool_mapping:
+                        raise ConflictError(f"duplicated tool name \'{schema.name}\' from collection: {repr(tool)}")
+                    self.__tool_mapping[schema.name] = tool
+                self.__tool_schemas.extend(schemas)
         except Exception as e:
             raise EntityInitializationError(self.__class__.__name__, e)
 
     def __getitem__(self, instance_key: str) -> ToolCollection | ContextPlugin:
-        """"
-        Get a registered instance by key (tools/contexts).
-
-        Args:
-            instance_key: Unique key of the instance to retrieve
-
-        Returns:
-            Registered ToolCollection or ContextPlugin instance
-
-        Raises:
-            KeyError: If the instance key does not exist
-        """
         return self.__instances[instance_key]
-    
-    @property
-    def iter(self) -> int:
-        # Current iteration count of the agent loop (read-only).
-        return self.__iter
 
     @property
-    def instances(self) -> Dict[str, ToolCollection | ContextPlugin]:
-        # Dictionary of all registered instances (key -> instance).
-        return self.__instances
+    def _instance_list(self) -> List[ToolCollection | ContextPlugin]:
+        return list(self.__instances.values())
     
-    @property
-    def instance_list(self) -> List[ToolCollection | ContextPlugin]:
-        # Ordered list of instances (tools first, then contexts).
-        return self.__tools + self.__contexts
+    def _call_sequential(self, name: LoopAction, *args, **kwargs) -> List[Any]:
+        results: List[Any] = []
+        for instance in self._instance_list:
+            if not hasattr(instance, name):
+                results.append(Notice(f"{repr(instance)} doesn't have attribute: {name}"))
+                continue
+
+            target = getattr(instance, name)
+            
+            if not callable(target):
+                results.append(Notice(f"{repr(instance)} doesn't have a method named: {name}"))
+                continue
+
+            try:
+                result = target(*args, **kwargs)
+            except Exception as e:
+                result = e
+            results.append(result)
+
+        self.__exception_handler(results)
+        return results
+    
+    async def _call_async(self, name: LoopAction, *args, **kwargs) -> List[Any]:
+        async def _return_exception(exception: Exception) -> Exception:
+            return exception
+        
+        tasks: List[Coroutine[Any, Any, Any]] = []
+        for instance in self._instance_list:
+            if not hasattr(instance, name):
+                tasks.append(_return_exception(Notice(f"{repr(instance)} doesn't have attribute: {name}")))
+                continue
+
+            target = getattr(instance, name)
+
+            if not callable(target) or not inspect.iscoroutinefunction(target):
+                tasks.append(_return_exception(Notice(f"{repr(instance)} doesn't have a coroutine function named: {name}")))
+                continue
+
+            tasks.append(target(*args, **kwargs))
+
+        results: List[Any] = await asyncio.gather(*tasks, return_exceptions = True)
+        self.__exception_handler(results)
+        return results
     
     async def build(self) -> None:
-        """
-        Initialize all registered instances (tools/contexts) asynchronously.
-        
-        Calls the 'build' method on all instances via coroutine execution,
-        with exception handling enabled.
-        """
-        await call_coroutine_functions(self.instance_list, self.STATE_BUILD, {}, self.__exception_handler)
+        await self._call_async('build')
 
     async def release(self) -> None:
-        """
-        Clean up all registered instances (tools/contexts) asynchronously.
-        
-        Calls the 'release' method on all instances via coroutine execution,
-        with exception handling enabled.
-        """
-        await call_coroutine_functions(self.instance_list, self.STATE_RELEASE, {}, self.__exception_handler)
+        await self._call_async('release')
 
     async def reset(self) -> None:
-        """
-        Reset agent loop state and reinitialize instances.
-        
-        Resets the iteration counter to 0 and calls the 'reset' method on
-        all instances asynchronously.
-        """
         self.__iter = 0
-        await call_coroutine_functions(self.instance_list, self.STATE_RESET, {}, self.__exception_handler)
+        self.__system_prompt = PromptTemplate()
+        self.__user_prompt = PromptTemplate()
+        self.__model_input = ModelInput()
+        self.__model_response = ModelResponse()
+        self.__tool_returns = []
+        self.__exit_flag = [False]
+        await self._call_async('reset')
 
     def clone(self) -> "AgentLoop":
-        """
-        Create a deep copy of the AgentLoop instance.
-        
-        Clones the model, exception handler, and all registered instances,
-        preserving the same configuration but with independent state.
-
-        Returns:
-            New AgentLoop instance with cloned dependencies
-        """
-        new_model = self.__model.clone()
-        new_handler = self.__exception_handler.clone()
-        new_instances = [instance.clone() for instance in self.instance_list]
-        return AgentLoop(new_model, new_handler, *new_instances)
+        return AgentLoop(
+            self.__model.clone(),
+            self.__exception_handler.clone(),
+            *self._call_sequential('clone')
+        )
     
     async def complete(
         self,
-        system: Optional[str | PromptTemplate] = None,
-        user: Optional[str | PromptTemplate] = None, 
-        history: Optional[List[Dict]] = None,  
+        system: PromptTemplate = PromptTemplate(),
+        user: PromptTemplate = PromptTemplate(),
+        history: Optional[List[Dict]] = None, # standard openai message list
         max_iteration: int = 30,
         timeout: float = 120,
-        max_retry: int = 5
-    ) -> Optional[ModelResponse]:
-        """
-        Execute the full agent loop to generate a final response.
+        max_retry: int = 5,
+        keep_original_system: bool = False
+    ) -> ModelResponse:
+        def _capture() -> Dict:
+            return {
+                'iter': self.__iter, # read only
+                'system_prompt': self.__system_prompt,
+                'user_prompt': self.__user_prompt,
+                'model_input': self.__model_input,
+                'model_response': self.__model_response,
+                'tool_returns': self.__tool_returns,
+                'exit_flag': self.__exit_flag
+            }
         
-        Handles prompt initialization, model interaction, tool execution,
-        and context updates in a loop until a final answer is generated or
-        maximum iterations are reached.
-
-        Args:
-            system: System prompt (template or string)
-            user: User prompt (template or string)
-            history: Predefined conversation history (skips prompt initialization if provided)
-            max_iteration: Maximum number of loop iterations (default: 30)
-            timeout: Timeout (seconds) for model generation per attempt (default: 120)
-            max_retry: Maximum retry attempts for model requests (default: 5)
-
-        Returns:
-            Final model response (None if loop exits without valid response)
-
-        Raises:
-            RuntimeError: If model requests fail after max_retry attempts
-            Exception: Unhandled exceptions during loop execution (propagated)
-        """
-
         async def tool_not_exists(original_call: ToolCall):
-            """
-            Generate error response for non-existent tool calls.
-            
-            Args:
-                original_call: Tool call request for non-existent tool
-            
-            Returns:
-                ToolReturn with error message
-            """
-            return ToolReturn(
-                content = f'[ERROR]: Tool {original_call.name} not exists. Please try again.',
-                original_call = original_call
-            )
-
-        # Step 1: Pre-prompt initialization hook (all instances)
-        call_functions(self.instance_list, self.STATE_ON_START_PROCEDURE, {'agent': self}, self.__exception_handler)
-
-        # Step 2: Initialize model input (with/without history)
-        if history is None:
-            # Generate prompt templates (system/user) (all instances)
-            system_generated, user_generated = PromptTemplate(), PromptTemplate()
-            call_functions(self.instance_list, self.STATE_ON_PROCESS_PROMPT, {'system': system_generated, 'user': user_generated, 'agent': self}, self.__exception_handler)
-            model_input = ModelInput(
-                messages = [
-                    # If prompts are provided through arguments, use them in precedence.
-                    {'role': 'system', 'content': str(system_generated) if system is None else str(system)},
-                    {'role': 'user', 'content': str(user_generated) if user is None else str(user)}
-                ], 
-                tools = self.__tool_schemas
-            )
-        else:
-            # Use existing history (skip prompt generation)
-            model_input = ModelInput(messages = history, tools = self.__tool_schemas)
-
-        model_response: Optional[ModelResponse] = None
-        # Step 3: Post-prompt initialization hook (all instances)
-        call_functions(self.instance_list, self.STATE_ON_PROMPT_READY, {'model_input': model_input, 'agent': self}, self.__exception_handler) # tools + contexts
+            return ToolReturn(content = f'[ERROR]: Tool {original_call.name} not exists. Please try again.', original_call = original_call)
         
-        # Step 4: Main agent loop
-        for current_iter in range(max_iteration):
-            self.__iter = current_iter
+        self.__system_prompt = system
+        self.__user_prompt = user
+        
+        if history is None:
+            history = []
 
-            # Step 4.1: Model generation with retry/timeout
-            model_response = None
-            for attempt in range(max_retry):
+        if len(history) > 0 and history[0].get('role', '') == 'system':
+            if keep_original_system:
+                self.__system_prompt = history[0].get('content', '') + self.__system_prompt
+            history.pop(0) # remove original system prompt
+
+        self._call_sequential('process_prompt', **_capture())
+
+        history.insert(0, {'role': 'system', 'content': str(self.__system_prompt)}) # reinsert processed system prompt
+        history.append({'role': 'user', 'content': str(self.__user_prompt)}) # append new user prompt for multi-turn chat completion
+
+        self.__model_input = ModelInput(messages = history, tools = self.__tool_schemas)
+
+        await self._call_async('start_loop_async', **_capture())  # async always comes first, should not modify captured attributes!
+        self._call_sequential('start_loop', **_capture())         # modify attributes during sequential call
+
+        for curr_iter in range(max_iteration):
+            self.__iter = curr_iter
+
+            await self._call_async('before_response_async', **_capture())
+            self._call_sequential('before_response', **_capture())
+
+            for attempt in range(max_retry + 1):
                 try:
-                    model_response = await asyncio.wait_for(self.__model.generate(model_input = model_input), timeout = timeout)
-                    break
-                except asyncio.TimeoutError as e:
-                    self.__exception_handler(e, Notice(f"model endpoint retry attempt [{attempt + 1}/{max_retry}]"))
-                except RequestError as e:
-                    self.__exception_handler(e, Notice(f"model endpoint retry attempt [{attempt + 1}/{max_retry}]"))
+                    self.__model_response = await asyncio.wait_for(self.__model.generate(model_input = self.__model_input), timeout = timeout)
+                except (asyncio.TimeoutError, RequestError) as e:
+                    self.__exception_handler(e, Notice(f"model endpoint retry attempt [{attempt}/{max_retry}]"))
+                    if attempt == max_retry:
+                        raise RuntimeError(f"failed to receive from model endpoint after {max_retry} attempts")
+                    await asyncio.sleep(0.5)
+                    continue
                 except Exception as e:
-                    self.__exception_handler(e, Notice(f"agent loop quit"))
-                    return None
+                    self.__exception_handler(e, Notice(f"loop quit due to unexpected error"))
+                    raise e # fatal error, quit
+                break
             
-            # assert model_response is not None, f"failed to receive from model endpoint after {max_retry} attempts"
-            if model_response is None:
-                raise RuntimeError(f"failed to receive from model endpoint after {max_retry} attempts")
-            # Step 4.2: Post-model-response hook (contexts only)
-            await call_coroutine_functions(self.__contexts, self.STATE_ON_MODEL_RESPONSE, {'model_input': model_input, 'model_response': model_response, 'agent': self}, self.__exception_handler) # contexts only
+            await self._call_async('after_response_async', **_capture())
+            self._call_sequential('after_response', **_capture())
 
-            # Step 4.3: Handle tool calls (if any)
-            if model_response.tool_call is not None and len(model_response.tool_call) > 0:
+            if self.__model_response.tool_call is not None and len(self.__model_response.tool_call) > 0:
                 tasks: List = [Coroutine[Any, Any, ToolReturn]]
-                for call in model_response.tool_call:
+                for call in self.__model_response.tool_call:
                     if call.name in self.__tool_mapping:
                         tasks.append(self.__tool_mapping[call.name](call))
                     else:
                         tasks.append(tool_not_exists(call))
 
-                # Execute tool calls concurrently (capture exceptions)
-                tool_return = await asyncio.gather(*tasks, return_exceptions = True)
-
-                # Process tool return results (normalize to ToolReturn)
-                pure_tool_return: List[ToolReturn] = []
-                for idx, ret in enumerate(tool_return):
+                tool_return_with_exceptions = await asyncio.gather(*tasks, return_exceptions = True)
+                self.__tool_returns = []
+                for idx, ret in enumerate(tool_return_with_exceptions):
                     if isinstance(ret, TypeError):
                         # May be arguments mismatch
-                        original_call: ToolCall = model_response.tool_call[idx]
+                        original_call: ToolCall = self.__model_response.tool_call[idx]
                         error_message = (
                             f"[ERROR]: Parameter error of tool call '{original_call.name}'. "
                             f"Please double-check the parameter requirements. {str(ret)}"
                         )
-                        pure_tool_return.append(ToolReturn(error_message, original_call))
+                        self.__tool_returns.append(ToolReturn(error_message, original_call))
                     elif isinstance(ret, Exception):
                         # Other exceptions
-                        original_call: ToolCall = model_response.tool_call[idx]
+                        original_call: ToolCall = self.__model_response.tool_call[idx]
                         error_message = (
                             f"[ERROR]: An exception has occurred during tool call '{original_call.name}': {str(ret)}."
                         )
-                        pure_tool_return.append(ToolReturn(error_message, original_call))
+                        self.__tool_returns.append(ToolReturn(error_message, original_call))
                     elif isinstance(ret, ToolReturn):
-                        pure_tool_return.append(ret)
+                        self.__tool_returns.append(ret)
 
                 # Notify exception handler of tool execution results
-                self.__exception_handler(tool_return)
-                # Step 4.4: Post-tool-return hook (contexts only)
-                await call_coroutine_functions(self.__contexts, self.STATE_ON_TOOL_RETURN, {'tool_return': pure_tool_return, 'agent': self}, self.__exception_handler) # contexts only
+                self.__exception_handler(tool_return_with_exceptions)
+
+                await self._call_async('after_tool_call_async', **_capture())
+                self._call_sequential('after_tool_call', **_capture())
+
                 # Update model input for next iteration
-                model_input = self.__model.tool_return_integrate(model_input, model_response, pure_tool_return)
-            
-            elif (model_response.response is not None and 
-                  isinstance(model_response.response, str) and 
-                  len(model_response.response.strip()) > 0):
-                # Step 4.5: Handle final answer (no tool calls)
-                await call_coroutine_functions(self.__contexts, self.STATE_ON_FINAL_ANSWER, {'model_response': model_response, 'agent': self}, self.__exception_handler) # contexts only
+                self.__model_input = self.__model.tool_return_integrate(self.__model_input, self.__model_response, self.__tool_returns)
+
+            elif self.__model_response.response is not None and len(self.__model_response.response) > 0:
+                await self._call_async('after_final_response_async', **_capture())
+                self._call_sequential('after_final_response', **_capture())
                 break # Terminate loop (final answer generated)
-        
-        return model_response
-    
+
+            await self._call_async('on_loop_end_async', **_capture())
+            self._call_sequential('on_loop_end', **_capture())
+
+            if self.__exit_flag[0]:
+                break
+
+        return self.__model_response
+
     async def __aenter__(self):
-        """
-        Async context manager entry: initialize resources (build).
-        
-        Returns:
-            Self (AgentLoop instance)
-        """
         await self.build()
         return self
     
     async def __aexit__(self, exc_type, exc, tb):
-        """
-        Async context manager exit: clean up resources (release).
-        
-        Args:
-            exc_type: Type of exception (if any)
-            exc: Exception instance (if any)
-            tb: Traceback object (if any)
-        
-        Returns:
-            False: Allow exceptions to propagate (standard behavior)
-        """
         await self.release()
         return False
 

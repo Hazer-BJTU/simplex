@@ -5,8 +5,8 @@ from typing import Optional, List, Dict, Any
 
 
 class PromptTemplate:
-    def __init__(self) -> None:
-        self.content: str = ''
+    def __init__(self, content: str = '') -> None:
+        self.content = content
 
     def add_main_title(self, title: str) -> "PromptTemplate":
         self.content += f"# {title.strip()}\n\n"
@@ -49,6 +49,18 @@ class PromptTemplate:
     
     def __repr__(self) -> str:
         return f"PromptTemplate({repr(self.content.strip())})"
+    
+    def __add__(self, other):
+        new_content: str = f"{self.content.strip()}\n\n{str(other)}"
+        return PromptTemplate(new_content)
+
+    def __radd__(self, other):
+        new_content: str = f"{str(other)}\n\n{self.content.strip()}"
+        return PromptTemplate(new_content)
+
+    def __iadd__(self, other):
+        self.content = f"{self.content.strip()}\n\n{str(other)}"
+        return self
 
 if __name__ == '__main__':
     pass
