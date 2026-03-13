@@ -11,11 +11,9 @@ import simplex.basics
 import simplex.tools.base
 
 from simplex.basics import (
-    ModelInput,
     WebsocketClient,
     UnbuiltError,
-    RequestError,
-    EntityInitializationError
+    RequestError
 )
 from simplex.tools.base import (
     ToolCollection,
