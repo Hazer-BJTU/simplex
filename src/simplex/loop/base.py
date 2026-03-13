@@ -7,6 +7,7 @@ import asyncio
 
 from datetime import datetime
 from abc import ABC, abstractmethod
+from dataclasses import dataclass, field
 from typing import Literal, Coroutine, List, Dict, Optional, Any
 
 import simplex.basics
@@ -272,6 +273,30 @@ LoopAction = Literal[
     'on_loop_end_async'           # Run at end of iteration (async)
 ]
 
+@dataclass
+class LoopStateEdit:
+    """
+    Dataclass representing the mutable state of AgentLoop that can be modified by lifecycle hooks
+    
+    This class encapsulates all loop variables that plugins/tools are allowed to modify
+    during synchronous lifecycle hooks. Asynchronous hooks cannot modify the state directly.
+    
+    Attributes:
+        system_prompt: System prompt template for the conversation
+        user_prompt: User prompt template for the conversation
+        model_input: Formatted input for the language model
+        model_response: Raw response from the language model
+        tool_returns: Results from executed tool calls
+        exit_flag: Boolean flag to terminate loop early
+    """
+
+    system_prompt: Optional[PromptTemplate] = None
+    user_prompt: Optional[PromptTemplate] = None
+    model_input: Optional[ModelInput] = None
+    model_response: Optional[ModelResponse] = None
+    tool_returns: Optional[List[ToolReturn]] = None
+    exit_flag: Optional[bool] = None
+
 class AgentLoop:
     """
     Core class managing the lifecycle and execution loop of an AI agent
@@ -381,7 +406,26 @@ class AgentLoop:
         """
         return list(self.__instances.values())
     
-    def _call_sequential(self, name: LoopAction, *args, **kwargs) -> List[Any]:
+    @property
+    def _captured_states(self) -> Dict[str, Any]:
+        """
+        Capture current loop state for lifecycle hook arguments
+        
+        Returns:
+            Dictionary containing current loop state variables
+        """
+        captured_states = {
+            'iter': self.__iter,
+            'system_prompt': self.__system_prompt,
+            'user_prompt': self.__user_prompt,
+            'model_input': self.__model_input,
+            'model_response': self.__model_response,
+            'tool_returns': self.__tool_returns,
+            'exit_flag': self.__exit_flag
+        }
+        return captured_states
+    
+    def _call_sequential(self, name: LoopAction) -> List[Any]:
         """
         Execute synchronous lifecycle hooks across all instances
         
@@ -397,6 +441,8 @@ class AgentLoop:
         Returns:
             List of results/errors from method execution
         """
+
+        captured: Dict[str, Any] = self._captured_states
         results: List[Any] = []
         for instance in self._instance_list:
             if not hasattr(instance, name):
@@ -410,16 +456,30 @@ class AgentLoop:
                 continue
 
             try:
-                result = target(*args, **kwargs)
+                result = target(**copy.deepcopy(captured))
             except Exception as e:
                 result = e
             results.append(result)
 
         # Pass results to exception handler
         self.__exception_handler(results)
+
+        for result in results:
+            if isinstance(result, LoopStateEdit):
+                if result.system_prompt:
+                    self.__system_prompt = result.system_prompt
+                if result.user_prompt:
+                    self.__user_prompt = result.user_prompt
+                if result.model_input:
+                    self.__model_input = result.model_input
+                if result.model_response:
+                    self.__model_response = result.model_response
+                if result.tool_returns:
+                    self.__tool_returns = result.tool_returns
+
         return results
     
-    async def _call_async(self, name: LoopAction, *args, **kwargs) -> List[Any]:
+    async def _call_async(self, name: LoopAction) -> List[Any]:
         """
         Execute asynchronous lifecycle hooks across all instances
         
@@ -439,6 +499,7 @@ class AgentLoop:
             # Helper to return exceptions as async results
             return exception
         
+        captured: Dict[str, Any] = self._captured_states
         tasks: List[Coroutine[Any, Any, Any]] = []
         for instance in self._instance_list:
             if not hasattr(instance, name):
@@ -451,7 +512,7 @@ class AgentLoop:
                 tasks.append(_return_exception(Notice(f"{repr(instance)} doesn't have a coroutine function named: {name}")))
                 continue
 
-            tasks.append(target(*args, **kwargs))
+            tasks.append(target(**copy.deepcopy(captured)))
 
         # Execute all async tasks concurrently (return exceptions instead of raising)
         results: List[Any] = await asyncio.gather(*tasks, return_exceptions = True)
@@ -531,24 +592,6 @@ class AgentLoop:
             RuntimeError: If model generation fails after max_retry attempts
             Exception: For fatal errors during execution
         """
-         
-        def _capture(deep_copy = False) -> Dict:
-            """
-            Capture current loop state for lifecycle hook arguments
-            
-            Returns:
-                Dictionary containing current loop state variables
-            """
-            captured_states = {
-                'iter': self.__iter,  # read only
-                'system_prompt': self.__system_prompt,
-                'user_prompt': self.__user_prompt,
-                'model_input': self.__model_input,
-                'model_response': self.__model_response,
-                'tool_returns': self.__tool_returns,
-                'exit_flag': self.__exit_flag
-            }
-            return copy.deepcopy(captured_states) if deep_copy else captured_states
         
         async def tool_not_exists(original_call: ToolCall):
             """
@@ -579,7 +622,7 @@ class AgentLoop:
             history.pop(0)
 
         # Preprocess prompts through lifecycle hook
-        self._call_sequential('process_prompt', **_capture())
+        self._call_sequential('process_prompt')
 
         # Rebuild message history with processed prompts
         history.insert(0, {'role': 'system', 'content': str(self.__system_prompt)})
@@ -590,16 +633,16 @@ class AgentLoop:
         self.__model_input = ModelInput(messages = history, tools = self.__tool_schemas)
 
         # Execute pre-loop lifecycle hooks (async first to avoid state modification)
-        await self._call_async('start_loop_async', **_capture(deep_copy = True))
-        self._call_sequential('start_loop', **_capture())
+        await self._call_async('start_loop_async')
+        self._call_sequential('start_loop')
 
         # Main iteration loop
         for curr_iter in range(max_iteration):
             self.__iter = curr_iter
             
             # Pre-response lifecycle hooks
-            await self._call_async('before_response_async', **_capture(deep_copy = True))
-            self._call_sequential('before_response', **_capture())
+            await self._call_async('before_response_async')
+            self._call_sequential('before_response')
             
             # Model generation with retry logic
             for attempt in range(max_retry + 1):
@@ -619,8 +662,8 @@ class AgentLoop:
                 break
             
             # Post-response lifecycle hooks
-            await self._call_async('after_response_async', **_capture(deep_copy = True))
-            self._call_sequential('after_response', **_capture())
+            await self._call_async('after_response_async')
+            self._call_sequential('after_response')
             
             # Process tool calls if present in response
             if self.__model_response.tool_call is not None and len(self.__model_response.tool_call) > 0:
@@ -658,21 +701,21 @@ class AgentLoop:
                 self.__exception_handler(tool_return_with_exceptions)
 
                 # Post-tool-execution lifecycle hooks
-                await self._call_async('after_tool_call_async', **_capture(deep_copy = True))
-                self._call_sequential('after_tool_call', **_capture())
+                await self._call_async('after_tool_call_async')
+                self._call_sequential('after_tool_call')
 
                 # Update model input for next iteration
                 self.__model_input = self.__model.tool_return_integrate(self.__model_input, self.__model_response, self.__tool_returns)
 
             elif self.__model_response.response is not None and len(self.__model_response.response) > 0:
                 # Post-final-response lifecycle hooks
-                await self._call_async('after_final_response_async', **_capture(deep_copy = True))
-                self._call_sequential('after_final_response', **_capture())
+                await self._call_async('after_final_response_async')
+                self._call_sequential('after_final_response')
                 break # Terminate loop (final answer generated)
             
             # End-of-iteration lifecycle hooks
-            await self._call_async('on_loop_end_async', **_capture(deep_copy = True))
-            self._call_sequential('on_loop_end', **_capture())
+            await self._call_async('on_loop_end_async')
+            self._call_sequential('on_loop_end')
 
             # Check for early exit flag
             if self.__exit_flag[0]:

@@ -172,6 +172,16 @@ class ModelInput:
         if self.extras is not None:
             output_dict |= self.extras
         return output_dict
+    
+@dataclass
+class LoopInformation:
+    model_input: ModelInput
+    model_response: ModelResponse
+    tool_return: List[ToolReturn] = field(default_factory = list)
+    extras: Optional[Dict] = None
+
+    def to_dict(self) -> Dict:
+        return asdict(self)
 
 if __name__ == '__main__':
     pass

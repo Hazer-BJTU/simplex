@@ -12,7 +12,8 @@ from simplex.basics.dataclass import (
     ToolReturn,
     ModelResponse,
     ModelInput,
-    ToolSchema
+    ToolSchema,
+    LoopInformation
 )
 from simplex.basics.exception import (
     EntityInitializationError,
@@ -38,6 +39,7 @@ __all__ = [
     "ModelResponse",
     "ModelInput",
     "ToolSchema",
+    "LoopInformation",
     "EntityInitializationError",
     "RequestError",
     "ParameterError",
