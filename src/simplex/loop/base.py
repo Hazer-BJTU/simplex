@@ -7,7 +7,7 @@ import asyncio
 
 from datetime import datetime
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Literal, Coroutine, List, Dict, Optional, Any
 
 import simplex.basics
@@ -360,7 +360,7 @@ class AgentLoop:
         self.__model_input: ModelInput = ModelInput()
         self.__model_response: ModelResponse = ModelResponse()
         self.__tool_returns: List[ToolReturn] = []
-        self.__exit_flag: List[bool] = [False]
+        self.__exit_flag: bool = False
 
         try:
             # Register all provided tool/context instances
@@ -425,7 +425,7 @@ class AgentLoop:
         }
         return captured_states
     
-    def _call_sequential(self, name: LoopAction) -> List[Any]:
+    def _call_sequential(self, name: LoopAction, no_params: bool = False) -> List[Any]:
         """
         Execute synchronous lifecycle hooks across all instances
         
@@ -456,7 +456,10 @@ class AgentLoop:
                 continue
 
             try:
-                result = target(**copy.deepcopy(captured))
+                if no_params:
+                    result = target()
+                else:
+                    result = target(**copy.deepcopy(captured))
             except Exception as e:
                 result = e
             results.append(result)
@@ -476,10 +479,12 @@ class AgentLoop:
                     self.__model_response = result.model_response
                 if result.tool_returns:
                     self.__tool_returns = result.tool_returns
+                if result.exit_flag:
+                    self.__exit_flag = result.exit_flag
 
         return results
     
-    async def _call_async(self, name: LoopAction) -> List[Any]:
+    async def _call_async(self, name: LoopAction, no_params: bool = False) -> List[Any]:
         """
         Execute asynchronous lifecycle hooks across all instances
         
@@ -511,8 +516,11 @@ class AgentLoop:
             if not callable(target) or not inspect.iscoroutinefunction(target):
                 tasks.append(_return_exception(Notice(f"{repr(instance)} doesn't have a coroutine function named: {name}")))
                 continue
-
-            tasks.append(target(**copy.deepcopy(captured)))
+            
+            if no_params:
+                tasks.append(target())
+            else:
+                tasks.append(target(**copy.deepcopy(captured)))
 
         # Execute all async tasks concurrently (return exceptions instead of raising)
         results: List[Any] = await asyncio.gather(*tasks, return_exceptions = True)
@@ -522,11 +530,11 @@ class AgentLoop:
     
     async def build(self) -> None:
         # Trigger async build lifecycle hook for all instances
-        await self._call_async('build')
+        await self._call_async('build', no_params = True)
 
     async def release(self) -> None:
         # Trigger async release lifecycle hook for all instances
-        await self._call_async('release')
+        await self._call_async('release', no_params = True)
 
     async def reset(self) -> None:
         """
@@ -541,8 +549,8 @@ class AgentLoop:
         self.__model_input = ModelInput()
         self.__model_response = ModelResponse()
         self.__tool_returns = []
-        self.__exit_flag = [False]
-        await self._call_async('reset')
+        self.__exit_flag = False
+        await self._call_async('reset', no_params = True)
 
     def clone(self) -> "AgentLoop":
         """
@@ -557,7 +565,7 @@ class AgentLoop:
         return AgentLoop(
             self.__model.clone(),
             self.__exception_handler.clone(),
-            *self._call_sequential('clone')
+            *self._call_sequential('clone', no_params = True)
         )
     
     async def complete(
@@ -718,7 +726,7 @@ class AgentLoop:
             self._call_sequential('on_loop_end')
 
             # Check for early exit flag
-            if self.__exit_flag[0]:
+            if self.__exit_flag:
                 break
         
         # Return final model response

@@ -53,7 +53,7 @@ class MockConversationModel(ConversationModel):
                 else:
                     raise RuntimeError(content = f"{self.__class__.__name__} has run out of expected responses")
             response = copy.deepcopy(self.expected_responses[self.iterator])
-            response.extras = {'translated_input': self.translator(model_input)}
+            # response.extras = {'translated_input': self.translator(model_input)}
             self.iterator += 1
             return response
     

@@ -175,13 +175,22 @@ class ModelInput:
     
 @dataclass
 class LoopInformation:
-    model_input: ModelInput
-    model_response: ModelResponse
-    tool_return: List[ToolReturn] = field(default_factory = list)
+    model_input: Optional[ModelInput] = None
+    model_response: Optional[ModelResponse] = None
+    tool_returns: List[ToolReturn] = field(default_factory = list)
     extras: Optional[Dict] = None
 
     def to_dict(self) -> Dict:
-        return asdict(self)
+        result: Dict = {}
+        if self.model_input:
+            result['model_input'] = asdict(self.model_input)
+        if self.model_response:
+            result['model_response'] = asdict(self.model_response)
+        if self.tool_returns:
+            result['tool_returns'] = [asdict(ret) for ret in self.tool_returns]
+        if self.extras:
+            result['extras'] = self.extras
+        return result
 
 if __name__ == '__main__':
     pass

@@ -42,7 +42,7 @@ def test_mock_loop() -> None:
                 system = PromptTemplate('You are a helpful assistant'),
                 user = PromptTemplate('This is a test.')
             )
-            detailed_log = loop['log'].detailed # type: ignore
+            detailed_log = loop['log'].dictionary # type: ignore
             markdown_log = loop['log'].human_readable # type: ignore
 
         target_path = OUTPUT_PATH / 'test_mock_loop_markdown.md'
