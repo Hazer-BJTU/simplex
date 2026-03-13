@@ -350,7 +350,7 @@ class AgentLoop:
                     self.__contexts.append(instance)
 
             for tool in self.__tools:
-                schemas = tool.get_tools()
+                schemas = tool.get_tool_schemas()
                 for schema in schemas:
                     if schema.name in self.__tool_mapping:
                         raise ConflictError(f"duplicated tool name \'{schema.name}\' from collection: {repr(tool)}")

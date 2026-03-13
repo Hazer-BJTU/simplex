@@ -71,11 +71,8 @@ class PythonInterpreter(ToolCollection):
         
     async def reset(self) -> None:
         pass
-        
-    def get_names(self) -> List[str]:
-        return [self.name]
     
-    def get_tools(self) -> List[ToolSchema]:
+    def get_tool_schemas(self) -> List[ToolSchema]:
         return [self.pyinterpreter_schema]
     
     def tools_descriptions(self) -> str:

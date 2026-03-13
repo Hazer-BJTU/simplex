@@ -110,10 +110,7 @@ class EditTools(ToolCollection):
     async def reset(self) -> None:
         pass
 
-    def get_names(self) -> List[str]:
-        return list(self.names.values())
-
-    def get_tools(self) -> List[ToolSchema]:
+    def get_tool_schemas(self) -> List[ToolSchema]:
         return list(self.schemas.values())
     
     def tools_descriptions(self) -> str:
