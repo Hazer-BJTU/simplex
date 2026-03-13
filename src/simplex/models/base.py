@@ -16,7 +16,6 @@ from simplex.basics import (
     ToolReturn, 
     EntityInitializationError
 )
-from simplex.tools import to_openai_function_calling_schema
 
 
 class BaseModel(ABC):
@@ -30,17 +29,20 @@ class BaseModel(ABC):
         disable_openai_backend: bool = False
     ) -> None:
         super().__init__()
-        self.base_url = base_url
-        self.api_key = api_key
-        self.client_configs = client_configs
-        self.default_generate_configs = default_generate_configs
-        self.instance_id = instance_id
-        self.disable_openai_backend = disable_openai_backend
-        self.translator = OpenaiTranslator()
+        self.__base_url = base_url
+        self.__api_key = api_key
+        self.__client_configs = client_configs
+        self.__default_generate_configs = default_generate_configs
+        self.__instance_id = instance_id
+        self.__disable_openai_backend = disable_openai_backend
 
         try:
-            if not self.disable_openai_backend:
-                self.client = AsyncOpenAI(base_url=self.base_url, api_key=self.api_key)
+            if not self.__disable_openai_backend:
+                self.client = AsyncOpenAI(
+                    base_url = self.__base_url, 
+                    api_key = self.__api_key,
+                    **self.__client_configs
+                )
             else:
                 self.client = None
         except Exception as e:
@@ -48,7 +50,23 @@ class BaseModel(ABC):
         
     @property
     def key(self) -> str:
-        return self.instance_id
+        return self.__instance_id
+    
+    @property
+    def _base_url(self) -> str:
+        return self.__base_url
+    
+    @property
+    def _api_key(self) -> str:
+        return self.__api_key
+    
+    @property
+    def _client_configs(self) -> Dict:
+        return self.__client_configs
+    
+    @property
+    def _default_generate_configs(self) -> Dict:
+        return self.__default_generate_configs
     
     @abstractmethod
     def clone(self) -> "BaseModel":
@@ -150,23 +168,50 @@ class ConversationModel(BaseModel):
     def tool_return_integrate(self, input: ModelInput, response: ModelResponse, tool_return: List[ToolReturn], **kwargs) -> ModelInput:
         pass
 
-class Translator(ABC):
-    @abstractmethod
-    def __call__(self, input: ModelInput) -> Any:
-        pass
+def openai_compatiable_translate(model_input: ModelInput) -> Dict:
+    def to_openai_function_calling_schema(tool_schema: ToolSchema) -> Dict:
+        properties: Dict = {
+            param.field: {
+                'type': param.type,
+                'description': param.description
+            } for param in tool_schema.params
+        }
+        required: List = [
+            param.field
+            for param in tool_schema.params
+            if param.required
+        ]
+ 
+        function_body: Dict = {
+            'name': tool_schema.name,
+            'description': tool_schema.description,
+            'parameters': {
+                'type': 'object',
+                'properties': properties,
+                'required': required
+            }
+        }
+ 
+        return {
+            'type': 'function',
+            'function': function_body
+        }
 
-class OpenaiTranslator(Translator):
-    def __call__(self, input: ModelInput) -> Dict:
-        input_dict: Dict = input.to_dict()
-        tools: List = input_dict.get('tools', [])
-        translated_tools: List = []
-        for tool in tools:
-            if isinstance(tool, ToolSchema):
-                translated_tools.append(to_openai_function_calling_schema(tool))
-            else:
-                translated_tools.append(tool)
-        input_dict['tools'] = translated_tools
-        return input_dict
+    output_dict: Dict = {}
+    if model_input.model is not None:
+        output_dict['model'] = model_input.model
+    if model_input.messages is not None:
+        output_dict['messages'] = model_input.messages
+    if model_input.tools is not None:
+        output_dict['tools'] = [
+            to_openai_function_calling_schema(schema)
+            for schema in model_input.tools
+        ]
+    if model_input.input is not None:
+        output_dict['input'] = model_input.input
+    if model_input.extras is not None:
+        output_dict |= model_input.extras
+    return output_dict
 
 if __name__ == '__main__':
     pass

@@ -15,7 +15,11 @@ from simplex.basics import (
     RequestError, 
     ParameterError
 )
-from simplex.models.base import EmbeddingModel, ConversationModel
+from simplex.models.base import (
+    EmbeddingModel, 
+    ConversationModel,
+    openai_compatiable_translate
+)
 
 
 class QwenConversationModel(ConversationModel):
@@ -26,7 +30,7 @@ class QwenConversationModel(ConversationModel):
         client_configs: Dict = {}, 
         default_generate_configs: Dict = {}, 
         instance_id: str = uuid.uuid4().hex,
-        qwen_model: str = 'qwen-plus',
+        qwen_model: str = 'qwen-coder-plus',
         enable_thinking: bool = True,
         thinking_budget: int = 1024
     ) -> None:
@@ -41,26 +45,29 @@ class QwenConversationModel(ConversationModel):
         self.qwen_model = qwen_model
         self.enable_thinking = enable_thinking
         self.thinking_budget = thinking_budget
-        self.default_generate_configs['model'] = self.qwen_model
+
         self.completion_extras = {
             'stream': True, 
             'stream_options': {
                 'include_usage': True
             }
         }
+
         if self.enable_thinking:
             self.completion_extras['extra_body'] = {
                 'enable_thinking': self.enable_thinking,
                 'thinking_budget': self.thinking_budget
             }
 
+        self._default_generate_configs['model'] = self.qwen_model
+
     def clone(self) -> "QwenConversationModel":
         return QwenConversationModel(
-            self.base_url,
-            self.api_key,
-            self.client_configs,
-            self.default_generate_configs,
-            self.instance_id,
+            self._base_url,
+            self._api_key,
+            self._client_configs,
+            self._default_generate_configs,
+            uuid.uuid4().hex,
             self.qwen_model,
             self.enable_thinking,
             self.thinking_budget
@@ -69,7 +76,11 @@ class QwenConversationModel(ConversationModel):
     async def generate(self, model_input: ModelInput) -> ModelResponse:
         try:
             assert self.client is not None
-            completion = await self.client.chat.completions.create(**(self.default_generate_configs | self.translator(model_input) | self.completion_extras))
+            completion = await self.client.chat.completions.create(**(
+                self._default_generate_configs | 
+                openai_compatiable_translate(model_input) |
+                self.completion_extras
+            ))
         except AssertionError:
             raise
         except Exception as e:
@@ -177,7 +188,6 @@ class QwenConversationModel(ConversationModel):
             })
 
         return new_input
-
 
 if __name__ == '__main__':
     pass

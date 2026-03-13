@@ -472,34 +472,34 @@ def load_schema(file_name: str, tool_name: str, rename: Optional[str] = None) ->
     except Exception:
         raise
 
-def to_openai_function_calling_schema(tool_schema: ToolSchema) -> Dict:
-    properties: Dict = {
-        param.field: {
-            'type': param.type,
-            'description': param.description
-        }
-        for param in tool_schema.params
-    }
-    required: List = [
-        param.field
-        for param in tool_schema.params
-        if param.required
-    ]
-
-    function_body: Dict = {
-        'name': tool_schema.name,
-        'description': tool_schema.description,
-        'parameters': {
-            'type': 'object',
-            'properties': properties,
-            'required': required
-        }
-    }
-
-    return {
-        'type': 'function',
-        'function': function_body
-    }
+# def to_openai_function_calling_schema(tool_schema: ToolSchema) -> Dict:
+#     properties: Dict = {
+#         param.field: {
+#             'type': param.type,
+#             'description': param.description
+#         }
+#         for param in tool_schema.params
+#     }
+#     required: List = [
+#         param.field
+#         for param in tool_schema.params
+#         if param.required
+#     ]
+#
+#     function_body: Dict = {
+#         'name': tool_schema.name,
+#         'description': tool_schema.description,
+#         'parameters': {
+#             'type': 'object',
+#             'properties': properties,
+#             'required': required
+#         }
+#     }
+#
+#     return {
+#         'type': 'function',
+#         'function': function_body
+#     }
 
 if __name__ == '__main__':
     pass
