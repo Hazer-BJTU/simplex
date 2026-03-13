@@ -1,10 +1,7 @@
 import os
 import copy
-import uuid
 import yaml
-import pathlib
 import inspect
-import asyncio
 
 from pathlib import Path
 from abc import ABC, abstractmethod
@@ -13,7 +10,6 @@ from typing import Dict, List, Any, Optional
 import simplex.basics
 
 from simplex.basics import (
-    ModelInput,
     ToolCall,
     ToolReturn,
     ToolSchema,
