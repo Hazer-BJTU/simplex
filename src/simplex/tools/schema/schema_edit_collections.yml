@@ -29,7 +29,7 @@ view_file_content:
         Indicates the target file path. Please use the relative path in the workspace!
       required: True
 
-    - feild: line_start
+    - field: line_start
       type: int
       description: >-
         Indicates the starting line number, where line numbering begins at 1 in a file.
