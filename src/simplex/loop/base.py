@@ -115,34 +115,52 @@ class LogExceptionHandler(ExceptionHandler):
         return f"LogExceptionHandler(key={repr(self.key)}, content={repr(self.content)})"
 
 # ------------------------------ #
-# UserLoop definitions           #
+# AgentLoop definitions          #
 # ------------------------------ #
 class AgentLoopAdapter(ABC):
     def __init__(self) -> None:
         super().__init__()
         return
-
-class InputInterface(ABC):
-    def __init__(self) -> None:
-        super().__init__()
-        return
     
-class OutputInterface(ABC):
-    def __init__(self) -> None:
-        super().__init__()
-        return
+    @abstractmethod
+    async def build(self) -> None:
+        pass
 
-class UserLoop:
-    def __init__(
+    @abstractmethod
+    async def release(self) -> None:
+        pass
+
+    @abstractmethod
+    async def reset(self) -> None:
+        pass
+
+    @abstractmethod
+    def clone(self) -> "AgentLoopAdapter":
+        pass
+
+    @abstractmethod
+    async def complete(
         self,
-        agent: AgentLoopAdapter,
-        input: InputInterface,
-        output: OutputInterface
-    ) -> None:
-        self.__agent = agent
-        self.__input = input
-        self.__output = output
-        
+        system: Optional[PromptTemplate] = None,
+        user: Optional[PromptTemplate] = None,
+        history: Optional[List[Dict]] = None, # standard openai message list
+        **kwargs
+    ) -> ModelInput:
+        pass
+
+    async def __aenter__(self):
+        await self.build()
+        return self
+    
+    async def __aexit__(self, exc_type, exc, tb):
+        await self.release()
+        return False
+
+# ------------------------------ #
+# UserLoop definitions           #
+# ------------------------------ #
+class UserLoop:
+    pass
 
 # ------------------------------ #
 # AgentLoop definitions          #
@@ -192,7 +210,7 @@ class AgentLoopStateEdit:
     tool_returns: Optional[List[ToolReturn]] = None
     exit_flag: Optional[bool] = None
 
-class AgentLoop:
+class AgentLoop(AgentLoopAdapter):
     """
     Core class managing the lifecycle and execution loop of an AI agent
     
@@ -234,6 +252,7 @@ class AgentLoop:
             EntityInitializationError: If initialization fails (duplicate keys/tools)
             ConflictError: If duplicate instance keys or tool names are detected
         """
+        super().__init__()
 
         # Core dependencies
         self.__model = model
@@ -339,7 +358,7 @@ class AgentLoop:
         }
         return captured_states
     
-    def _call_sequential(self, name: AgentLoopAction, no_params: bool = False) -> List[Any]:
+    def _call_sequential(self, name: AgentLoopAction, params: Optional[Dict] = None) -> List[Any]:
         """
         Execute synchronous lifecycle hooks across all instances
         
@@ -370,8 +389,8 @@ class AgentLoop:
                 continue
 
             try:
-                if no_params:
-                    result = target()
+                if params:
+                    result = target(**params)
                 else:
                     result = target(**copy.deepcopy(captured))
             except Exception as e:
@@ -398,7 +417,7 @@ class AgentLoop:
 
         return results
     
-    async def _call_async(self, name: AgentLoopAction, no_params: bool = False) -> List[Any]:
+    async def _call_async(self, name: AgentLoopAction, params: Optional[Dict] = None) -> List[Any]:
         """
         Execute asynchronous lifecycle hooks across all instances
         
@@ -431,8 +450,8 @@ class AgentLoop:
                 tasks.append(_return_exception(Notice(f"{repr(instance)} doesn't have a coroutine function named: {name}")))
                 continue
             
-            if no_params:
-                tasks.append(target())
+            if params:
+                tasks.append(target(**params))
             else:
                 tasks.append(target(**copy.deepcopy(captured)))
 
@@ -444,12 +463,12 @@ class AgentLoop:
     
     async def build(self) -> None:
         # Trigger async build lifecycle hook for all instances
-        await self._call_async('build', no_params = True)
+        await self._call_async('build', params = {})
         self.__initialized = True
 
     async def release(self) -> None:
         # Trigger async release lifecycle hook for all instances
-        await self._call_async('release', no_params = True)
+        await self._call_async('release', params = {})
         self.__initialized = False
 
     async def reset(self) -> None:
@@ -466,7 +485,7 @@ class AgentLoop:
         self.__model_response = ModelResponse()
         self.__tool_returns = []
         self.__exit_flag = False
-        await self._call_async('reset', no_params = True)
+        await self._call_async('reset', params = {})
 
     def clone(self) -> "AgentLoop":
         """
@@ -481,7 +500,7 @@ class AgentLoop:
         return AgentLoop(
             self.__model.clone(),
             self.__exception_handler.clone(),
-            *self._call_sequential('clone', no_params = True)
+            *self._call_sequential('clone', params = {})
         )
     
     async def complete(
@@ -492,7 +511,8 @@ class AgentLoop:
         max_iteration: int = 30,
         timeout: float = 120,
         max_retry: int = 5,
-        keep_original_system: bool = False
+        keep_original_system: bool = False,
+        **kwargs
     ) -> ModelInput:
         """
         Execute main agent loop to generate a complete response
