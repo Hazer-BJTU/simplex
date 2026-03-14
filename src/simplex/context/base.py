@@ -6,6 +6,7 @@ from abc import ABC
 from dataclasses import asdict
 from typing import Dict, List, Any
 
+import simplex.io
 import simplex.basics
 
 from simplex.basics import (
@@ -15,6 +16,7 @@ from simplex.basics import (
     PromptTemplate,
     LoopInformation
 )
+from simplex.io import UserInputInterface, UserOutputInterface
 
 class ContextPlugin(ABC):
     """
@@ -115,6 +117,22 @@ class ContextPlugin(ABC):
             A new ToolCollection instance with identical state
         """
         return copy.deepcopy(self)
+    
+    async def bind_io(self, *args, **kwargs) -> Any:
+        """
+        Bind user input and output interfaces to the context plugin
+        
+        This method allows dynamic assignment of I/O interfaces, which can be used
+        by plugins/tools during lifecycle hooks to interact with users.
+        
+        Args:
+            input_interface: UserInputInterface instance for receiving input
+            output_interface: UserOutputInterface instance for sending output
+            
+        Returns:
+            None
+        """
+        pass
     
     def process_prompt(self, *args, **kwargs) -> Any:
         """

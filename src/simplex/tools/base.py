@@ -140,6 +140,22 @@ class ToolCollection(ABC):
         """
         return copy.deepcopy(self)
     
+    async def bind_io(self, *args, **kwargs) -> Any:
+        """
+        Bind user input and output interfaces to the tool collection
+        
+        This method allows dynamic assignment of I/O interfaces, which can be used
+        by plugins/tools during lifecycle hooks to interact with users.
+        
+        Args:
+            input_interface: UserInputInterface instance for receiving input
+            output_interface: UserOutputInterface instance for sending output
+            
+        Returns:
+            None
+        """
+        pass
+    
     def process_prompt(self, *args, **kwargs) -> Any:
         """
         Lifecycle hook for prompt preprocessing (sync).

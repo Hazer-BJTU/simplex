@@ -14,6 +14,7 @@ import simplex.basics
 import simplex.context
 import simplex.models
 import simplex.tools
+import simplex.io
 
 from simplex.basics import (
     ModelInput,
@@ -32,6 +33,7 @@ from simplex.basics import (
 from simplex.context import ContextPlugin
 from simplex.models import ConversationModel
 from simplex.tools import ToolCollection
+from simplex.io import UserInputInterface, UserOutputInterface
 
 
 class ExceptionHandler(ABC):
@@ -115,7 +117,7 @@ class LogExceptionHandler(ExceptionHandler):
         return f"LogExceptionHandler(key={repr(self.key)}, content={repr(self.content)})"
 
 # ------------------------------ #
-# AgentLoop definitions          #
+# Adapter definitions            #
 # ------------------------------ #
 class AgentLoopAdapter(ABC):
     def __init__(self) -> None:
@@ -160,7 +162,19 @@ class AgentLoopAdapter(ABC):
 # UserLoop definitions           #
 # ------------------------------ #
 class UserLoop:
-    pass
+    def __init__(
+        self,
+        input_interface: UserInputInterface,
+        output_interface: UserOutputInterface,
+        agent_loop: AgentLoopAdapter
+    ) -> None:
+        self.__input_interface = input_interface
+        self.__output_interface = output_interface
+        self.__agent_loop = agent_loop
+
+    
+    
+
 
 # ------------------------------ #
 # AgentLoop definitions          #
@@ -171,6 +185,7 @@ AgentLoopAction = Literal[
     'release',                    # Clean up resources (async)
     'reset',                      # Reset loop state (async)
     'clone',                      # Create copy of instance (sync)
+    'bind_io',                    # Bind input/output interfaces (async)
     'process_prompt',             # Preprocess prompt templates (sync)
     'start_loop',                 # Execute before main loop starts (sync)
     'start_loop_async',           # Execute before main loop starts (async)
@@ -389,7 +404,7 @@ class AgentLoop(AgentLoopAdapter):
                 continue
 
             try:
-                if params:
+                if params is not None:
                     result = target(**params)
                 else:
                     result = target(**copy.deepcopy(captured))
@@ -450,7 +465,7 @@ class AgentLoop(AgentLoopAdapter):
                 tasks.append(_return_exception(Notice(f"{repr(instance)} doesn't have a coroutine function named: {name}")))
                 continue
             
-            if params:
+            if params is not None:
                 tasks.append(target(**params))
             else:
                 tasks.append(target(**copy.deepcopy(captured)))
@@ -502,6 +517,29 @@ class AgentLoop(AgentLoopAdapter):
             self.__exception_handler.clone(),
             *self._call_sequential('clone', params = {})
         )
+    
+    async def bind_io(
+        self,
+        input_interface: UserInputInterface,
+        output_interface: UserOutputInterface
+    ) -> None:
+        """
+        Bind user input and output interfaces to the loop
+        
+        This method allows dynamic assignment of I/O interfaces, which can be used
+        by plugins/tools during lifecycle hooks to interact with users.
+        
+        Args:
+            input_interface: UserInputInterface instance for receiving input
+            output_interface: UserOutputInterface instance for sending output
+            
+        Returns:
+            None
+        """
+        await self._call_async('bind_io', params = {
+            'input_interface': input_interface,
+            'output_interface': output_interface
+        })
     
     async def complete(
         self,
