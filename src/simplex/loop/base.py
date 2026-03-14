@@ -28,7 +28,9 @@ from simplex.basics import (
     RequestError,
     Notice,
     UnbuiltError,
-    RuntimeError
+    RuntimeError,
+    AgentLoopStateEdit,
+    UserMessage
 )
 from simplex.context import ContextPlugin
 from simplex.models import ConversationModel
@@ -46,7 +48,7 @@ class ExceptionHandler(ABC):
     (similar to the return value of asyncio.gather), as well as process individual exceptions.
     """
 
-    def __init__(self, instance_id) -> None:
+    def __init__(self, instance_id: str) -> None:
         super().__init__()
         self.__instance_id = instance_id
 
@@ -80,8 +82,8 @@ class ExceptionHandler(ABC):
         return copy.deepcopy(self)
 
 class LogExceptionHandler(ExceptionHandler):
-    def __init__(self, instance_id: str = uuid.uuid4().hex, content: str = '', file: Any = sys.stderr) -> None:
-        super().__init__(instance_id)
+    def __init__(self, instance_id: Optional[str] = None, content: str = '', file: Any = sys.stderr) -> None:
+        super().__init__(instance_id if instance_id is not None else uuid.uuid4().hex)
         self.content: str = content
         self.file = file
 
@@ -120,9 +122,20 @@ class LogExceptionHandler(ExceptionHandler):
 # Adapter definitions            #
 # ------------------------------ #
 class AgentLoopAdapter(ABC):
+    """
+    The AgentLoopAdapter class is the base class of AgentLoop, which defines a series of interfaces 
+    for adapting to UserLoop. In fact, this means that AgentLoop itself can be regarded as its own Adapter. 
+    The role of the Adapter is to add sampling logic to AgentLoop. 
+
+    The UserLoop class can accept an AgentLoopAdapter (e.g., the ParallelSampleAdapter that wraps a raw AgentLoop, 
+    which is used to implement diverse agent trajectory sampling logic) as the core logic for handling agent loops.
+    
+    Also see:
+        class AgentLoop
+    """
+    
     def __init__(self) -> None:
         super().__init__()
-        return
     
     @abstractmethod
     async def build(self) -> None:
@@ -138,6 +151,10 @@ class AgentLoopAdapter(ABC):
 
     @abstractmethod
     def clone(self) -> "AgentLoopAdapter":
+        pass
+
+    @abstractmethod
+    async def bind_io(self, input_interface: UserInputInterface, output_interface: UserOutputInterface) -> None:
         pass
 
     @abstractmethod
@@ -162,19 +179,76 @@ class AgentLoopAdapter(ABC):
 # UserLoop definitions           #
 # ------------------------------ #
 class UserLoop:
+    """
+    Manages the user interaction loop for an AI agent conversation session.
+    
+    This class orchestrates the high-level conversation flow between a user and an AI agent.
+    It handles receiving user messages through an input interface, delegating processing
+    to an AgentLoopAdapter, and optionally maintaining conversation history across turns.
+    
+    The UserLoop serves as the outermost control layer, wrapping the agent's internal
+    processing loop (AgentLoop/AgentLoopAdapter) with user-facing I/O management.
+    
+    Attributes:
+        __input_interface: Interface for receiving user messages (UserInputInterface)
+        __output_interface: Interface for sending responses to user (UserOutputInterface)
+        __agent_loop: The underlying agent loop adapter handling model interactions
+        __keep_history: Whether to preserve conversation history between turns
+        __complete_configs: Additional configuration parameters passed to complete()
+    
+    Example:
+        ```python
+        async with UserLoop(input_if, output_if, agent_loop) as loop:
+            await loop.serve()
+        ```
+    
+    Also see:
+        class AgentLoop
+        class AgentLoopAdapter
+    """
+
     def __init__(
         self,
         input_interface: UserInputInterface,
         output_interface: UserOutputInterface,
-        agent_loop: AgentLoopAdapter
+        agent_loop: AgentLoopAdapter,
+        keep_history: bool = True,
+        complete_configs: Optional[Dict] = None
     ) -> None:
         self.__input_interface = input_interface
         self.__output_interface = output_interface
         self.__agent_loop = agent_loop
+        self.__keep_history = keep_history
 
-    
-    
+        self.__complete_configs: Dict = complete_configs if complete_configs is not None else {}
 
+    async def _do_serve(self, loop: AgentLoopAdapter) -> None:
+        # Initialize history list
+        history: List[Dict] = []
+        while True:
+            # Get next user message
+            user_message: UserMessage = await self.__input_interface.next_message()
+            
+            if user_message.quit:
+                break
+            
+            # Do complete
+            finalized_input: ModelInput = await loop.complete(
+                system = user_message.system_prompt,
+                user = user_message.user_prompt,
+                history = history,
+                **self.__complete_configs
+            )
+
+            # Assign message list to history if 'keep_history'
+            if self.__keep_history and finalized_input.messages:
+                history = copy.deepcopy(finalized_input.messages)
+
+    async def serve(self) -> None:
+        # Bind i/o interface BEFORE 'build()'
+        await self.__agent_loop.bind_io(self.__input_interface, self.__output_interface)
+        async with self.__agent_loop as loop: # 'build()' is called here
+            await self._do_serve(loop)
 
 # ------------------------------ #
 # AgentLoop definitions          #
@@ -200,30 +274,6 @@ AgentLoopAction = Literal[
     'on_loop_end',                # Run at end of iteration (sync)
     'on_loop_end_async'           # Run at end of iteration (async)
 ]
-
-@dataclass
-class AgentLoopStateEdit:
-    """
-    Dataclass representing the mutable state of AgentLoop that can be modified by lifecycle hooks
-    
-    This class encapsulates all loop variables that plugins/tools are allowed to modify
-    during synchronous lifecycle hooks. Asynchronous hooks cannot modify the state directly.
-    
-    Attributes:
-        system_prompt: System prompt template for the conversation
-        user_prompt: User prompt template for the conversation
-        model_input: Formatted input for the language model
-        model_response: Raw response from the language model
-        tool_returns: Results from executed tool calls
-        exit_flag: Boolean flag to terminate loop early
-    """
-
-    system_prompt: Optional[PromptTemplate] = None
-    user_prompt: Optional[PromptTemplate] = None
-    model_input: Optional[ModelInput] = None
-    model_response: Optional[ModelResponse] = None
-    tool_returns: Optional[List[ToolReturn]] = None
-    exit_flag: Optional[bool] = None
 
 class AgentLoop(AgentLoopAdapter):
     """
@@ -330,7 +380,6 @@ class AgentLoop(AgentLoopAdapter):
 
             elif isinstance(instance, ContextPlugin):
                 self.__contexts.append(instance)
-        return
             
     def __getitem__(self, instance_key: str) -> ToolCollection | ContextPlugin:
         """
@@ -512,6 +561,10 @@ class AgentLoop(AgentLoopAdapter):
         Returns:
             New AgentLoop instance with cloned dependencies
         """
+
+        if not self.__initialized:
+            raise UnbuiltError(self.__class__.__name__)
+
         return AgentLoop(
             self.__model.clone(),
             self.__exception_handler.clone(),
@@ -536,10 +589,20 @@ class AgentLoop(AgentLoopAdapter):
         Returns:
             None
         """
+
+        if not self.__initialized:
+            raise UnbuiltError(self.__class__.__name__)
+
         await self._call_async('bind_io', params = {
             'input_interface': input_interface,
             'output_interface': output_interface
         })
+        input_listener = input_interface.get_context_plugin()
+        output_listener = output_interface.get_context_plugin()
+        if input_listener:
+            self.add_instance(input_listener)
+        if output_listener:
+            self.add_instance(output_listener)
     
     async def complete(
         self,
@@ -596,26 +659,28 @@ class AgentLoop(AgentLoopAdapter):
         
         # Default to empty history if None provided
         if history is None:
-            history = []
+            used_history = []
+        else:
+            used_history = copy.deepcopy(history)
 
         # Process system prompt from history
-        if len(history) > 0 and history[0].get('role', '') == 'system':
+        if len(used_history) > 0 and used_history[0].get('role', '') == 'system':
             if keep_original_system:
                 # Append new system prompt to original if requested
-                self.__system_prompt = history[0].get('content', '') + self.__system_prompt
+                self.__system_prompt = used_history[0].get('content', '') + self.__system_prompt
             # Remove original system prompt to avoid duplication
-            history.pop(0)
+            used_history.pop(0)
 
         # Preprocess prompts through lifecycle hook
         self._call_sequential('process_prompt')
 
         # Rebuild message history with processed prompts
-        history.insert(0, {'role': 'system', 'content': str(self.__system_prompt)})
+        used_history.insert(0, {'role': 'system', 'content': str(self.__system_prompt)})
         # Append new user prompt for multi-turn chat completion
-        history.append({'role': 'user', 'content': str(self.__user_prompt)})
+        used_history.append({'role': 'user', 'content': str(self.__user_prompt)})
 
         # Prepare model input with messages and tool schemas
-        self.__model_input = ModelInput(messages = history, tools = self.__tool_schemas)
+        self.__model_input = ModelInput(messages = used_history, tools = self.__tool_schemas)
 
         # Execute pre-loop lifecycle hooks (async first to avoid state modification)
         await self._call_async('start_loop_async')

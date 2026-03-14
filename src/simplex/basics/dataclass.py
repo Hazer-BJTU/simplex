@@ -7,6 +7,10 @@ import numpy as np
 from typing import Dict, Optional, List
 from dataclasses import dataclass, field, asdict
 
+import simplex.basics
+
+from simplex.basics import PromptTemplate
+
 
 @dataclass
 class DocumentEntry:
@@ -191,6 +195,36 @@ class LoopInformation:
         if self.extras:
             result['extras'] = self.extras
         return result
+    
+@dataclass
+class AgentLoopStateEdit:
+    """
+    Dataclass representing the mutable state of AgentLoop that can be modified by lifecycle hooks
+    
+    This class encapsulates all loop variables that plugins/tools are allowed to modify
+    during synchronous lifecycle hooks. Asynchronous hooks cannot modify the state directly.
+    
+    Attributes:
+        system_prompt: System prompt template for the conversation
+        user_prompt: User prompt template for the conversation
+        model_input: Formatted input for the language model
+        model_response: Raw response from the language model
+        tool_returns: Results from executed tool calls
+        exit_flag: Boolean flag to terminate loop early
+    """
+
+    system_prompt: Optional[PromptTemplate] = None
+    user_prompt: Optional[PromptTemplate] = None
+    model_input: Optional[ModelInput] = None
+    model_response: Optional[ModelResponse] = None
+    tool_returns: Optional[List[ToolReturn]] = None
+    exit_flag: Optional[bool] = None
+
+@dataclass
+class UserMessage:
+    system_prompt: PromptTemplate = field(default_factory = PromptTemplate)
+    user_prompt: PromptTemplate = field(default_factory = PromptTemplate)
+    quit: bool = False
 
 if __name__ == '__main__':
     pass
