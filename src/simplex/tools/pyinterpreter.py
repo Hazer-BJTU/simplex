@@ -27,14 +27,14 @@ class PythonInterpreter(ToolCollection):
 
     def __init__(
         self, 
-        instance_id: str = uuid.uuid4().hex,
+        instance_id: Optional[str] = None,
         rename: str = 'python_interpreter',
         use_container: bool = False,
         container_manager: Optional[ContainerManager] = None,
         exec_command: Callable[[str], List[str]] = lambda script: ['python', '-c', script],
         timeout: float = 10
     ) -> None:
-        super().__init__(instance_id, { rename: '_tool_python_interpreter' })
+        super().__init__(instance_id if instance_id is not None else uuid.uuid4().hex, { rename: '_tool_python_interpreter' })
 
         self.name = rename
         self.use_container = use_container

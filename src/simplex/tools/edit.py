@@ -45,7 +45,7 @@ class EditTools(ToolCollection):
         self,
         base_dir: str | Path,
         client: WebsocketClient,
-        instance_id: str = uuid.uuid4().hex, 
+        instance_id: Optional[str] = None, 
         rename_mapping: Dict[str, str] = {
             VIEW_WORKSPACE: 'view_workspace',
             SHOW_DETAILS: 'show_details',
@@ -56,7 +56,7 @@ class EditTools(ToolCollection):
             REMOVE: 'remove'
         }
     ) -> None:
-        super().__init__(instance_id, { value: f"_tool_{key}" for key, value in rename_mapping.items() })
+        super().__init__(instance_id if instance_id is not None else uuid.uuid4().hex, { value: f"_tool_{key}" for key, value in rename_mapping.items() })
         
         self.client = client
         self.names = rename_mapping

@@ -2,7 +2,7 @@ import os
 import uuid
 import asyncio
 
-from typing import List
+from typing import List, Optional
 
 import simplex.basics
 import simplex.tools.base
@@ -27,10 +27,10 @@ class MockCalculator(ToolCollection):
 
     def __init__(
         self, 
-        instance_id: str = uuid.uuid4().hex, 
+        instance_id: Optional[str] = None, 
         rename: str = 'calculator'
     ) -> None:
-        super().__init__(instance_id, { rename: '_tool_calculator' })
+        super().__init__(instance_id if instance_id is not None else uuid.uuid4().hex, { rename: '_tool_calculator' })
 
         self.name = rename
 

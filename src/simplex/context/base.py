@@ -3,8 +3,7 @@ import copy
 import uuid
 
 from abc import ABC
-from dataclasses import asdict
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional
 
 import simplex.io
 import simplex.basics
@@ -16,7 +15,7 @@ from simplex.basics import (
     PromptTemplate,
     LoopInformation
 )
-from simplex.io import UserInputInterface, UserOutputInterface
+
 
 class ContextPlugin(ABC):
     """
@@ -357,7 +356,7 @@ class TrajectoryLogContext(ContextPlugin):
 
     def __init__(
         self, 
-        instance_id: str = uuid.uuid4().hex,
+        instance_id: Optional[str] = None,
         empty_on_reset: bool = True,
         line_width: int = 150
     ) -> None:
@@ -375,7 +374,7 @@ class TrajectoryLogContext(ContextPlugin):
             loopinfo: Current LoopInformation object being populated during iteration
         """
 
-        super().__init__(instance_id)
+        super().__init__(instance_id if instance_id is not None else uuid.uuid4().hex)
 
         self.empty_on_reset = empty_on_reset
         self.line_width = line_width
@@ -399,7 +398,6 @@ class TrajectoryLogContext(ContextPlugin):
             self.log = []
             self.markdown = PromptTemplate()
             self.loopinfo = LoopInformation()
-        return
 
     async def start_loop_async(self, model_input: ModelInput, **kwargs) -> Any:
         """
@@ -429,7 +427,6 @@ class TrajectoryLogContext(ContextPlugin):
             for message in model_input.messages:
                 if 'role' in message and 'content' in message:
                     self.markdown.add_simple(message['content'], message['role'])
-        return
     
     async def after_response_async(self, iter: int, model_response: ModelResponse, **kwargs) -> Any:
         """
@@ -460,7 +457,6 @@ class TrajectoryLogContext(ContextPlugin):
             self.markdown.add_block([tool_call.human_readable_descriptions(self.line_width) for tool_call in model_response.tool_call], 'Function calling')
         if model_response.response:
             self.markdown.add_simple(model_response.response, "Model Response")
-        return
     
     async def after_tool_call_async(self, tool_returns: List[ToolReturn], **kwargs) -> Any:
         """
@@ -485,7 +481,6 @@ class TrajectoryLogContext(ContextPlugin):
         # Log markdown.
         if tool_returns:
             self.markdown.add_block([ret.content for ret in tool_returns], "Tool returns")
-        return
     
     async def on_loop_end_async(self, **kwargs) -> Any:
         """
@@ -505,7 +500,6 @@ class TrajectoryLogContext(ContextPlugin):
 
         # Log details.
         self.log.append(self.loopinfo)
-        return
 
     @property
     def detailed(self) -> List[LoopInformation]:

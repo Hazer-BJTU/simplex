@@ -44,6 +44,7 @@ class ToolCollection(ABC):
             name_mapping: Dictionary mapping external tool names to internal method names
                           (e.g. {"external_tool_name": "internal_method_name"})
         """
+        super().__init__()
         self.__instance_id = instance_id
         self.__name_mapping: Dict = name_mapping
 
