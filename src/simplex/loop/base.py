@@ -25,7 +25,9 @@ from simplex.basics import (
     EntityInitializationError,
     PromptTemplate,
     RequestError,
-    Notice
+    Notice,
+    UnbuiltError,
+    RuntimeError
 )
 from simplex.context import ContextPlugin
 from simplex.models import ConversationModel
@@ -253,7 +255,7 @@ def call_functions(
 # Loop actions definitions       #
 # ------------------------------ #
 """Literal type defining all valid loop action names for AgentLoop lifecycle events"""
-LoopAction = Literal[
+AgentLoopAction = Literal[
     'build',                      # Initialize resources (async)
     'release',                    # Clean up resources (async)
     'reset',                      # Reset loop state (async)
@@ -274,7 +276,7 @@ LoopAction = Literal[
 ]
 
 @dataclass
-class LoopStateEdit:
+class AgentLoopStateEdit:
     """
     Dataclass representing the mutable state of AgentLoop that can be modified by lifecycle hooks
     
@@ -362,28 +364,47 @@ class AgentLoop:
         self.__tool_returns: List[ToolReturn] = []
         self.__exit_flag: bool = False
 
-        try:
-            # Register all provided tool/context instances
-            for instance in args:
-                if instance.key in self.__instances:
-                    raise ConflictError(f"duplicated instance key: {instance.key}")
-                self.__instances[instance.key] = instance
-                
-                if isinstance(instance, ToolCollection):
-                    self.__tools.append(instance)
-                elif isinstance(instance, ContextPlugin):
-                    self.__contexts.append(instance)
+        # Object state managemnt
+        self.__initialized: bool = False
 
-            for tool in self.__tools:
-                schemas = tool.get_tool_schemas()
-                for schema in schemas:
-                    if schema.name in self.__tool_mapping:
-                        raise ConflictError(f"duplicated tool name \'{schema.name}\' from collection: {repr(tool)}")
-                    self.__tool_mapping[schema.name] = tool
-                self.__tool_schemas.extend(schemas)
+        try:
+            self.add_instance(*args)
         except Exception as e:
             raise EntityInitializationError(self.__class__.__name__, e)
+        
+    def add_instance(self, *args: ToolCollection | ContextPlugin) -> None:
+        """
+        Register instances and build tool-mapping based on schemas.
 
+        Args:
+            *args: Variable list of ToolCollection/ContextPlugin instances to register
+
+        Returns:
+            None
+        """
+
+        if self.__initialized:
+            raise RuntimeError(content = f"{self.__class__.__name__}: unable to add instances after \'build()\' is called")
+        
+        # Register all provided tool/context instances
+        for instance in args:
+            if instance.key in self.__instances:
+                raise ConflictError(f"duplicated instance key: {instance.key}")
+            self.__instances[instance.key] = instance
+
+            if isinstance(instance, ToolCollection):
+                self.__tools.append(instance)
+                schemas = instance.get_tool_schemas()
+                for schema in schemas:
+                    if schema.name in self.__tool_mapping:
+                        raise ConflictError(f"duplicated tool name \'{schema.name}\' from collection: {repr(instance)}")
+                    self.__tool_mapping[schema.name] = instance
+                self.__tool_schemas.extend(schemas)
+
+            elif isinstance(instance, ContextPlugin):
+                self.__contexts.append(instance)
+        return
+            
     def __getitem__(self, instance_key: str) -> ToolCollection | ContextPlugin:
         """
         Access registered instances by key (dict-like access)
@@ -425,7 +446,7 @@ class AgentLoop:
         }
         return captured_states
     
-    def _call_sequential(self, name: LoopAction, no_params: bool = False) -> List[Any]:
+    def _call_sequential(self, name: AgentLoopAction, no_params: bool = False) -> List[Any]:
         """
         Execute synchronous lifecycle hooks across all instances
         
@@ -468,7 +489,7 @@ class AgentLoop:
         self.__exception_handler(results)
 
         for result in results:
-            if isinstance(result, LoopStateEdit):
+            if isinstance(result, AgentLoopStateEdit):
                 if result.system_prompt:
                     self.__system_prompt = result.system_prompt
                 if result.user_prompt:
@@ -484,7 +505,7 @@ class AgentLoop:
 
         return results
     
-    async def _call_async(self, name: LoopAction, no_params: bool = False) -> List[Any]:
+    async def _call_async(self, name: AgentLoopAction, no_params: bool = False) -> List[Any]:
         """
         Execute asynchronous lifecycle hooks across all instances
         
@@ -531,10 +552,12 @@ class AgentLoop:
     async def build(self) -> None:
         # Trigger async build lifecycle hook for all instances
         await self._call_async('build', no_params = True)
+        self.__initialized = True
 
     async def release(self) -> None:
         # Trigger async release lifecycle hook for all instances
         await self._call_async('release', no_params = True)
+        self.__initialized = False
 
     async def reset(self) -> None:
         """
@@ -613,6 +636,9 @@ class AgentLoop:
             """
             return ToolReturn(content = f'[ERROR]: Tool {original_call.name} not exists. Please try again.', original_call = original_call)
         
+        if not self.__initialized:
+            raise UnbuiltError(self.__class__.__name__)
+        
         # Initialize prompt templates
         self.__system_prompt = system if system is not None else PromptTemplate()
         self.__user_prompt = user if user is not None else PromptTemplate()
@@ -660,7 +686,7 @@ class AgentLoop:
                     self.__exception_handler(e, Notice(f"model endpoint retry attempt [{attempt}/{max_retry}]"))
                     if attempt == max_retry:
                         # Raise error after final failed attempt
-                        raise RuntimeError(f"failed to receive from model endpoint after {max_retry} attempts")
+                        raise RuntimeError(content = f"failed to receive from model endpoint after {max_retry} attempts")
                     await asyncio.sleep(0.5)
                     continue
                 except Exception as e:
