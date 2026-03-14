@@ -188,6 +188,13 @@ class QwenConversationModel(ConversationModel):
             })
 
         return new_input
+    
+    def final_response_integrate(self, input: ModelInput, response: ModelResponse, **kwargs) -> ModelInput:
+        new_input: ModelInput = copy.deepcopy(input)
+        assert new_input.messages is not None
+        new_input.messages.append({'role': 'assistant', 'content': response.response})
+        
+        return new_input
 
 if __name__ == '__main__':
     pass

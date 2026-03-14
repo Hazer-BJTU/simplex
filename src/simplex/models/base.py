@@ -168,6 +168,10 @@ class ConversationModel(BaseModel):
     def tool_return_integrate(self, input: ModelInput, response: ModelResponse, tool_return: List[ToolReturn], **kwargs) -> ModelInput:
         pass
 
+    @abstractmethod
+    def final_response_integrate(self, input: ModelInput, response: ModelResponse, **kwargs) -> ModelInput:
+        pass
+
 def openai_compatiable_translate(model_input: ModelInput) -> Dict:
     def to_openai_function_calling_schema(tool_schema: ToolSchema) -> Dict:
         properties: Dict = {

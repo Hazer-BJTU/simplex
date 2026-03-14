@@ -54,6 +54,8 @@ def test_mock_loop() -> None:
         target_path.parent.mkdir(parents = True, exist_ok = True)
         with open(target_path, 'w', encoding = 'utf8') as file:
             file.write(json.dumps(detailed_log, indent = 2))
+
+        # print(response)
     
     try:
         asyncio.run(test_body())

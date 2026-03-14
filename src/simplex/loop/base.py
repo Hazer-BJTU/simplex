@@ -78,9 +78,10 @@ class ExceptionHandler(ABC):
         return copy.deepcopy(self)
 
 class LogExceptionHandler(ExceptionHandler):
-    def __init__(self, instance_id = uuid.uuid4().hex) -> None:
+    def __init__(self, instance_id: str = uuid.uuid4().hex, content: str = '', file: Any = sys.stderr) -> None:
         super().__init__(instance_id)
-        self.content: str = ''
+        self.content: str = content
+        self.file = file
 
     def handle_exception(self, exception: Exception) -> None:
         """
@@ -96,8 +97,16 @@ class LogExceptionHandler(ExceptionHandler):
         """
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         message = f"[{current_time}] {type(exception).__name__}: {exception}\n"
-        print(message, file = sys.stderr)
+        if self.file:
+            print(message, file = self.file)
         self.content += message
+
+    def clone(self) -> "LogExceptionHandler":
+        return LogExceptionHandler(
+            instance_id = uuid.uuid4().hex, 
+            content = self.content, 
+            file = self.file
+        )
 
     def __str__(self) -> str:
         return self.content
@@ -105,154 +114,38 @@ class LogExceptionHandler(ExceptionHandler):
     def __repr__(self) -> str:
         return f"LogExceptionHandler(key={repr(self.key)}, content={repr(self.content)})"
 
-async def call_coroutine_functions(
-    target_list: List[Any],
-    names: str | List[str],
-    arguments: Dict[str, Any] | List[Dict[str, Any]],
-    exception_handler: ExceptionHandler
-) -> List[Any]:
-    """
-    Asynchronously call coroutine functions on multiple target objects.
+# ------------------------------ #
+# UserLoop definitions           #
+# ------------------------------ #
+class AgentLoopAdapter(ABC):
+    def __init__(self) -> None:
+        super().__init__()
+        return
 
-    This function dynamically invokes specified coroutine methods on a list of target objects,
-    handles input parameter normalization (supports single/multiple names/arguments),
-    validates the existence and type of target methods, executes all coroutines concurrently,
-    and passes the results (including exceptions) to the specified exception handler.
-
-    Args:
-        target_list: List of target objects on which coroutine functions will be called
-        names: Single method name (str) or list of method names (one per target in target_list)
-        arguments: Single dict of keyword arguments (applied to all targets) or list of dicts
-                   (one argument dict per target in target_list)
-        exception_handler: Instance of ExceptionHandler (or compatible callable) to process
-                           exceptions from the async gather results
-
-    Returns:
-        List of results from asyncio.gather (includes return values or exceptions for each call)
-
-    Raises:
-        AssertionError: If the length of names/arguments list doesn't match target_list length
-        AttributeError: Indirectly (via Notice exception) if target lacks the specified attribute
-        TypeError: Indirectly (via Notice exception) if target attribute is not a coroutine function
-
-    Notes:
-        - Uses asyncio.gather with return_exceptions=True to ensure all coroutines complete
-        - Creates deep copies of the argument dict when applying a single dict to multiple targets
-        - Validates that target attributes are callable coroutine functions before execution
-    """
-    async def call_exception(exception: Exception) -> Exception:
-        return exception
+class InputInterface(ABC):
+    def __init__(self) -> None:
+        super().__init__()
+        return
     
-    num_targets = len(target_list)
-    
-    # Normalize names: convert single string to list of same name for all targets
-    if isinstance(names, list):
-        assert len(names) == num_targets, 'names list length must match target list length'
-        names_used = names
-    elif isinstance(names, str):
-        names_used = [names] * num_targets
-    
-    # Normalize arguments: convert single dict to deep-copied list for all targets
-    if isinstance(arguments, list):
-        assert len(arguments) == num_targets, 'arguments list length must match target list length'
-        arguments_used = arguments
-    elif isinstance(arguments, dict):
-        arguments_used = [ copy.deepcopy(arguments) for _ in range(num_targets) ]
+class OutputInterface(ABC):
+    def __init__(self) -> None:
+        super().__init__()
+        return
 
-    call_list: List = []
-    for name, argument, target in zip(names_used, arguments_used, target_list):
-        if not hasattr(target, name):
-            call_list.append(call_exception(Notice(f"{repr(target)} doesn't have attribute: {name}")))
-            continue
+class UserLoop:
+    def __init__(
+        self,
+        agent: AgentLoopAdapter,
+        input: InputInterface,
+        output: OutputInterface
+    ) -> None:
+        self.__agent = agent
+        self.__input = input
+        self.__output = output
         
-        target_function = getattr(target, name)
-        if not callable(target_function) or not inspect.iscoroutinefunction(target_function):
-            call_list.append(call_exception(Notice(f"{repr(target)} doesn't have a coroutine function named: {name}")))
-            continue
-        
-        call_list.append(target_function(**argument))
-
-    # Execute all coroutines concurrently (return exceptions instead of raising)
-    result_list = await asyncio.gather(*call_list, return_exceptions = True)
-    # Pass results (including exceptions) to exception handler for processing
-    exception_handler(result_list)
-    return result_list
-
-def call_functions(
-    target_list: List[Any],
-    names: str | List[str],
-    arguments: Dict[str, Any] | List[Dict[str, Any]],
-    exception_handler: ExceptionHandler
-) -> List[Any]:
-    """
-    Synchronously call methods on multiple target objects with error handling.
-
-    This function dynamically invokes specified methods on a list of target objects,
-    normalizes input parameters (supports single/multiple names/arguments), validates
-    the existence and callability of target methods, catches exceptions during execution,
-    and passes all results (including exceptions/Notices) to the specified exception handler.
-
-    Unlike the async version, this function executes method calls sequentially and
-    synchronously, without using asyncio.
-
-    Args:
-        target_list: List of target objects on which methods will be called
-        names: Single method name (str) applied to all targets, or list of method names
-               (one name per target in target_list, must match length)
-        arguments: Single dict of keyword arguments (deep-copied for each target) or list
-                   of dicts (one argument dict per target, must match target_list length)
-        exception_handler: Instance of ExceptionHandler to process exceptions/Notices
-                           in the result list
-
-    Returns:
-        List of results from method calls:
-        - Return value of the method if execution succeeds
-        - Notice instance if target lacks the attribute/method
-        - Exception instance if method execution raises an error
-
-    Raises:
-        AssertionError: If length of names/arguments list does not match target_list length
-    """
-    num_targets = len(target_list)
-    
-    # Normalize names: convert single string to list of same name for all targets
-    if isinstance(names, list):
-        assert len(names) == num_targets, 'names list length must match target list length'
-        names_used = names
-    elif isinstance(names, str):
-        names_used = [names] * num_targets
-    
-    # Normalize arguments: convert single dict to deep-copied list for all targets
-    if isinstance(arguments, list):
-        assert len(arguments) == num_targets, 'arguments list length must match target list length'
-        arguments_used = arguments
-    elif isinstance(arguments, dict):
-        arguments_used = [ copy.deepcopy(arguments) for _ in range(num_targets) ]
-
-    result_list: List[Any] = []
-    for name, argument, target in zip(names_used, arguments_used, target_list):
-        if not hasattr(target, name):
-            result_list.append(Notice(f"{repr(target)} doesn't have attribute: {name}"))
-            continue
-        
-        target_function = getattr(target, name)
-        if not callable(target_function):
-            result_list.append(Notice(f"{repr(target)} doesn't have a method named: {name}"))
-            continue
-        
-        try:
-            result = target_function(**argument)
-        except Exception as e:
-            result = e
-
-        result_list.append(result)
-
-    # Pass results (including exceptions) to exception handler for processing
-    exception_handler(result_list)
-    return result_list
 
 # ------------------------------ #
-# Loop actions definitions       #
+# AgentLoop definitions          #
 # ------------------------------ #
 """Literal type defining all valid loop action names for AgentLoop lifecycle events"""
 AgentLoopAction = Literal[
@@ -600,7 +493,7 @@ class AgentLoop:
         timeout: float = 120,
         max_retry: int = 5,
         keep_original_system: bool = False
-    ) -> ModelResponse:
+    ) -> ModelInput:
         """
         Execute main agent loop to generate a complete response
         
@@ -745,6 +638,9 @@ class AgentLoop:
                 # Post-final-response lifecycle hooks
                 await self._call_async('after_final_response_async')
                 self._call_sequential('after_final_response')
+
+                # Update model input for output
+                self.__model_input = self.__model.final_response_integrate(self.__model_input, self.__model_response)
                 break # Terminate loop (final answer generated)
             
             # End-of-iteration lifecycle hooks
@@ -756,7 +652,7 @@ class AgentLoop:
                 break
         
         # Return final model response
-        return self.__model_response
+        return self.__model_input
 
     async def __aenter__(self):
         # Async context manager entry point - build resources
