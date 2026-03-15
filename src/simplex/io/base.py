@@ -1,13 +1,16 @@
 import os
 
 from abc import ABC, abstractmethod
-from typing import List, Dict, Optional
+from typing import Optional, Any, TYPE_CHECKING
 
 import simplex.basics
-import simplex.context
 
-from simplex.basics import UserMessage
-from simplex.context import ContextPlugin
+from simplex.basics import UserMessage, UserNotify
+
+if TYPE_CHECKING:
+    import simplex.context
+
+    from simplex.context import ContextPlugin
 
 
 class UserInputInterface(ABC):
@@ -19,7 +22,11 @@ class UserInputInterface(ABC):
         pass
 
     @abstractmethod
-    def get_context_plugin(self) -> Optional[ContextPlugin]:
+    async def notify_user(self, notify: UserNotify) -> Any:
+        pass
+
+    @abstractmethod
+    def get_input_plugin(self) -> Optional["ContextPlugin"]:
         pass
     
 class UserOutputInterface(ABC):
@@ -27,8 +34,12 @@ class UserOutputInterface(ABC):
         super().__init__()
 
     @abstractmethod
-    def get_context_plugin(self) -> Optional[ContextPlugin]:
-        pass        
+    async def push_message(self, *args, **kwargs) -> Any:
+        pass
+
+    @abstractmethod
+    def get_output_plugin(self) -> Optional["ContextPlugin"]:
+        pass
 
 if __name__ == '__main__':
     pass

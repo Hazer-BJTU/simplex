@@ -4,12 +4,12 @@ import hashlib
 import textwrap
 import numpy as np
 
-from typing import Dict, Optional, List
+from typing import Dict, Optional, List, Literal
 from dataclasses import dataclass, field, asdict
 
-import simplex.basics
+import simplex.basics.prompt
 
-from simplex.basics import PromptTemplate
+from simplex.basics.prompt import PromptTemplate
 
 
 @dataclass
@@ -225,6 +225,11 @@ class UserMessage:
     system_prompt: PromptTemplate = field(default_factory = PromptTemplate)
     user_prompt: PromptTemplate = field(default_factory = PromptTemplate)
     quit: bool = False
+
+@dataclass
+class UserNotify:
+    notify_type: Literal['unknown', 'permission'] = 'permission'
+    content: str = ''
 
 if __name__ == '__main__':
     pass

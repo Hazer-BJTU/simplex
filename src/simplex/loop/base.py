@@ -361,7 +361,7 @@ class AgentLoop(AgentLoopAdapter):
         """
 
         if self.__initialized:
-            raise RuntimeError(content = f"{self.__class__.__name__}: unable to add instances after \'build()\' is called")
+            raise RuntimeError(content = f"{self.__class__.__name__}: unable to add instances after \'build\' is called")
         
         # Register all provided tool/context instances
         for instance in args:
@@ -590,19 +590,19 @@ class AgentLoop(AgentLoopAdapter):
             None
         """
 
-        if not self.__initialized:
-            raise UnbuiltError(self.__class__.__name__)
+        if self.__initialized:
+            raise RuntimeError(content = f"{self.__class__.__name__}: unable to add instances after \'build\' is called")
 
         await self._call_async('bind_io', params = {
             'input_interface': input_interface,
             'output_interface': output_interface
         })
-        input_listener = input_interface.get_context_plugin()
-        output_listener = output_interface.get_context_plugin()
-        if input_listener:
-            self.add_instance(input_listener)
-        if output_listener:
-            self.add_instance(output_listener)
+        input_plugin = input_interface.get_input_plugin()
+        output_plugin = output_interface.get_output_plugin()
+        if input_plugin:
+            self.add_instance(input_plugin)
+        if output_plugin:
+            self.add_instance(output_plugin)
     
     async def complete(
         self,

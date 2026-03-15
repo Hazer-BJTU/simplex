@@ -15,7 +15,8 @@ from simplex.basics.dataclass import (
     ToolSchema,
     LoopInformation,
     AgentLoopStateEdit,
-    UserMessage
+    UserMessage,
+    UserNotify
 )
 from simplex.basics.exception import (
     EntityInitializationError,
@@ -44,6 +45,7 @@ __all__ = [
     "LoopInformation",
     "AgentLoopStateEdit",
     "UserMessage",
+    "UserNotify",
     "EntityInitializationError",
     "RequestError",
     "ParameterError",
