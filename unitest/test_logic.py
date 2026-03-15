@@ -95,4 +95,4 @@ def test_mock_user_loop() -> None:
         raise
 
 if __name__ == '__main__':
-    test_mock_user_loop()
+    pass

@@ -140,3 +140,20 @@ remove:
       description: 
         Indicates the target file path. Please use the relative path in the workspace!
       required: True
+
+rename:
+  description:
+    Used to rename a file or directory. Parent directories will be created automatically.
+  params:
+    - field: src_path
+      type: string
+      description:
+        Indicates the source file path. Please use the relative path in the workspace!
+      required: True
+
+    - field: dst_path
+      type: string
+      description:
+        Indicates the destination file path. Please use the relative path in the workspace!
+      required: True
+      

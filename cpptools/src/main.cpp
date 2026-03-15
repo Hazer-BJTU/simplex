@@ -353,7 +353,7 @@ SIMPLEX_COMMAND_DEF(remove) {
     try {
         ptuple = path_reader->remove(target_path);
     } catch(const std::exception& e) {
-        output << "[error occurred: " << e.what() << "; failed to remove target file]" << std::endl;
+        output << "[error occurred: " << e.what() << "; failed to remove target]" << std::endl;
         server->safe_output("[Session#", session_id, "]: command got: remove ", command);
         server->safe_output("[Session#", session_id, "]: response:", '\n', output.str());
         return output.str();
@@ -365,6 +365,41 @@ SIMPLEX_COMMAND_DEF(remove) {
     searcher->cache_expire(ptuple); // noexcept
 
     server->safe_output("[Session#", session_id, "]: command got: remove ", command);
+    server->safe_output("[Session#", session_id, "]: response:", '\n', output.str());
+    return output.str();
+}
+
+SIMPLEX_COMMAND_DEF(rename) {
+    std::ostringstream output;
+    std::string src_path, dst_path;
+    try {
+        src_path = command.at("src_path");
+        dst_path = command.at("dst_path");
+    } catch(const std::exception& e) {
+        output << "[json error: " << e.what() << "]" << std::endl;
+        server->safe_output("[Session#", session_id, "]: invalid command: ", command);
+        server->safe_output("[Session#", session_id, "]: response:", '\n', output.str());
+        return output.str();
+    }
+
+    simplex::PathTuple psrc = {}, pdst = {};
+    try {
+        auto [returned_psrc, returned_pdst] = path_reader->rename(src_path, dst_path);
+        psrc = returned_psrc, pdst = returned_pdst;
+    } catch(const std::exception& e) {
+        output << "[error occurred: " << e.what() << "; failed to rename target]" << std::endl;
+        server->safe_output("[Session#", session_id, "]: command got: rename ", command);
+        server->safe_output("[Session#", session_id, "]: response:", '\n', output.str());
+        return output.str();
+    }
+
+    path_reader->navigate_target(pdst.view);
+    output << "[successfully renamed " << psrc.view << " to " << pdst.view << "]: " << std::endl;
+    output << "[updated workspace: " << path_reader->base_dir() << ", [D]: directory, [F]: regular file]: " << std::endl << *path_reader;
+
+    searcher->cache_expire(psrc); // noexcept
+
+    server->safe_output("[Session#", session_id, "]: command got: rename ", command);
     server->safe_output("[Session#", session_id, "]: response:", '\n', output.str());
     return output.str();
 }
@@ -418,6 +453,8 @@ simplex::WebsocketServer::TransferFunction TFGenerator(std::shared_ptr<simplex::
             return REDIRECT_TO(touch);
         } else if (command_type == "remove") {
             return REDIRECT_TO(remove);
+        } else if (command_type == "rename") {
+            return REDIRECT_TO(rename);
         } else {
             return REDIRECT_TO(not_support);
         }

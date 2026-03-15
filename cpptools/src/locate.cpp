@@ -264,6 +264,28 @@ PathTuple PathReader::remove(const boost::filesystem::path& path) {
     return {full_path, normalized_path};
 }
 
+std::tuple<PathTuple, PathTuple> PathReader::rename(const boost::filesystem::path& src, const boost::filesystem::path& dst) {
+    auto normalized_src = src, full_dst = (_base_dir / dst).lexically_normal();
+    auto [type, full_src] = normalize(normalized_src);
+    auto normalized_dst = boost::filesystem::relative(full_dst, _base_dir);
+    
+    if (type == PathReader::Type::NOT_EXISTS) {
+        throw std::runtime_error((boost::format("target not exists: %s") % src).str());
+    }
+    try {
+        auto parent_path = full_dst.parent_path();
+        if (!parent_path.empty() && !boost::filesystem::exists(parent_path)) {
+            boost::filesystem::create_directories(parent_path);
+        }
+
+        boost::filesystem::rename(full_src, full_dst);
+        _update_workspace();
+    } catch(boost::filesystem::filesystem_error) {
+        throw;
+    }
+    return {{full_src, normalized_src}, {full_dst, normalized_dst}};
+}
+
 const std::string& PathReader::base_dir() const noexcept {
     return _base_dir.string();
 }

@@ -3,18 +3,15 @@ import rich
 
 from rich.text import Text
 from rich.console import Console
-from typing import Optional, Dict, Any, TYPE_CHECKING
+from typing import Optional, Dict, Any
 
 import simplex.io.base
 import simplex.basics
+import simplex.context
 
 from simplex.io.base import UserInputInterface, UserOutputInterface
 from simplex.basics import UserMessage, UserNotify, PromptTemplate
-
-if TYPE_CHECKING:
-    import simplex.context
-
-    from simplex.context import ContextPlugin
+from simplex.context import ContextPlugin
 
 
 class RichTerminalInterface(UserInputInterface, UserOutputInterface):
@@ -62,10 +59,10 @@ class RichTerminalInterface(UserInputInterface, UserOutputInterface):
         else:
             return UserMessage(system_prompt = PromptTemplate(self.system_prompt), user_prompt = PromptTemplate(instruction))
 
-    def get_input_plugin(self) -> Optional["ContextPlugin"]:
+    def get_input_plugin(self) -> Optional[ContextPlugin]:
         return None
     
-    def get_output_plugin(self) -> Optional["ContextPlugin"]:
+    def get_output_plugin(self) -> Optional[ContextPlugin]:
         return None
     
     def push_message(self, *args, **kwargs) -> Any:

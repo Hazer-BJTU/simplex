@@ -5,7 +5,6 @@ import uuid
 from abc import ABC
 from typing import Dict, List, Any, Optional
 
-import simplex.io
 import simplex.basics
 
 from simplex.basics import (
@@ -358,7 +357,8 @@ class TrajectoryLogContext(ContextPlugin):
         self, 
         instance_id: Optional[str] = None,
         empty_on_reset: bool = True,
-        line_width: int = 150
+        line_width: int = 150,
+        delta: bool = True
     ) -> None:
         """
         Initialize a TrajectoryLogContext instance.
@@ -378,6 +378,7 @@ class TrajectoryLogContext(ContextPlugin):
 
         self.empty_on_reset = empty_on_reset
         self.line_width = line_width
+        self.delta = delta
 
         self.log: List[LoopInformation] = []
         self.markdown: PromptTemplate = PromptTemplate()
@@ -399,7 +400,7 @@ class TrajectoryLogContext(ContextPlugin):
             self.markdown = PromptTemplate()
             self.loopinfo = LoopInformation()
 
-    async def start_loop_async(self, model_input: ModelInput, **kwargs) -> Any:
+    async def start_loop_async(self, model_input: ModelInput, system_prompt: PromptTemplate, user_prompt: PromptTemplate, **kwargs) -> Any:
         """
         Async lifecycle hook for agent loop startup - logs initial loop state.
         
@@ -423,10 +424,12 @@ class TrajectoryLogContext(ContextPlugin):
         self.markdown.add_main_title('Initial states')
         if model_input.tools:
             self.markdown.add_block([schema.human_readable_descriptions(self.line_width) for schema in model_input.tools], 'Tools available', 'yaml')
-        if model_input.messages:
-            for message in model_input.messages:
-                if 'role' in message and 'content' in message:
-                    self.markdown.add_simple(message['content'], message['role'])
+        # if model_input.messages:
+        #     for message in model_input.messages:
+        #         if 'role' in message and 'content' in message:
+        #             self.markdown.add_simple(message['content'], message['role'])
+        self.markdown.add_simple(str(system_prompt), 'System')
+        self.markdown.add_simple(str(user_prompt), 'User')
     
     async def after_response_async(self, iter: int, model_response: ModelResponse, **kwargs) -> Any:
         """

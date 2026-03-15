@@ -48,6 +48,9 @@ def test_client_async() -> None:
             await sub_test('#19', 'remove', {'target_path': 'edit_hello.txt'})
             await sub_test('#20', 'search', {'key_words': 'logdocument, MultiScaleCNN, load_data_isruc1', 'scope': 'global', 'mode': 'semantic_search'})
             await sub_test('#21', 'search', {'key_words': 'optimizer', 'scope': 'global', 'mode': 'pattern_match'})
+            await sub_test('#22', 'rename', {'src_path': 'visualization', 'dst_path': 'new/visualization'})
+            await sub_test('#23', 'rename', {'src_path': 'new/visualization', 'dst_path': 'visualization'})
+            await sub_test('#24', 'remove', {'target_path': 'new'})
         target_path = OUTPUT_PATH / 'test_client_async.txt'
         target_path.parent.mkdir(parents = True, exist_ok = True)
         with open(target_path, 'w', encoding = 'utf8') as file:
