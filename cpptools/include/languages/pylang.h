@@ -8,6 +8,7 @@
 #include <fstream>
 #include <algorithm>
 #include <functional>
+#include <unordered_map>
 #include <initializer_list>
 
 #include <boost/format.hpp>
@@ -22,7 +23,9 @@ public:
         FUNCTION_DEFINITION, 
         CLASS_DEFINITION,
         CLASS_METHOD_DEFINITION,
-        IMPORT_STATEMENT
+        IMPORT_STATEMENT,
+        GLOBAL_VARIABLE,
+        CLASS_VARIABLE
     };
 
     struct EntityTag: public LangIntegrate::EntityTag {
@@ -65,6 +68,7 @@ private:
     PathTuple _ptuple;
     std::string _source;
     std::vector<std::string> _lined_source;
+    std::unordered_map<std::string, std::vector<size_t>> _identifier_name_map;
 
     std::list<std::string> _get_dedented_lines(size_t line_start, size_t line_end) const noexcept;
 
@@ -92,6 +96,7 @@ private:
     static bool extract_function_definition(PyIntegrate& pyintegrate, TSNode node) noexcept;
     static bool extract_class_definition(PyIntegrate& pyintegrate, TSNode node) noexcept;
     static bool extract_dependencies(PyIntegrate& pyintegrate, TSNode node) noexcept;
+    static bool extract_variables(PyIntegrate& pyintegrate, TSNode node) noexcept;
 };
 
 }
