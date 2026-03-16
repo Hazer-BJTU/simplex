@@ -46,12 +46,35 @@ def test_client_async() -> None:
             await sub_test('#17', 'edit_file_content', {'target_path': 'edit_hello.txt', 'edit_type': 'replace', 'line_start': -1, 'line_end': 10, 'content': ''})
             await sub_test('#18', 'edit_file_content', {'target_path': 'edit_hello.txt', 'edit_type': 'replace', 'content': ''})
             await sub_test('#19', 'remove', {'target_path': 'edit_hello.txt'})
-            await sub_test('#20', 'search', {'key_words': 'logdocument, MultiScaleCNN, load_data_isruc1', 'scope': 'global', 'mode': 'semantic_search'})
-            await sub_test('#21', 'search', {'key_words': 'optimizer', 'scope': 'global', 'mode': 'pattern_match'})
+            await sub_test('#20', 'search', {'key_words': 'logdocument, MultiScaleCNN, load_data_isruc1', 'scope': 'global', 'mode': 'definition'})
+            await sub_test('#21', 'search', {'key_words': 'optimizer', 'scope': 'global', 'mode': 'pattern'})
             await sub_test('#22', 'rename', {'src_path': 'visualization', 'dst_path': 'new/visualization'})
             await sub_test('#23', 'rename', {'src_path': 'new/visualization', 'dst_path': 'visualization'})
             await sub_test('#24', 'remove', {'target_path': 'new'})
         target_path = OUTPUT_PATH / 'test_client_async.txt'
+        target_path.parent.mkdir(parents = True, exist_ok = True)
+        with open(target_path, 'w', encoding = 'utf8') as file:
+            file.write(output)
+
+    try:
+        output = asyncio.run(test_body())
+    except Exception:
+        raise
+
+@pytest.mark.tool_server_required
+def test_search_only() -> None:
+    async def test_body() -> None:
+        output: str = ''
+        async with EditTools(MOCK_PROJ_PATH, WebsocketClient(PORT, HOST)) as tools:
+            async def sub_test(*args, **kwargs) -> None:
+                nonlocal output
+                input: ToolCall = ToolCall(*args, **kwargs)
+                response: ToolReturn = await tools(input)
+                output += response.content + '\n\n'
+            await sub_test('#1', 'view_workspace', {})
+            await sub_test('#20', 'search', {'key_words': 'logdocument, MultiScaleCNN, load_data_isruc1', 'scope': 'global', 'mode': 'definition'})
+            await sub_test('#21', 'search', {'key_words': 'weight_decay', 'scope': 'global', 'mode': 'identifier'})
+        target_path = OUTPUT_PATH / 'test_search_only.txt'
         target_path.parent.mkdir(parents = True, exist_ok = True)
         with open(target_path, 'w', encoding = 'utf8') as file:
             file.write(output)

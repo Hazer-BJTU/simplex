@@ -245,4 +245,54 @@ std::tuple<LineRecords, bool> extract_code_snippet(const PathTuple& ptuple, AhoC
     return {result, matched_cnt != 0};
 }
 
+std::tuple<LineRecords, bool> extract_code_snippet_index(const PathTuple& ptuple, std::unordered_set<size_t> line_nums, const std::string& content) noexcept {
+    static const int context_window = 7;
+    LineRecords result;
+    size_t matched_cnt = 0;
+    std::vector<bool> matched_lines, marked_lines;
+    std::istringstream content_iss(content);
+    size_t line_counter = 0;
+    for (std::string line; std::getline(content_iss, line); ) {
+        bool matched = false;
+        if (line_nums.contains(line_counter)) {
+            matched = true;
+            matched_cnt ++;
+        }
+        matched_lines.push_back(matched);
+        marked_lines.push_back(matched);
+        line_counter ++;
+    }
+    for (int i = 0; i < matched_lines.size(); i ++) {
+        if (!marked_lines[i]) {
+            continue;
+        }
+        for (int j = std::max<int>(i - context_window, 0); j <= i + context_window && j < matched_lines.size(); j++) {
+            matched_lines[j] = true;
+        }
+    }
+    line_counter = 0;
+    bool in_block = false;
+    content_iss.clear();
+    content_iss.str(content);
+    for (std::string line; std::getline(content_iss, line); ) {
+        if (!matched_lines[line_counter]) {
+            in_block = false;
+            line_counter ++;
+            continue;
+        }
+        if (!in_block) {
+            in_block = true;
+            if (!result.empty()) {
+                result.emplace_back("...", " ... ");
+            }
+        }
+        unsigned char mark = marked_lines[line_counter] ? '*' : ' ';
+        result.emplace_back(line_counter + 1, line, false, mark);
+        line_counter ++;
+    }
+    result.emplace_front(0, (boost::format("[file_path: %s, lines_matched: %d]: ") % ptuple.view % matched_cnt).str(), true);
+    result.emplace_back(0, "", true);
+    return {result, matched_cnt != 0};
+}
+
 }

@@ -228,7 +228,7 @@ SIMPLEX_COMMAND_DEF(search_entity) {
         mode = command.at("mode");
     } catch(...) {
         scope = "global";
-        mode = "pattern_match";
+        mode = "pattern";
     }
 
     try {
@@ -263,7 +263,7 @@ SIMPLEX_COMMAND_DEF(search_entity) {
         return output.str();
     }
 
-    if (mode == "semantic_search") {
+    if (mode == "definition") {
         const auto& results = searcher->search_entity(key_words, targets); // noexcept
         if (results.size()) {
             output << "[" << results.size() << " entities found]: " << std::endl;
@@ -271,15 +271,24 @@ SIMPLEX_COMMAND_DEF(search_entity) {
                 output << entity << std::endl;
             }
         } else {
-            output << "[no entities have been found; try another set of key words]" << std::endl;
+            output << "[no entities have been found; try another set of key words or 'identifier' mode]" << std::endl;
         }
-    } else if (mode == "pattern_match") {
+    } else if (mode == "identifier") {
+        const auto& results = searcher->search_index(key_words, targets); //noexcept
+        if (results.size()) {
+            output << results << std::endl;
+        } else {
+            output << "[no entities have been found; try another set of key words or 'pattern' mode]" << std::endl;
+        }
+    } else if (mode == "pattern") {
         auto results = searcher->search_snippet(key_words, targets); // nodexcept
         if (results.size()) {
             output << results << std::endl;
         } else {
             output << "[no entities have been found; try another set of key words]" << std::endl;
         }
+    } else {
+        output << "[unsupported mode: " << mode << "; choose from 'definition', 'identifier', 'pattern']" << std::endl;
     }
     
     server->safe_output("[Session#", session_id, "]: command got: search entity ", command);
