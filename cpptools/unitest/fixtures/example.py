@@ -15,8 +15,14 @@ class MyClass(Exception):
     class MyInnerClass(Exception):
         my_variable: bool = False
 
+        def method(self, *args, **kwargs) -> Any:
+            return {}
+
     def __init__(self, *args: object) -> None:
         super().__init__(*args)
 
 if __name__ == '__main__':
-    pass
+    func2 = function
+    x = func2(decimal, point)
+    
+    y = MyClass.MyInnerClass().method()

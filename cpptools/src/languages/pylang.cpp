@@ -80,6 +80,7 @@ _extract_functions(), _output(), _nest_scope(), _ptuple(), _source(), _lined_sou
     _extract_functions["import_statement"] = &PyIntegrate::extract_dependencies;
     _extract_functions["import_from_statement"] = &PyIntegrate::extract_dependencies;
     _extract_functions["assignment"] = &PyIntegrate::extract_variables;
+    _extract_functions["identifier"] = &PyIntegrate::general_identifier;
 }
 
 PyIntegrate::PyIntegrate(std::initializer_list<std::pair<std::string, ExtractFunction>> init_list): PyIntegrate() {
@@ -192,6 +193,10 @@ const std::string& PyIntegrate::source() const noexcept {
 
 const PyIntegrate::EntityTagList& PyIntegrate::result() const noexcept {
     return _output;
+}
+
+const PyIntegrate::LineIndex& PyIntegrate::index() const noexcept {
+    return _identifier_name_map;
 }
 
 bool PyIntegrate::extract_function_definition(PyIntegrate& pyintegrate, TSNode node) noexcept {
@@ -388,6 +393,17 @@ bool PyIntegrate::extract_variables(PyIntegrate& pyintegrate, TSNode node) noexc
         );
         pyintegrate._output.push_back(std::move(new_entity));
     }
+    return false;
+}
+
+bool PyIntegrate::general_identifier(PyIntegrate& pyintegrate, TSNode node) noexcept {
+    TSPoint start_point = ts_node_start_point(node);
+    std::string name = get_full_node_content(node, pyintegrate._source);
+    std::transform(name.begin(), name.end(), name.begin(), [](unsigned char c) -> unsigned char { return std::tolower(c); });
+    if (pyintegrate._identifier_name_map.find(name) == pyintegrate._identifier_name_map.end()) {
+        pyintegrate._identifier_name_map[name] = {};
+    }
+    pyintegrate._identifier_name_map[name].push_back(start_point.row);
     return false;
 }
 

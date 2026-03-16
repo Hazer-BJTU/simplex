@@ -59,6 +59,7 @@ public:
     };
 
     using EntityTagList = typename LangIntegrate::EntityTagList;
+    using LineIndex = typename LangIntegrate::LineIndex;
     using ExtractFunction = std::function<bool(PyIntegrate&, TSNode)>;
 
 private:
@@ -68,7 +69,7 @@ private:
     PathTuple _ptuple;
     std::string _source;
     std::vector<std::string> _lined_source;
-    std::unordered_map<std::string, std::vector<size_t>> _identifier_name_map;
+    LineIndex _identifier_name_map;
 
     std::list<std::string> _get_dedented_lines(size_t line_start, size_t line_end) const noexcept;
 
@@ -91,12 +92,14 @@ public:
     PyIntegrate* reset() noexcept override;
     const std::string& source() const noexcept override;
     const EntityTagList& result() const noexcept override;
+    const LineIndex& index() const noexcept override;
 
 private:
     static bool extract_function_definition(PyIntegrate& pyintegrate, TSNode node) noexcept;
     static bool extract_class_definition(PyIntegrate& pyintegrate, TSNode node) noexcept;
     static bool extract_dependencies(PyIntegrate& pyintegrate, TSNode node) noexcept;
     static bool extract_variables(PyIntegrate& pyintegrate, TSNode node) noexcept;
+    static bool general_identifier(PyIntegrate& pyintegrate, TSNode node) noexcept;
 };
 
 }
