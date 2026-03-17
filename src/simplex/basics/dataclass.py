@@ -231,5 +231,11 @@ class UserNotify:
     notify_type: Literal['unknown', 'permission'] = 'permission'
     content: str = ''
 
+@dataclass
+class UserResponse:
+    permitted: bool
+    reason: str = ''
+    # more in the future
+
 if __name__ == '__main__':
     pass

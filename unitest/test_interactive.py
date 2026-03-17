@@ -15,7 +15,7 @@ import simplex.io
 from simplex.basics import ModelResponse, ToolCall
 from simplex.models import MockConversationModel
 from simplex.context import TrajectoryLogContext
-from simplex.loop import AgentLoop, UserLoop, LogExceptionHandler
+from simplex.loop import AgentLoop, UserLoop
 from simplex.tools import MockCalculator
 from simplex.io import RichTerminalInterface
 
@@ -36,9 +36,8 @@ if __name__ == '__main__':
             ]
         )
 
-        loop = AgentLoop(model, LogExceptionHandler(), TrajectoryLogContext(instance_id = 'log'), MockCalculator())
-
         interface = RichTerminalInterface('cool agent')
+        loop = AgentLoop(model, interface.get_exception_handler(), TrajectoryLogContext(instance_id = 'log'), MockCalculator())
 
         await UserLoop(interface, interface, loop).serve()
 

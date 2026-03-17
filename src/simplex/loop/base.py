@@ -30,14 +30,16 @@ from simplex.basics import (
     UnbuiltError,
     RuntimeError,
     AgentLoopStateEdit,
-    UserMessage
+    UserMessage,
+    ExceptionHandler,
+    LogExceptionHandler
 )
 from simplex.context import ContextPlugin
 from simplex.models import ConversationModel
 from simplex.tools import ToolCollection
 from simplex.io import UserInputInterface, UserOutputInterface
 
-
+'''
 class ExceptionHandler(ABC):
     """
     Handles exceptions generated during the agent loop execution.
@@ -117,6 +119,7 @@ class LogExceptionHandler(ExceptionHandler):
     
     def __repr__(self) -> str:
         return f"LogExceptionHandler(key={repr(self.key)}, content={repr(self.content)})"
+'''
 
 # ------------------------------ #
 # Adapter definitions            #

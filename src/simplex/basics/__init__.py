@@ -16,7 +16,8 @@ from simplex.basics.dataclass import (
     LoopInformation,
     AgentLoopStateEdit,
     UserMessage,
-    UserNotify
+    UserNotify,
+    UserResponse
 )
 from simplex.basics.exception import (
     EntityInitializationError,
@@ -27,7 +28,9 @@ from simplex.basics.exception import (
     UnbuiltError,
     ConflictError,
     RuntimeError,
-    Notice
+    Notice,
+    ExceptionHandler,
+    LogExceptionHandler
 )
 from simplex.basics.prompt import PromptTemplate
 
@@ -46,6 +49,7 @@ __all__ = [
     "AgentLoopStateEdit",
     "UserMessage",
     "UserNotify",
+    "UserResponse",
     "EntityInitializationError",
     "RequestError",
     "ParameterError",
@@ -55,5 +59,7 @@ __all__ = [
     "ConflictError",
     "RuntimeError",
     "PromptTemplate",
-    "Notice"
+    "Notice",
+    "ExceptionHandler",
+    "LogExceptionHandler"
 ]

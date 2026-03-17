@@ -6,7 +6,7 @@ from typing import Optional, Any
 import simplex.basics
 import simplex.context
 
-from simplex.basics import UserMessage, UserNotify
+from simplex.basics import UserMessage, UserNotify, UserResponse
 from simplex.context import ContextPlugin
 
 
@@ -19,7 +19,7 @@ class UserInputInterface(ABC):
         pass
 
     @abstractmethod
-    async def notify_user(self, notify: UserNotify) -> Any:
+    async def notify_user(self, notify: UserNotify) -> UserResponse:
         pass
 
     @abstractmethod
