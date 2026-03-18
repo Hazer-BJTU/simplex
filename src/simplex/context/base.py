@@ -504,6 +504,17 @@ class TrajectoryLogContext(ContextPlugin):
         # Log details.
         self.log.append(self.loopinfo)
 
+    async def after_final_response_async(self, *args, **kwargs) -> Any:
+        """
+        Async lifecycle hook called after final response generation.
+        
+        After final response is made, the 'on_loop_end / on_loop_end_async' hook will never be called.
+        As a result, we need to append temporary loop info to log list.
+        """
+
+        # Log details.
+        self.log.append(self.loopinfo)
+
     @property
     def detailed(self) -> List[LoopInformation]:
         """

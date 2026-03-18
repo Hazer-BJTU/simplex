@@ -7,13 +7,17 @@ from pathlib import Path
 from enum import Enum, auto
 from typing import Optional, List, Dict, Literal
 
+import simplex.io
 import simplex.basics
 import simplex.tools.base
 
+from simplex.io import UserInputInterface
 from simplex.basics import (
     WebsocketClient,
     UnbuiltError,
-    RequestError
+    RequestError,
+    UserNotify,
+    UserResponse
 )
 from simplex.tools.base import (
     ToolCollection,
@@ -41,6 +45,7 @@ class EditTools(ToolCollection):
         self,
         base_dir: str | Path,
         client: WebsocketClient,
+        permission_required: bool = True,
         instance_id: Optional[str] = None, 
         rename_mapping: Dict[EditOperation, str] = {
             'view_workspace': 'view_workspace',
@@ -56,6 +61,7 @@ class EditTools(ToolCollection):
         super().__init__(instance_id if instance_id is not None else uuid.uuid4().hex, { value: f"_tool_{key}" for key, value in rename_mapping.items() })
         
         self.client = client
+        self.permission_required = permission_required
         self.names = rename_mapping
 
         self.base_dir: Path = Path(base_dir)
@@ -84,6 +90,8 @@ class EditTools(ToolCollection):
 
         self.schemas: Dict[EditOperation, ToolSchema] = { key: value for key, value in self.all_schemas.items() if key in self.names }
 
+        self.input_interface: Optional[UserInputInterface] = None
+
     async def build(self) -> None:
         try:
             await self.client.build()
@@ -108,6 +116,9 @@ class EditTools(ToolCollection):
 
     async def reset(self) -> None:
         pass
+
+    async def bind_io(self, input_interface: UserInputInterface, **kwargs) -> None:
+        self.input_interface = input_interface
 
     def get_tool_schemas(self) -> List[ToolSchema]:
         return list(self.schemas.values())
@@ -248,6 +259,11 @@ class EditTools(ToolCollection):
     async def _tool_remove(self, target_path: str, **kwargs) -> str:
         if not self.initialized:
             raise UnbuiltError(self.__class__.__name__)
+        
+        if self.input_interface and self.permission_required:
+            user_response = await self.input_interface.notify_user(UserNotify('permission', f"Do you allow agent to remove file or directories: {target_path}?"))
+            if not user_response.permitted:
+                return f"[ERROR]: Permission error! {user_response.reason}"
         
         query: Dict = {
             'type': 'remove',

@@ -1,4 +1,5 @@
 import os
+import json
 import uuid
 import pathlib
 import asyncio
@@ -45,6 +46,11 @@ if __name__ == '__main__':
         target_path.parent.mkdir(parents = True, exist_ok = True)
         with open(target_path, 'w', encoding = 'utf8') as file:
             file.write(loop['log'].human_readable) # type: ignore
+
+        target_path = OUTPUT_PATH / 'test_ineractive.json'
+        target_path.parent.mkdir(parents = True, exist_ok = True)
+        with open(target_path, 'w', encoding = 'utf8') as file:
+            file.write(json.dumps(loop['log'].dictionary, indent = 2)) #type: ignore
     
     try:
         asyncio.run(test_body())

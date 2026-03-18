@@ -74,7 +74,8 @@ class PromptTemplate:
         return self
     
 class SkillRetriever:
-    def __init__(self, path: Path = SKILLS_PATH) -> None:
+    def __init__(self, p: float = 0.5, path: Path = SKILLS_PATH) -> None:
+        self.p = p
         self.path = path
 
         self.skills: List[Dict] = []
@@ -108,7 +109,10 @@ class SkillRetriever:
             except Exception:
                 continue
 
-    def search(self, query: str, p: float = 0.5) -> List[Dict]:
+    def search(self, query: str, p: Optional[float] = None) -> List[Dict]:
+        if not p:
+            p = self.p
+
         tokenized_query: List[str] = re.findall(r"[a-zA-Z']+", query)
         scores = self.bm25.get_scores(tokenized_query)
 

@@ -24,7 +24,8 @@ from simplex.basics import (
     ModelResponse, 
     LogExceptionHandler,
     ToolReturn,
-    UserResponse
+    UserResponse,
+    SkillRetriever
 )
 from simplex.io.base import UserInputInterface, UserOutputInterface
 from simplex.context import ContextPlugin
@@ -147,6 +148,7 @@ class RichTerminalInterface(UserInputInterface, UserOutputInterface):
         self,
         name: str = 'interface',
         system_prompt: str = 'You are a helpful assistant.',
+        retriever: Optional[SkillRetriever] = None,
         style_set: Optional[Dict] = None,
         max_string: int = 80
     ) -> None:
@@ -154,6 +156,7 @@ class RichTerminalInterface(UserInputInterface, UserOutputInterface):
 
         self.name = name
         self.system_prompt = system_prompt
+        self.retriever = retriever if retriever is not None else SkillRetriever()
         self.style_set = {
             'rule_title': 'not italic bold gold1',
             'rule_line': 'dark_orange',
@@ -179,6 +182,49 @@ class RichTerminalInterface(UserInputInterface, UserOutputInterface):
 
     def _get_style(self, key: str) -> Any:
         return self.style_set.get(key, '')
+    
+    def _load_skills(self, instruction: str) -> Optional[PromptTemplate]:
+        if self.retriever:
+            retrieved = self.retriever.search(instruction)
+
+            if not retrieved:
+                return None
+            
+            self.console.rule(
+                Text("Skills Useful", style = self._get_style('rule_title')), 
+                style = self._get_style('rule_line')
+            )
+
+            for idx, skill in enumerate(retrieved):
+                panel = Panel(
+                    Text(skill['description'], style = self._get_style('text')), 
+                    border_style = self._get_style('box_line_weak'),
+                    title = Text(f"{idx + 1}. {skill['title']}", style = self._get_style('box_title_weak')),
+                    title_align = 'left'
+                )
+                self.console.print(panel)
+
+            self.console.rule(
+                Text("Loading Skills", style = self._get_style('rule_title')), 
+                style = self._get_style('rule_line')
+            )
+
+            text = Text("Load them? [use indices like ", style = self._get_style('text_weak'))
+            text.append("1, 2, 3, ...", style = self._get_style('text_explicit'))
+            text.append("] ", style = self._get_style('text_weak'))
+            text.append("❯❯ ", style = self._get_style('$'))
+
+            selected = self.console.input(text)
+            selected = [max(int(part.strip()) - 1, 0) for part in selected.split(',') if part.strip().isdigit()]
+            prompt = PromptTemplate().add_main_title('Skills that may be useful')
+            for idx in selected:
+                try:
+                    prompt.add_simple(retrieved[idx]['content'])
+                except Exception:
+                    pass
+
+            return prompt
+
 
     async def next_message(self) -> UserMessage:
         self.console.rule(
@@ -194,7 +240,13 @@ class RichTerminalInterface(UserInputInterface, UserOutputInterface):
         if instruction.strip() == 'exit':
             return UserMessage(quit = True)
         else:
-            return UserMessage(system_prompt = PromptTemplate(self.system_prompt), user_prompt = PromptTemplate(instruction))
+            system_prompt = PromptTemplate(self.system_prompt)
+            skills_prompt = self._load_skills(instruction)
+            if skills_prompt:
+                user_prompt = PromptTemplate(instruction) + skills_prompt
+            else:
+                user_prompt = PromptTemplate(instruction)
+            return UserMessage(system_prompt = system_prompt, user_prompt = user_prompt)
 
     def get_input_plugin(self) -> Optional[ContextPlugin]:
         return None
@@ -235,7 +287,7 @@ class RichTerminalInterface(UserInputInterface, UserOutputInterface):
                 response = response.strip().lower()
                 
                 if not response:
-                    return UserResponse(permitted = True)
+                    return UserResponse(permitted = False, reason = 'User denied the request without any explanations.')
                 
                 if response == 'yes':
                     return UserResponse(permitted = True)
