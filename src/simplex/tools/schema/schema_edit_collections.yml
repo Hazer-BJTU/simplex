@@ -16,7 +16,7 @@ show_details:
     - field: target_path
       type: string
       description: 
-        Indicates the target file path. Please use the relative path in the workspace!
+        Indicates the target file path. Please use paths relative to the workspace base dir.
       required: True
 
 view_file_content:
@@ -26,7 +26,7 @@ view_file_content:
     - field: target_path
       type: string
       description:
-        Indicates the target file path. Please use the relative path in the workspace!
+        Indicates the target file path. Please use paths relative to the workspace base dir.
       required: True
 
     - field: line_start
@@ -49,13 +49,14 @@ edit_file_content:
     In 'insert' mode, the 'content' is inserted AFTER the specified 'line_start' line.
     In 'replace' mode, the original text between line numbers 'line_start' and 'line_end' (inclusive) is replaced with 'content'.
     Replacing text with empty 'content' is equivalent to deleting the original text.
+    You can use 'line_start' that is equal to 'line_end' to represent a single line.
     You can judge whether the edit is correct based on the feedback.
     Pay attention to indentation alignment.
   params:
     - field: target_path
       type: string
       description:
-        Indicates the target file path. Please use the relative path in the workspace!
+        Indicates the target file path. Please use paths relative to the workspace base dir.
       required: True
 
     - field: edit_type
@@ -106,7 +107,7 @@ search:
     - field: mode
       type: string
       description:
-        Choose between 'definition', 'identifier' or 'pattern'.
+        Choose between 'definition', 'identifier' or 'pattern'. Regex is NOT supported.
       required: True
 
     - field: scope
@@ -123,7 +124,7 @@ create:
     - field: target_path
       type: string
       description: 
-        Indicates the target file path. Please use the relative path in the workspace!
+        Indicates the target file path. Please use paths relative to the workspace base dir.
       required: True
     
     - field: content
@@ -140,7 +141,7 @@ remove:
     - field: target_path
       type: string
       description: 
-        Indicates the target file path. Please use the relative path in the workspace!
+        Indicates the target file path. Please use paths relative to the workspace base dir.
       required: True
 
 rename:
@@ -150,12 +151,12 @@ rename:
     - field: src_path
       type: string
       description:
-        Indicates the source file path. Please use the relative path in the workspace!
+        Indicates the source file path. Please use paths relative to the workspace base dir.
       required: True
 
     - field: dst_path
       type: string
       description:
-        Indicates the destination file path. Please use the relative path in the workspace!
+        Indicates the destination file path. Please use paths relative to the workspace base dir.
       required: True
       

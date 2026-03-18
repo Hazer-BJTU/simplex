@@ -4,6 +4,8 @@ subprocess_executor:
     This tool requires user permission before execution to ensure security.
     It captures both standard output (STDOUT) and standard error (STDERR) of the command execution,
     and returns detailed execution results or error information if the command fails.
+    Always remember that every bash execution you made will be reported to the user and permission is required. 
+    This is automatically handled by the agent system.
   params:
     - field: cwd
       type: string
