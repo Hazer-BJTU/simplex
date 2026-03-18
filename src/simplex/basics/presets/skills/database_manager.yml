@@ -1,0 +1,137 @@
+title: Database Manager
+description: Provides comprehensive guidance on database operations, SQL queries, and database management for various database systems.
+tags: ['database', 'sql', 'mysql', 'postgresql', 'sqlite', 'data_management']
+
+content: |
+  # Database Manager
+  
+  This skill provides comprehensive guidance on database operations, SQL queries, and database management for various database systems. It covers essential concepts, query optimization, and best practices for efficient data management.
+  
+  ## Core Database Operations
+  
+  ### 1. Basic CRUD Operations
+  - **CREATE**: `INSERT INTO table_name (column1, column2) VALUES (value1, value2)` adds new records
+  - **READ**: `SELECT * FROM table_name WHERE condition` retrieves data from tables
+  - **UPDATE**: `UPDATE table_name SET column1 = value1 WHERE condition` modifies existing records
+  - **DELETE**: `DELETE FROM table_name WHERE condition` removes records from tables
+  
+  ### 2. Table Management
+  - **Create table**: `CREATE TABLE table_name (id INT PRIMARY KEY, name VARCHAR(255))`
+  - **Alter table**: `ALTER TABLE table_name ADD COLUMN new_column VARCHAR(255)`
+  - **Drop table**: `DROP TABLE table_name` permanently deletes a table
+  - **Describe table**: `DESCRIBE table_name` (MySQL) or `PRAGMA table_info(table_name)` (SQLite) shows table structure
+  
+  ## SQL Query Optimization
+  
+  ### Performance Best Practices
+  1. **Indexing**: Create indexes on frequently queried columns to speed up SELECT operations
+     - `CREATE INDEX idx_name ON table_name(column_name)`
+  2. **Avoid SELECT ***: Specify only needed columns to reduce data transfer
+  3. **Use LIMIT**: Restrict result sets when pagination is needed
+  4. **Join optimization**: Use appropriate join types (INNER, LEFT, RIGHT) based on requirements
+  5. **Subquery alternatives**: Replace correlated subqueries with JOINs when possible
+  
+  ### Example Optimized Query
+  ```sql
+  -- Instead of this:
+  SELECT * FROM orders WHERE customer_id IN (SELECT id FROM customers WHERE country = 'USA');
+  
+  -- Use this:
+  SELECT o.* FROM orders o
+  INNER JOIN customers c ON o.customer_id = c.id
+  WHERE c.country = 'USA';
+  ```
+  
+  ## Database Connection Management
+  
+  ### Python Database Connections
+  ```python
+  import sqlite3
+  import psycopg2  # For PostgreSQL
+  import mysql.connector  # For MySQL
+  
+  # SQLite connection (file-based)
+  conn = sqlite3.connect('database.db')
+  cursor = conn.cursor()
+  
+  # PostgreSQL connection
+  conn = psycopg2.connect(
+      host="localhost",
+      database="mydb",
+      user="username",
+      password="password"
+  )
+  
+  # MySQL connection
+  conn = mysql.connector.connect(
+      host='localhost',
+      user='username',
+      password='password',
+      database='mydb'
+  )
+  ```
+  
+  ### Connection Best Practices
+  - **Use context managers**: Employ `with` statements to ensure connections are closed
+  - **Connection pooling**: For high-traffic applications, use connection pools to reuse connections
+  - **Parameterized queries**: Always use parameterized queries to prevent SQL injection
+  - **Transaction management**: Use transactions for operations that must succeed or fail together
+  
+  ## Advanced Database Concepts
+  
+  ### Transactions and ACID Properties
+  - **Atomicity**: All operations in a transaction succeed or fail as a unit
+  - **Consistency**: Database remains in valid state before and after transaction
+  - **Isolation**: Concurrent transactions don't interfere with each other
+  - **Durability**: Completed transactions persist even after system failures
+  
+  ### Example Transaction Usage
+  ```python
+  try:
+      conn.autocommit = False  # Begin transaction
+      cursor.execute("UPDATE accounts SET balance = balance - 100 WHERE id = 1")
+      cursor.execute("UPDATE accounts SET balance = balance + 100 WHERE id = 2")
+      conn.commit()  # Commit transaction
+  except Exception as e:
+      conn.rollback()  # Rollback on error
+      print(f"Transaction failed: {e}")
+  finally:
+      conn.autocommit = True  # End transaction mode
+  ```
+  
+  ## Database-Specific Features
+  
+  ### PostgreSQL Features
+  - **JSON support**: Native JSON and JSONB data types for document storage
+  - **Array types**: Support for arrays of any data type
+  - **Full-text search**: Built-in text search capabilities
+  - **Extensions**: Rich ecosystem of extensions (PostGIS, pgcrypto, etc.)
+  
+  ### MySQL Features
+  - **Storage engines**: Multiple storage engines (InnoDB, MyISAM) with different characteristics
+  - **Partitioning**: Automatic partitioning of large tables
+  - **Replication**: Built-in master-slave replication support
+  
+  ### SQLite Features
+  - **Serverless**: Embedded database requiring no separate server process
+  - **Zero configuration**: No setup or administration required
+  - **Cross-platform**: Works on all major operating systems
+  
+  ## Security Best Practices
+  
+  ### Preventing SQL Injection
+  ```python
+  # DON'T do this (vulnerable to SQL injection):
+  query = f"SELECT * FROM users WHERE username = '{username}'"
+  
+  # DO this instead (parameterized query):
+  cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
+  ```
+  
+  ### Additional Security Measures
+  - **Principle of least privilege**: Grant minimal necessary permissions to database users
+  - **Input validation**: Validate all inputs before processing
+  - **Encryption**: Use SSL/TLS for database connections when transmitting over networks
+  - **Regular backups**: Maintain secure, encrypted backups of critical data
+  - **Audit trails**: Enable logging to track database access and changes
+  

@@ -28,7 +28,7 @@ if __name__ == '__main__':
     async def test_body() -> None:
         model = QwenConversationModel('https://dashscope.aliyuncs.com/compatible-mode/v1', os.getenv('API_KEY'), qwen_model = 'qwen3-coder-plus', enable_thinking = False) # type: ignore
 
-        interface = RichTerminalInterface('cool model')
+        interface = RichTerminalInterface(model.qwen_model)
         loop = AgentLoop(
             model, 
             interface.get_exception_handler(), 

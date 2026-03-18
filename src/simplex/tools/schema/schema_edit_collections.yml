@@ -16,7 +16,7 @@ show_details:
     - field: target_path
       type: string
       description: 
-        Indicates the target file path. Please use paths relative to the workspace base dir.
+        Indicates the target file path. You should use relative paths relative to the workspace base directory, not full paths (i.e., paths that include the base directory).
       required: True
 
 view_file_content:
@@ -26,7 +26,7 @@ view_file_content:
     - field: target_path
       type: string
       description:
-        Indicates the target file path. Please use paths relative to the workspace base dir.
+        Indicates the target file path. You should use relative paths relative to the workspace base directory, not full paths (i.e., paths that include the base directory).
       required: True
 
     - field: line_start
@@ -56,7 +56,7 @@ edit_file_content:
     - field: target_path
       type: string
       description:
-        Indicates the target file path. Please use paths relative to the workspace base dir.
+        Indicates the target file path. You should use relative paths relative to the workspace base directory, not full paths (i.e., paths that include the base directory).
       required: True
 
     - field: edit_type
@@ -124,7 +124,7 @@ create:
     - field: target_path
       type: string
       description: 
-        Indicates the target file path. Please use paths relative to the workspace base dir.
+        Indicates the target file path. You should use relative paths relative to the workspace base directory, not full paths (i.e., paths that include the base directory).
       required: True
     
     - field: content
@@ -141,7 +141,7 @@ remove:
     - field: target_path
       type: string
       description: 
-        Indicates the target file path. Please use paths relative to the workspace base dir.
+        Indicates the target file path. You should use relative paths relative to the workspace base directory, not full paths (i.e., paths that include the base directory).
       required: True
 
 rename:
@@ -151,12 +151,12 @@ rename:
     - field: src_path
       type: string
       description:
-        Indicates the source file path. Please use paths relative to the workspace base dir.
+        Indicates the source file path. You should use relative paths relative to the workspace base directory, not full paths (i.e., paths that include the base directory).
       required: True
 
     - field: dst_path
       type: string
       description:
-        Indicates the destination file path. Please use paths relative to the workspace base dir.
+        Indicates the destination file path. You should use relative paths relative to the workspace base directory, not full paths (i.e., paths that include the base directory).
       required: True
       
