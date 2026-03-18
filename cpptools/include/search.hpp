@@ -146,6 +146,65 @@ private:
         return;
     }
 
+    void _parallel_search_index(
+        const std::unordered_set<std::string>& key_words,
+        const std::vector<PathTuple>& ptuple_list,
+        size_t start_idx,
+        size_t end_idx
+    ) noexcept {
+        for (size_t i = start_idx; i < end_idx && i < ptuple_list.size(); i ++) {
+            std::unique_lock<std::mutex> cache_lock(_cache_mtx, std::defer_lock);
+            std::unique_lock<std::mutex> output_lock(_output_mtx, std::defer_lock);
+            LangIntegrate* lang_integrate = nullptr;
+            auto ptuple = ptuple_list[i];
+
+            cache_lock.lock();
+            auto it = _cache.find(ptuple.full.string());
+            if (it != _cache.end()) {
+                lang_integrate = it->second.get();
+            }
+            cache_lock.unlock();
+
+            if (lang_integrate == nullptr) {
+                auto new_lang_integrate = _dispatcher(ptuple.full);
+                if (new_lang_integrate == nullptr) {
+                    continue;
+                }
+                try {
+                    new_lang_integrate->open(ptuple)->analyze();
+                } catch(...) {
+                    continue;
+                }
+                lang_integrate = new_lang_integrate.get();
+                cache_lock.lock();
+                _cache[ptuple.full.string()] = std::move(new_lang_integrate);
+                cache_lock.unlock();
+            }
+
+            std::unordered_set<size_t> line_nums = {};
+            const auto& index = lang_integrate->index();
+            for (const auto& key_word: key_words) {
+                auto it = index.find(key_word);
+                if (it != index.end()) {
+                    for (auto line_num: it->second) {
+                        if (!line_nums.contains(line_num)) {
+                            line_nums.insert(line_num);
+                        }
+                    }
+                }
+            }
+            
+            auto [temp_output, keep] = simplex::extract_code_snippet_index(ptuple, line_nums, lang_integrate->source());
+            if (!keep) {
+                continue;
+            }
+            output_lock.lock();
+            _output_line_records.splice(_output_line_records.end(), temp_output);
+            output_lock.unlock();
+        }
+        return;
+    }
+
 public:
     Searcher(): _num_workers(std::max<size_t>(1u, std::thread::hardware_concurrency() >> 1u)) {}
     Searcher(size_t num_workers): _num_workers(std::max<size_t>(1u, std::min<size_t>(num_workers, std::thread::hardware_concurrency()))) {}
@@ -248,6 +307,28 @@ public:
         for (size_t i = 0; i < unique_ptuple_list.size(); i += tasks_per_worker) {
             _workers.emplace_back([this, &key_words, &unique_ptuple_list, start_idx = i, end_idx = i + tasks_per_worker]() -> void { 
                 this->_parallel_search_snippet(key_words, unique_ptuple_list, start_idx, end_idx); 
+            });
+        }
+        for (auto& worker: _workers) {
+            if (worker.joinable()) {
+                worker.join();
+            }
+        }
+        _workers.clear();
+        return _output_line_records;
+    }
+
+    LineRecords search_index(const std::unordered_set<std::string>& key_words, const std::vector<PathTuple>& ptuple_list) noexcept {
+        std::vector<PathTuple> unique_ptuple_list = ptuple_list;
+        std::sort(unique_ptuple_list.begin(), unique_ptuple_list.end());
+        auto it = std::unique(unique_ptuple_list.begin(), unique_ptuple_list.end());
+        unique_ptuple_list.erase(it, unique_ptuple_list.end());
+
+        _output_line_records.clear();
+        const size_t tasks_per_worker = (unique_ptuple_list.size() + _num_workers - 1) / _num_workers;
+        for (size_t i = 0; i < unique_ptuple_list.size(); i += tasks_per_worker) {
+            _workers.emplace_back([this, &key_words, &unique_ptuple_list, start_idx = i, end_idx = i + tasks_per_worker]() -> void {
+                this->_parallel_search_index(key_words, unique_ptuple_list, start_idx, end_idx);
             });
         }
         for (auto& worker: _workers) {

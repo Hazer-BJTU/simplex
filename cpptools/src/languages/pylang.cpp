@@ -74,11 +74,13 @@ PyIntegrate::EntityTag::EntityTag(
     byte_start(byte_start), byte_end(byte_end), file_path(file_path) {}
 
 PyIntegrate::PyIntegrate():
-_extract_functions(), _output(), _nest_scope(), _ptuple(), _source(), _lined_source() {
+_extract_functions(), _output(), _nest_scope(), _ptuple(), _source(), _lined_source(), _identifier_name_map() {
     _extract_functions["function_definition"] = &PyIntegrate::extract_function_definition;
     _extract_functions["class_definition"] = &PyIntegrate::extract_class_definition;
     _extract_functions["import_statement"] = &PyIntegrate::extract_dependencies;
     _extract_functions["import_from_statement"] = &PyIntegrate::extract_dependencies;
+    _extract_functions["assignment"] = &PyIntegrate::extract_variables;
+    _extract_functions["identifier"] = &PyIntegrate::general_identifier;
 }
 
 PyIntegrate::PyIntegrate(std::initializer_list<std::pair<std::string, ExtractFunction>> init_list): PyIntegrate() {
@@ -181,6 +183,7 @@ PyIntegrate* PyIntegrate::reset() noexcept {
     _ptuple = {};
     _source = "";
     _lined_source.clear();
+    _identifier_name_map.clear();
     return this;
 }
 
@@ -190,6 +193,10 @@ const std::string& PyIntegrate::source() const noexcept {
 
 const PyIntegrate::EntityTagList& PyIntegrate::result() const noexcept {
     return _output;
+}
+
+const PyIntegrate::LineIndex& PyIntegrate::index() const noexcept {
+    return _identifier_name_map;
 }
 
 bool PyIntegrate::extract_function_definition(PyIntegrate& pyintegrate, TSNode node) noexcept {
@@ -218,7 +225,8 @@ bool PyIntegrate::extract_function_definition(PyIntegrate& pyintegrate, TSNode n
             break;
         }
     }
-    std::string identifier_name;
+    TSNode function_name = ts_node_child_by_field_name(node, "name", strlen("name"));
+    std::string identifier_name = get_full_node_content(function_name, pyintegrate._source);
     uint32_t signature_end_byte = ts_node_start_byte(node);
     TSPoint signature_end_point = ts_node_start_point(node);
     for (uint32_t i = 0; i < ts_node_child_count(node); i++) {
@@ -227,9 +235,6 @@ bool PyIntegrate::extract_function_definition(PyIntegrate& pyintegrate, TSNode n
             signature_end_byte = ts_node_start_byte(child_node);
             signature_end_point = ts_node_start_point(child_node);
             break;
-        }
-        if (strcmp(ts_node_type(child_node), "identifier") == 0) {
-            identifier_name = get_full_node_content(child_node, pyintegrate._source);
         }
     }
     std::list<std::string> signature = pyintegrate._get_dedented_lines(start_point.row, signature_end_point.row);
@@ -279,7 +284,8 @@ bool PyIntegrate::extract_class_definition(PyIntegrate& pyintegrate, TSNode node
             break;
         }
     }
-    std::string identifier_name;
+    TSNode function_name = ts_node_child_by_field_name(node, "name", strlen("name"));
+    std::string identifier_name = get_full_node_content(function_name, pyintegrate._source);
     uint32_t signature_end_byte = ts_node_start_byte(node);
     TSPoint signature_end_point = ts_node_start_point(node);
     for (uint32_t i = 0; i < ts_node_child_count(node); i ++) {
@@ -288,9 +294,6 @@ bool PyIntegrate::extract_class_definition(PyIntegrate& pyintegrate, TSNode node
             signature_end_byte = ts_node_start_byte(child_node);
             signature_end_point = ts_node_start_point(node);
             break;
-        }
-        if (strcmp(ts_node_type(child_node), "identifier") == 0) {
-            identifier_name = get_full_node_content(child_node, pyintegrate._source);
         }
     }
     std::list<std::string> signature = pyintegrate._get_dedented_lines(start_point.row, signature_end_point.row);
@@ -340,6 +343,70 @@ bool PyIntegrate::extract_dependencies(PyIntegrate& pyintegrate, TSNode node) no
     return false;
 }
 
+bool PyIntegrate::extract_variables(PyIntegrate& pyintegrate, TSNode node) noexcept {
+    int parent_idx = -1;
+    uint32_t node_start_byte = ts_node_start_byte(node), node_end_byte = ts_node_end_byte(node);
+    TSPoint start_point = ts_node_start_point(node);
+    TSPoint end_point = ts_node_end_point(node);
+    if (!pyintegrate._nest_scope.empty()) {
+        parent_idx = pyintegrate._nest_scope.back();
+    }
+    EntityTag* parent_entity = nullptr;
+    if (parent_idx != -1) {
+        parent_entity = dynamic_cast<EntityTag*>(pyintegrate._output[parent_idx].get());
+    }
+    TSNode lvalue_name = ts_node_child_by_field_name(node, "left", strlen("left"));
+    std::string identifier = get_full_node_content(lvalue_name, pyintegrate._source);
+    if (!parent_entity) {
+        auto type = PyIntegrate::Type::GLOBAL_VARIABLE;
+        std::list<std::string> original_statement = pyintegrate._get_dedented_lines(start_point.row, end_point.row);
+        auto new_entity = std::make_unique<EntityTag> (
+            type,
+            identifier,
+            original_statement,
+            identifier,
+            start_point.row + 1,
+            end_point.row + 1,
+            parent_idx,
+            node_start_byte,
+            node_end_byte,
+            pyintegrate._ptuple.view
+        );
+        pyintegrate._output.push_back(std::move(new_entity));
+    } else if (parent_entity->type == PyIntegrate::Type::CLASS_DEFINITION) {
+        auto type = PyIntegrate::Type::CLASS_VARIABLE;
+        std::list<std::string> original_statement = pyintegrate._get_dedented_lines(start_point.row, end_point.row);
+        std::string qualified_name = parent_entity->qualified_name;
+        qualified_name.push_back('.');
+        qualified_name.append(identifier);
+        auto new_entity = std::make_unique<EntityTag> (
+            type,
+            identifier,
+            original_statement,
+            qualified_name,
+            start_point.row + 1,
+            end_point.row + 1,
+            parent_idx,
+            node_start_byte,
+            node_end_byte,
+            pyintegrate._ptuple.view
+        );
+        pyintegrate._output.push_back(std::move(new_entity));
+    }
+    return false;
+}
+
+bool PyIntegrate::general_identifier(PyIntegrate& pyintegrate, TSNode node) noexcept {
+    TSPoint start_point = ts_node_start_point(node);
+    std::string name = get_full_node_content(node, pyintegrate._source);
+    std::transform(name.begin(), name.end(), name.begin(), [](unsigned char c) -> unsigned char { return std::tolower(c); });
+    if (pyintegrate._identifier_name_map.find(name) == pyintegrate._identifier_name_map.end()) {
+        pyintegrate._identifier_name_map[name] = {};
+    }
+    pyintegrate._identifier_name_map[name].push_back(start_point.row);
+    return false;
+}
+
 std::ostream& operator << (std::ostream& stream, const PyIntegrate::Type& type) noexcept {
     switch(type) {
         case PyIntegrate::Type::CLASS_DEFINITION:
@@ -348,6 +415,10 @@ std::ostream& operator << (std::ostream& stream, const PyIntegrate::Type& type) 
             stream << "Method definition"; break;
         case PyIntegrate::Type::FUNCTION_DEFINITION:
             stream << "Function definition"; break;
+        case PyIntegrate::Type::GLOBAL_VARIABLE:
+            stream << "Global variable"; break;
+        case PyIntegrate::Type::CLASS_VARIABLE:
+            stream << "Class static variable"; break;
     }
     return stream;
 }

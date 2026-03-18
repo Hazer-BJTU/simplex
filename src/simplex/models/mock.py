@@ -2,6 +2,7 @@ import os
 import json
 import copy
 import uuid
+import asyncio
 
 from dataclasses import asdict
 from typing import Optional, List, Dict, Callable
@@ -23,16 +24,18 @@ from simplex.models.base import EmbeddingModel, ConversationModel
 class MockConversationModel(ConversationModel):
     def __init__(
         self, 
-        instance_id: str = uuid.uuid4().hex,
+        instance_id: Optional[str] = None,
         generator: Optional[Callable[[ModelInput], ModelResponse]] = None,
         expected_responses: List[ModelResponse] = [],
-        cyclic: bool = True
+        cyclic: bool = True,
+        delay: float = 3.0
     ) -> None:
-        super().__init__('', '', {}, {}, instance_id, True)
+        super().__init__('', '', {}, {}, instance_id if instance_id is not None else uuid.uuid4().hex, True)
         
         self.generator = generator
         self.expected_responses = expected_responses
         self.cyclic = cyclic
+        self.delay = delay
         
         self.length: int = len(expected_responses)
         self.iterator: int = 0
@@ -41,6 +44,7 @@ class MockConversationModel(ConversationModel):
         return copy.deepcopy(self)
 
     async def generate(self, model_input: ModelInput) -> ModelResponse:
+        await asyncio.sleep(self.delay)
         if self.generator is not None:
             try:
                 return self.generator(model_input)
@@ -53,11 +57,12 @@ class MockConversationModel(ConversationModel):
                 else:
                     raise RuntimeError(content = f"{self.__class__.__name__} has run out of expected responses")
             response = copy.deepcopy(self.expected_responses[self.iterator])
-            response.extras = {'translated_input': self.translator(model_input)}
+            # response.extras = {'translated_input': self.translator(model_input)}
             self.iterator += 1
             return response
     
     async def batch_response(self, inputs: List[ModelInput]) -> List[ModelResponse]:
+        await asyncio.sleep(self.delay)
         if self.generator is not None:
             try:
                 return [ self.generator(model_input) for model_input in inputs ]
@@ -116,6 +121,16 @@ class MockConversationModel(ConversationModel):
                 'content': record.content,
                 'tool_call_id': record.id
             })
+
+        return new_input
+    
+    def final_response_integrate(self, input: ModelInput, response: ModelResponse, **kwargs) -> ModelInput:
+        new_input: ModelInput = copy.deepcopy(input)
+        assert new_input.messages is not None
+        new_input.messages.append({
+            'role': 'assistant',
+            'content': response.response
+        })
 
         return new_input
     

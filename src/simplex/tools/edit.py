@@ -5,17 +5,19 @@ import pathlib
 
 from pathlib import Path
 from enum import Enum, auto
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Literal
 
+import simplex.io
 import simplex.basics
 import simplex.tools.base
 
+from simplex.io import UserInputInterface
 from simplex.basics import (
-    ModelInput,
     WebsocketClient,
     UnbuiltError,
     RequestError,
-    EntityInitializationError
+    UserNotify,
+    UserResponse
 )
 from simplex.tools.base import (
     ToolCollection,
@@ -24,66 +26,71 @@ from simplex.tools.base import (
     load_schema
 )
 
-class EditTools(ToolCollection):
-    class Operation(Enum):
-        view_workspace = auto()
-        show_details = auto()
-        view_file_content = auto()
-        edit_file_content = auto()
-        search = auto()
-        create = auto()
-        remove = auto()
 
+EditOperation = Literal[
+    'view_workspace',
+    'show_details',
+    'view_file_content',
+    'edit_file_content',
+    'search',
+    'create',
+    'remove',
+    'rename'
+]
+
+class EditTools(ToolCollection):
     SCHEMA_FILE: str = 'schema_edit_collections'
-    VIEW_WORKSPACE = Operation.view_workspace.name
-    SHOW_DETAILS = Operation.show_details.name
-    VIEW_FILE_CONTENT = Operation.view_file_content.name
-    EDIT_FILE_CONTENT = Operation.edit_file_content.name
-    SEARCH = Operation.search.name
-    CREATE = Operation.create.name
-    REMOVE = Operation.remove.name
 
     def __init__(
         self,
         base_dir: str | Path,
         client: WebsocketClient,
-        instance_id: str = uuid.uuid4().hex, 
-        rename_mapping: Dict[str, str] = {
-            VIEW_WORKSPACE: 'view_workspace',
-            SHOW_DETAILS: 'show_details',
-            VIEW_FILE_CONTENT: 'view_file_content',
-            EDIT_FILE_CONTENT: 'edit_file_content',
-            SEARCH: 'search',
-            CREATE: 'create',
-            REMOVE: 'remove'
+        permission_required: bool = True,
+        instance_id: Optional[str] = None, 
+        rename_mapping: Dict[EditOperation, str] = {
+            'view_workspace': 'view_workspace',
+            'show_details': 'show_details',
+            'view_file_content': 'view_file_content',
+            'edit_file_content': 'edit_file_content',
+            'search': 'search',
+            'create': 'create',
+            'remove': 'remove',
+            'rename': 'rename'
         }
     ) -> None:
-        super().__init__(instance_id, { value: f"_tool_{key}" for key, value in rename_mapping.items() })
+        super().__init__(instance_id if instance_id is not None else uuid.uuid4().hex, { value: f"_tool_{key}" for key, value in rename_mapping.items() })
         
         self.client = client
+        self.permission_required = permission_required
         self.names = rename_mapping
 
         self.base_dir: Path = Path(base_dir)
         self.initialized: bool = False
 
         self.tool_definitions = load_tool_definitions(self.SCHEMA_FILE)
-        self.view_workspace_schema = load_schema(self.SCHEMA_FILE, self.VIEW_WORKSPACE, self.names[self.VIEW_WORKSPACE])
-        self.show_details_schema = load_schema(self.SCHEMA_FILE, self.SHOW_DETAILS, self.names[self.SHOW_DETAILS])
-        self.view_file_content_schema = load_schema(self.SCHEMA_FILE, self.VIEW_FILE_CONTENT, self.names[self.VIEW_FILE_CONTENT])
-        self.edit_file_content_schema = load_schema(self.SCHEMA_FILE, self.EDIT_FILE_CONTENT, self.names[self.EDIT_FILE_CONTENT])
-        self.search_schema = load_schema(self.SCHEMA_FILE, self.SEARCH, self.names[self.SEARCH])
-        self.create_schema = load_schema(self.SCHEMA_FILE, self.CREATE, self.names[self.CREATE])
-        self.remove_schema = load_schema(self.SCHEMA_FILE, self.REMOVE, self.names[self.REMOVE])
+        self.view_workspace_schema = load_schema(self.SCHEMA_FILE, 'view_workspace', self.names['view_workspace'])
+        self.show_details_schema = load_schema(self.SCHEMA_FILE, 'show_details', self.names['show_details'])
+        self.view_file_content_schema = load_schema(self.SCHEMA_FILE, 'view_file_content', self.names['view_file_content'])
+        self.edit_file_content_schema = load_schema(self.SCHEMA_FILE, 'edit_file_content', self.names['edit_file_content'])
+        self.search_schema = load_schema(self.SCHEMA_FILE, 'search', self.names['search'])
+        self.create_schema = load_schema(self.SCHEMA_FILE, 'create', self.names['create'])
+        self.remove_schema = load_schema(self.SCHEMA_FILE, 'remove', self.names['remove'])
+        self.rename_schema = load_schema(self.SCHEMA_FILE, 'rename', self.names['rename'])
 
-        self.schemas: Dict[str, ToolSchema] = {
-            self.VIEW_FILE_CONTENT: self.view_file_content_schema,
-            self.SHOW_DETAILS: self.show_details_schema,
-            self.VIEW_FILE_CONTENT: self.view_file_content_schema,
-            self.EDIT_FILE_CONTENT: self.edit_file_content_schema,
-            self.SEARCH: self.search_schema,
-            self.CREATE: self.create_schema,
-            self.REMOVE: self.remove_schema
+        self.all_schemas: Dict[EditOperation, ToolSchema] = {
+            'view_workspace': self.view_workspace_schema,
+            'show_details': self.show_details_schema,
+            'view_file_content': self.view_file_content_schema,
+            'edit_file_content': self.edit_file_content_schema,
+            'search': self.search_schema,
+            'create': self.create_schema,
+            'remove': self.remove_schema,
+            'rename': self.rename_schema
         }
+
+        self.schemas: Dict[EditOperation, ToolSchema] = { key: value for key, value in self.all_schemas.items() if key in self.names }
+
+        self.input_interface: Optional[UserInputInterface] = None
 
     async def build(self) -> None:
         try:
@@ -110,10 +117,10 @@ class EditTools(ToolCollection):
     async def reset(self) -> None:
         pass
 
-    def get_names(self) -> List[str]:
-        return list(self.names.values())
+    async def bind_io(self, input_interface: UserInputInterface, **kwargs) -> None:
+        self.input_interface = input_interface
 
-    def get_tools(self) -> List[ToolSchema]:
+    def get_tool_schemas(self) -> List[ToolSchema]:
         return list(self.schemas.values())
     
     def tools_descriptions(self) -> str:
@@ -235,6 +242,11 @@ class EditTools(ToolCollection):
         if not self.initialized:
             raise UnbuiltError(self.__class__.__name__)
         
+        if self.input_interface and self.permission_required:
+            user_response = await self.input_interface.notify_user(UserNotify('permission', f"Do you allow agent to create file: {target_path}?"))
+            if not user_response.permitted:
+                return f"[ERROR]: Permission error! {user_response.reason}"
+        
         query: Dict = {
             'type': 'touch',
             'target_path': target_path,
@@ -253,9 +265,37 @@ class EditTools(ToolCollection):
         if not self.initialized:
             raise UnbuiltError(self.__class__.__name__)
         
+        if self.input_interface and self.permission_required:
+            user_response = await self.input_interface.notify_user(UserNotify('permission', f"Do you allow agent to remove file or directories: {target_path}?"))
+            if not user_response.permitted:
+                return f"[ERROR]: Permission error! {user_response.reason}"
+        
         query: Dict = {
             'type': 'remove',
             'target_path': target_path
+        }
+
+        try:
+            response: str = await self.client.exchange(json.dumps(query))
+            if response is None:
+                raise RequestError(content = f'unable to access {self.client.url}')
+            return response.strip()
+        except Exception:
+            raise
+
+    async def _tool_rename(self, src_path: str, dst_path: str, **kwargs) -> str:
+        if not self.initialized:
+            raise UnbuiltError(self.__class__.__name__)
+
+        if self.input_interface and self.permission_required:
+            user_response = await self.input_interface.notify_user(UserNotify('permission', f"Do you allow agent to move {src_path} to {dst_path}?"))
+            if not user_response.permitted:
+                return f"[ERROR]: Permission error! {user_response.reason}"
+        
+        query: Dict = {
+            'type': 'rename',
+            'src_path': src_path,
+            'dst_path': dst_path
         }
 
         try:

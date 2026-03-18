@@ -7,12 +7,14 @@ import asyncio
 
 from datetime import datetime
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from typing import Literal, Coroutine, List, Dict, Optional, Any
 
 import simplex.basics
 import simplex.context
 import simplex.models
 import simplex.tools
+import simplex.io
 
 from simplex.basics import (
     ModelInput,
@@ -24,13 +26,20 @@ from simplex.basics import (
     EntityInitializationError,
     PromptTemplate,
     RequestError,
-    Notice
+    Notice,
+    UnbuiltError,
+    RuntimeError,
+    AgentLoopStateEdit,
+    UserMessage,
+    ExceptionHandler,
+    LogExceptionHandler
 )
 from simplex.context import ContextPlugin
 from simplex.models import ConversationModel
 from simplex.tools import ToolCollection
+from simplex.io import UserInputInterface, UserOutputInterface
 
-
+'''
 class ExceptionHandler(ABC):
     """
     Handles exceptions generated during the agent loop execution.
@@ -41,7 +50,7 @@ class ExceptionHandler(ABC):
     (similar to the return value of asyncio.gather), as well as process individual exceptions.
     """
 
-    def __init__(self, instance_id) -> None:
+    def __init__(self, instance_id: str) -> None:
         super().__init__()
         self.__instance_id = instance_id
 
@@ -75,9 +84,10 @@ class ExceptionHandler(ABC):
         return copy.deepcopy(self)
 
 class LogExceptionHandler(ExceptionHandler):
-    def __init__(self, instance_id = uuid.uuid4().hex) -> None:
-        super().__init__(instance_id)
-        self.content: str = ''
+    def __init__(self, instance_id: Optional[str] = None, content: str = '', file: Any = sys.stderr) -> None:
+        super().__init__(instance_id if instance_id is not None else uuid.uuid4().hex)
+        self.content: str = content
+        self.file = file
 
     def handle_exception(self, exception: Exception) -> None:
         """
@@ -93,170 +103,166 @@ class LogExceptionHandler(ExceptionHandler):
         """
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         message = f"[{current_time}] {type(exception).__name__}: {exception}\n"
-        print(message, file = sys.stderr)
+        if self.file:
+            print(message, file = self.file)
         self.content += message
+
+    def clone(self) -> "LogExceptionHandler":
+        return LogExceptionHandler(
+            instance_id = uuid.uuid4().hex, 
+            content = self.content, 
+            file = self.file
+        )
 
     def __str__(self) -> str:
         return self.content
     
     def __repr__(self) -> str:
         return f"LogExceptionHandler(key={repr(self.key)}, content={repr(self.content)})"
-
-async def call_coroutine_functions(
-    target_list: List[Any],
-    names: str | List[str],
-    arguments: Dict[str, Any] | List[Dict[str, Any]],
-    exception_handler: ExceptionHandler
-) -> List[Any]:
-    """
-    Asynchronously call coroutine functions on multiple target objects.
-
-    This function dynamically invokes specified coroutine methods on a list of target objects,
-    handles input parameter normalization (supports single/multiple names/arguments),
-    validates the existence and type of target methods, executes all coroutines concurrently,
-    and passes the results (including exceptions) to the specified exception handler.
-
-    Args:
-        target_list: List of target objects on which coroutine functions will be called
-        names: Single method name (str) or list of method names (one per target in target_list)
-        arguments: Single dict of keyword arguments (applied to all targets) or list of dicts
-                   (one argument dict per target in target_list)
-        exception_handler: Instance of ExceptionHandler (or compatible callable) to process
-                           exceptions from the async gather results
-
-    Returns:
-        List of results from asyncio.gather (includes return values or exceptions for each call)
-
-    Raises:
-        AssertionError: If the length of names/arguments list doesn't match target_list length
-        AttributeError: Indirectly (via Notice exception) if target lacks the specified attribute
-        TypeError: Indirectly (via Notice exception) if target attribute is not a coroutine function
-
-    Notes:
-        - Uses asyncio.gather with return_exceptions=True to ensure all coroutines complete
-        - Creates deep copies of the argument dict when applying a single dict to multiple targets
-        - Validates that target attributes are callable coroutine functions before execution
-    """
-    async def call_exception(exception: Exception) -> Exception:
-        return exception
-    
-    num_targets = len(target_list)
-    
-    # Normalize names: convert single string to list of same name for all targets
-    if isinstance(names, list):
-        assert len(names) == num_targets, 'names list length must match target list length'
-        names_used = names
-    elif isinstance(names, str):
-        names_used = [names] * num_targets
-    
-    # Normalize arguments: convert single dict to deep-copied list for all targets
-    if isinstance(arguments, list):
-        assert len(arguments) == num_targets, 'arguments list length must match target list length'
-        arguments_used = arguments
-    elif isinstance(arguments, dict):
-        arguments_used = [ copy.deepcopy(arguments) for _ in range(num_targets) ]
-
-    call_list: List = []
-    for name, argument, target in zip(names_used, arguments_used, target_list):
-        if not hasattr(target, name):
-            call_list.append(call_exception(Notice(f"{repr(target)} doesn't have attribute: {name}")))
-            continue
-        
-        target_function = getattr(target, name)
-        if not callable(target_function) or not inspect.iscoroutinefunction(target_function):
-            call_list.append(call_exception(Notice(f"{repr(target)} doesn't have a coroutine function named: {name}")))
-            continue
-        
-        call_list.append(target_function(**argument))
-
-    # Execute all coroutines concurrently (return exceptions instead of raising)
-    result_list = await asyncio.gather(*call_list, return_exceptions = True)
-    # Pass results (including exceptions) to exception handler for processing
-    exception_handler(result_list)
-    return result_list
-
-def call_functions(
-    target_list: List[Any],
-    names: str | List[str],
-    arguments: Dict[str, Any] | List[Dict[str, Any]],
-    exception_handler: ExceptionHandler
-) -> List[Any]:
-    """
-    Synchronously call methods on multiple target objects with error handling.
-
-    This function dynamically invokes specified methods on a list of target objects,
-    normalizes input parameters (supports single/multiple names/arguments), validates
-    the existence and callability of target methods, catches exceptions during execution,
-    and passes all results (including exceptions/Notices) to the specified exception handler.
-
-    Unlike the async version, this function executes method calls sequentially and
-    synchronously, without using asyncio.
-
-    Args:
-        target_list: List of target objects on which methods will be called
-        names: Single method name (str) applied to all targets, or list of method names
-               (one name per target in target_list, must match length)
-        arguments: Single dict of keyword arguments (deep-copied for each target) or list
-                   of dicts (one argument dict per target, must match target_list length)
-        exception_handler: Instance of ExceptionHandler to process exceptions/Notices
-                           in the result list
-
-    Returns:
-        List of results from method calls:
-        - Return value of the method if execution succeeds
-        - Notice instance if target lacks the attribute/method
-        - Exception instance if method execution raises an error
-
-    Raises:
-        AssertionError: If length of names/arguments list does not match target_list length
-    """
-    num_targets = len(target_list)
-    
-    # Normalize names: convert single string to list of same name for all targets
-    if isinstance(names, list):
-        assert len(names) == num_targets, 'names list length must match target list length'
-        names_used = names
-    elif isinstance(names, str):
-        names_used = [names] * num_targets
-    
-    # Normalize arguments: convert single dict to deep-copied list for all targets
-    if isinstance(arguments, list):
-        assert len(arguments) == num_targets, 'arguments list length must match target list length'
-        arguments_used = arguments
-    elif isinstance(arguments, dict):
-        arguments_used = [ copy.deepcopy(arguments) for _ in range(num_targets) ]
-
-    result_list: List[Any] = []
-    for name, argument, target in zip(names_used, arguments_used, target_list):
-        if not hasattr(target, name):
-            result_list.append(Notice(f"{repr(target)} doesn't have attribute: {name}"))
-            continue
-        
-        target_function = getattr(target, name)
-        if not callable(target_function):
-            result_list.append(Notice(f"{repr(target)} doesn't have a method named: {name}"))
-            continue
-        
-        try:
-            result = target_function(**argument)
-        except Exception as e:
-            result = e
-
-        result_list.append(result)
-
-    # Pass results (including exceptions) to exception handler for processing
-    exception_handler(result_list)
-    return result_list
+'''
 
 # ------------------------------ #
-# Loop actions definitions       #
+# Adapter definitions            #
+# ------------------------------ #
+class AgentLoopAdapter(ABC):
+    """
+    The AgentLoopAdapter class is the base class of AgentLoop, which defines a series of interfaces 
+    for adapting to UserLoop. In fact, this means that AgentLoop itself can be regarded as its own Adapter. 
+    The role of the Adapter is to add sampling logic to AgentLoop. 
+
+    The UserLoop class can accept an AgentLoopAdapter (e.g., the ParallelSampleAdapter that wraps a raw AgentLoop, 
+    which is used to implement diverse agent trajectory sampling logic) as the core logic for handling agent loops.
+    
+    Also see:
+        class AgentLoop
+    """
+    
+    def __init__(self) -> None:
+        super().__init__()
+    
+    @abstractmethod
+    async def build(self) -> None:
+        pass
+
+    @abstractmethod
+    async def release(self) -> None:
+        pass
+
+    @abstractmethod
+    async def reset(self) -> None:
+        pass
+
+    @abstractmethod
+    def clone(self) -> "AgentLoopAdapter":
+        pass
+
+    @abstractmethod
+    async def bind_io(self, input_interface: UserInputInterface, output_interface: UserOutputInterface) -> None:
+        pass
+
+    @abstractmethod
+    async def complete(
+        self,
+        system: Optional[PromptTemplate] = None,
+        user: Optional[PromptTemplate] = None,
+        history: Optional[List[Dict]] = None, # standard openai message list
+        **kwargs
+    ) -> ModelInput:
+        pass
+
+    async def __aenter__(self):
+        await self.build()
+        return self
+    
+    async def __aexit__(self, exc_type, exc, tb):
+        await self.release()
+        return False
+
+# ------------------------------ #
+# UserLoop definitions           #
+# ------------------------------ #
+class UserLoop:
+    """
+    Manages the user interaction loop for an AI agent conversation session.
+    
+    This class orchestrates the high-level conversation flow between a user and an AI agent.
+    It handles receiving user messages through an input interface, delegating processing
+    to an AgentLoopAdapter, and optionally maintaining conversation history across turns.
+    
+    The UserLoop serves as the outermost control layer, wrapping the agent's internal
+    processing loop (AgentLoop/AgentLoopAdapter) with user-facing I/O management.
+    
+    Attributes:
+        __input_interface: Interface for receiving user messages (UserInputInterface)
+        __output_interface: Interface for sending responses to user (UserOutputInterface)
+        __agent_loop: The underlying agent loop adapter handling model interactions
+        __keep_history: Whether to preserve conversation history between turns
+        __complete_configs: Additional configuration parameters passed to complete()
+    
+    Example:
+        ```python
+        async with UserLoop(input_if, output_if, agent_loop) as loop:
+            await loop.serve()
+        ```
+    
+    Also see:
+        class AgentLoop
+        class AgentLoopAdapter
+    """
+
+    def __init__(
+        self,
+        input_interface: UserInputInterface,
+        output_interface: UserOutputInterface,
+        agent_loop: AgentLoopAdapter,
+        keep_history: bool = True,
+        complete_configs: Optional[Dict] = None
+    ) -> None:
+        self.__input_interface = input_interface
+        self.__output_interface = output_interface
+        self.__agent_loop = agent_loop
+        self.__keep_history = keep_history
+
+        self.__complete_configs: Dict = complete_configs if complete_configs is not None else {}
+
+    async def _do_serve(self, loop: AgentLoopAdapter) -> None:
+        # Initialize history list
+        history: List[Dict] = []
+        while True:
+            # Get next user message
+            user_message: UserMessage = await self.__input_interface.next_message()
+            
+            if user_message.quit:
+                break
+            
+            # Do complete
+            finalized_input: ModelInput = await loop.complete(
+                system = user_message.system_prompt,
+                user = user_message.user_prompt,
+                history = history,
+                **self.__complete_configs
+            )
+
+            # Assign message list to history if 'keep_history'
+            if self.__keep_history and finalized_input.messages:
+                history = copy.deepcopy(finalized_input.messages)
+
+    async def serve(self) -> None:
+        # Bind i/o interface BEFORE 'build()'
+        await self.__agent_loop.bind_io(self.__input_interface, self.__output_interface)
+        async with self.__agent_loop as loop: # 'build()' is called here
+            await self._do_serve(loop)
+
+# ------------------------------ #
+# AgentLoop definitions          #
 # ------------------------------ #
 """Literal type defining all valid loop action names for AgentLoop lifecycle events"""
-LoopAction = Literal[
+AgentLoopAction = Literal[
     'build',                      # Initialize resources (async)
     'release',                    # Clean up resources (async)
     'reset',                      # Reset loop state (async)
     'clone',                      # Create copy of instance (sync)
+    'bind_io',                    # Bind input/output interfaces (async)
     'process_prompt',             # Preprocess prompt templates (sync)
     'start_loop',                 # Execute before main loop starts (sync)
     'start_loop_async',           # Execute before main loop starts (async)
@@ -272,7 +278,7 @@ LoopAction = Literal[
     'on_loop_end_async'           # Run at end of iteration (async)
 ]
 
-class AgentLoop:
+class AgentLoop(AgentLoopAdapter):
     """
     Core class managing the lifecycle and execution loop of an AI agent
     
@@ -314,6 +320,7 @@ class AgentLoop:
             EntityInitializationError: If initialization fails (duplicate keys/tools)
             ConflictError: If duplicate instance keys or tool names are detected
         """
+        super().__init__()
 
         # Core dependencies
         self.__model = model
@@ -335,30 +342,48 @@ class AgentLoop:
         self.__model_input: ModelInput = ModelInput()
         self.__model_response: ModelResponse = ModelResponse()
         self.__tool_returns: List[ToolReturn] = []
-        self.__exit_flag: List[bool] = [False]
+        self.__exit_flag: bool = False
+
+        # Object state managemnt
+        self.__initialized: bool = False
 
         try:
-            # Register all provided tool/context instances
-            for instance in args:
-                if instance.key in self.__instances:
-                    raise ConflictError(f"duplicated instance key: {instance.key}")
-                self.__instances[instance.key] = instance
-                
-                if isinstance(instance, ToolCollection):
-                    self.__tools.append(instance)
-                elif isinstance(instance, ContextPlugin):
-                    self.__contexts.append(instance)
-
-            for tool in self.__tools:
-                schemas = tool.get_tools()
-                for schema in schemas:
-                    if schema.name in self.__tool_mapping:
-                        raise ConflictError(f"duplicated tool name \'{schema.name}\' from collection: {repr(tool)}")
-                    self.__tool_mapping[schema.name] = tool
-                self.__tool_schemas.extend(schemas)
+            self.add_instance(*args)
         except Exception as e:
             raise EntityInitializationError(self.__class__.__name__, e)
+        
+    def add_instance(self, *args: ToolCollection | ContextPlugin) -> None:
+        """
+        Register instances and build tool-mapping based on schemas.
 
+        Args:
+            *args: Variable list of ToolCollection/ContextPlugin instances to register
+
+        Returns:
+            None
+        """
+
+        if self.__initialized:
+            raise RuntimeError(content = f"{self.__class__.__name__}: unable to add instances after \'build\' is called")
+        
+        # Register all provided tool/context instances
+        for instance in args:
+            if instance.key in self.__instances:
+                raise ConflictError(f"duplicated instance key: {instance.key}")
+            self.__instances[instance.key] = instance
+
+            if isinstance(instance, ToolCollection):
+                self.__tools.append(instance)
+                schemas = instance.get_tool_schemas()
+                for schema in schemas:
+                    if schema.name in self.__tool_mapping:
+                        raise ConflictError(f"duplicated tool name \'{schema.name}\' from collection: {repr(instance)}")
+                    self.__tool_mapping[schema.name] = instance
+                self.__tool_schemas.extend(schemas)
+
+            elif isinstance(instance, ContextPlugin):
+                self.__contexts.append(instance)
+            
     def __getitem__(self, instance_key: str) -> ToolCollection | ContextPlugin:
         """
         Access registered instances by key (dict-like access)
@@ -381,7 +406,26 @@ class AgentLoop:
         """
         return list(self.__instances.values())
     
-    def _call_sequential(self, name: LoopAction, *args, **kwargs) -> List[Any]:
+    @property
+    def _captured_states(self) -> Dict[str, Any]:
+        """
+        Capture current loop state for lifecycle hook arguments
+        
+        Returns:
+            Dictionary containing current loop state variables
+        """
+        captured_states = {
+            'iter': self.__iter,
+            'system_prompt': self.__system_prompt,
+            'user_prompt': self.__user_prompt,
+            'model_input': self.__model_input,
+            'model_response': self.__model_response,
+            'tool_returns': self.__tool_returns,
+            'exit_flag': self.__exit_flag
+        }
+        return captured_states
+    
+    def _call_sequential(self, name: AgentLoopAction, params: Optional[Dict] = None) -> List[Any]:
         """
         Execute synchronous lifecycle hooks across all instances
         
@@ -397,6 +441,8 @@ class AgentLoop:
         Returns:
             List of results/errors from method execution
         """
+
+        captured: Dict[str, Any] = self._captured_states
         results: List[Any] = []
         for instance in self._instance_list:
             if not hasattr(instance, name):
@@ -410,16 +456,35 @@ class AgentLoop:
                 continue
 
             try:
-                result = target(*args, **kwargs)
+                if params is not None:
+                    result = target(**params)
+                else:
+                    result = target(**copy.deepcopy(captured))
             except Exception as e:
                 result = e
             results.append(result)
 
         # Pass results to exception handler
         self.__exception_handler(results)
+
+        for result in results:
+            if isinstance(result, AgentLoopStateEdit):
+                if result.system_prompt:
+                    self.__system_prompt = result.system_prompt
+                if result.user_prompt:
+                    self.__user_prompt = result.user_prompt
+                if result.model_input:
+                    self.__model_input = result.model_input
+                if result.model_response:
+                    self.__model_response = result.model_response
+                if result.tool_returns:
+                    self.__tool_returns = result.tool_returns
+                if result.exit_flag:
+                    self.__exit_flag = result.exit_flag
+
         return results
     
-    async def _call_async(self, name: LoopAction, *args, **kwargs) -> List[Any]:
+    async def _call_async(self, name: AgentLoopAction, params: Optional[Dict] = None) -> List[Any]:
         """
         Execute asynchronous lifecycle hooks across all instances
         
@@ -439,6 +504,7 @@ class AgentLoop:
             # Helper to return exceptions as async results
             return exception
         
+        captured: Dict[str, Any] = self._captured_states
         tasks: List[Coroutine[Any, Any, Any]] = []
         for instance in self._instance_list:
             if not hasattr(instance, name):
@@ -450,8 +516,11 @@ class AgentLoop:
             if not callable(target) or not inspect.iscoroutinefunction(target):
                 tasks.append(_return_exception(Notice(f"{repr(instance)} doesn't have a coroutine function named: {name}")))
                 continue
-
-            tasks.append(target(*args, **kwargs))
+            
+            if params is not None:
+                tasks.append(target(**params))
+            else:
+                tasks.append(target(**copy.deepcopy(captured)))
 
         # Execute all async tasks concurrently (return exceptions instead of raising)
         results: List[Any] = await asyncio.gather(*tasks, return_exceptions = True)
@@ -461,11 +530,13 @@ class AgentLoop:
     
     async def build(self) -> None:
         # Trigger async build lifecycle hook for all instances
-        await self._call_async('build')
+        await self._call_async('build', params = {})
+        self.__initialized = True
 
     async def release(self) -> None:
         # Trigger async release lifecycle hook for all instances
-        await self._call_async('release')
+        await self._call_async('release', params = {})
+        self.__initialized = False
 
     async def reset(self) -> None:
         """
@@ -480,8 +551,8 @@ class AgentLoop:
         self.__model_input = ModelInput()
         self.__model_response = ModelResponse()
         self.__tool_returns = []
-        self.__exit_flag = [False]
-        await self._call_async('reset')
+        self.__exit_flag = False
+        await self._call_async('reset', params = {})
 
     def clone(self) -> "AgentLoop":
         """
@@ -493,11 +564,48 @@ class AgentLoop:
         Returns:
             New AgentLoop instance with cloned dependencies
         """
+
+        if not self.__initialized:
+            raise UnbuiltError(self.__class__.__name__)
+
         return AgentLoop(
             self.__model.clone(),
             self.__exception_handler.clone(),
-            *self._call_sequential('clone')
+            *self._call_sequential('clone', params = {})
         )
+    
+    async def bind_io(
+        self,
+        input_interface: UserInputInterface,
+        output_interface: UserOutputInterface
+    ) -> None:
+        """
+        Bind user input and output interfaces to the loop
+        
+        This method allows dynamic assignment of I/O interfaces, which can be used
+        by plugins/tools during lifecycle hooks to interact with users.
+        
+        Args:
+            input_interface: UserInputInterface instance for receiving input
+            output_interface: UserOutputInterface instance for sending output
+            
+        Returns:
+            None
+        """
+
+        if self.__initialized:
+            raise RuntimeError(content = f"{self.__class__.__name__}: unable to add instances after \'build\' is called")
+
+        await self._call_async('bind_io', params = {
+            'input_interface': input_interface,
+            'output_interface': output_interface
+        })
+        input_plugin = input_interface.get_input_plugin()
+        output_plugin = output_interface.get_output_plugin()
+        if input_plugin:
+            self.add_instance(input_plugin)
+        if output_plugin:
+            self.add_instance(output_plugin)
     
     async def complete(
         self,
@@ -507,8 +615,9 @@ class AgentLoop:
         max_iteration: int = 30,
         timeout: float = 120,
         max_retry: int = 5,
-        keep_original_system: bool = False
-    ) -> ModelResponse:
+        keep_original_system: bool = False,
+        **kwargs
+    ) -> ModelInput:
         """
         Execute main agent loop to generate a complete response
         
@@ -531,24 +640,6 @@ class AgentLoop:
             RuntimeError: If model generation fails after max_retry attempts
             Exception: For fatal errors during execution
         """
-         
-        def _capture(deep_copy = False) -> Dict:
-            """
-            Capture current loop state for lifecycle hook arguments
-            
-            Returns:
-                Dictionary containing current loop state variables
-            """
-            captured_states = {
-                'iter': self.__iter,  # read only
-                'system_prompt': self.__system_prompt,
-                'user_prompt': self.__user_prompt,
-                'model_input': self.__model_input,
-                'model_response': self.__model_response,
-                'tool_returns': self.__tool_returns,
-                'exit_flag': self.__exit_flag
-            }
-            return copy.deepcopy(captured_states) if deep_copy else captured_states
         
         async def tool_not_exists(original_call: ToolCall):
             """
@@ -562,44 +653,49 @@ class AgentLoop:
             """
             return ToolReturn(content = f'[ERROR]: Tool {original_call.name} not exists. Please try again.', original_call = original_call)
         
+        if not self.__initialized:
+            raise UnbuiltError(self.__class__.__name__)
+        
         # Initialize prompt templates
         self.__system_prompt = system if system is not None else PromptTemplate()
         self.__user_prompt = user if user is not None else PromptTemplate()
         
         # Default to empty history if None provided
         if history is None:
-            history = []
+            used_history = []
+        else:
+            used_history = copy.deepcopy(history)
 
         # Process system prompt from history
-        if len(history) > 0 and history[0].get('role', '') == 'system':
+        if len(used_history) > 0 and used_history[0].get('role', '') == 'system':
             if keep_original_system:
                 # Append new system prompt to original if requested
-                self.__system_prompt = history[0].get('content', '') + self.__system_prompt
+                self.__system_prompt = used_history[0].get('content', '') + self.__system_prompt
             # Remove original system prompt to avoid duplication
-            history.pop(0)
+            used_history.pop(0)
 
         # Preprocess prompts through lifecycle hook
-        self._call_sequential('process_prompt', **_capture())
+        self._call_sequential('process_prompt')
 
         # Rebuild message history with processed prompts
-        history.insert(0, {'role': 'system', 'content': str(self.__system_prompt)})
+        used_history.insert(0, {'role': 'system', 'content': str(self.__system_prompt)})
         # Append new user prompt for multi-turn chat completion
-        history.append({'role': 'user', 'content': str(self.__user_prompt)})
+        used_history.append({'role': 'user', 'content': str(self.__user_prompt)})
 
         # Prepare model input with messages and tool schemas
-        self.__model_input = ModelInput(messages = history, tools = self.__tool_schemas)
+        self.__model_input = ModelInput(messages = used_history, tools = self.__tool_schemas)
 
         # Execute pre-loop lifecycle hooks (async first to avoid state modification)
-        await self._call_async('start_loop_async', **_capture(deep_copy = True))
-        self._call_sequential('start_loop', **_capture())
+        await self._call_async('start_loop_async')
+        self._call_sequential('start_loop')
 
         # Main iteration loop
         for curr_iter in range(max_iteration):
             self.__iter = curr_iter
             
             # Pre-response lifecycle hooks
-            await self._call_async('before_response_async', **_capture(deep_copy = True))
-            self._call_sequential('before_response', **_capture())
+            await self._call_async('before_response_async')
+            self._call_sequential('before_response')
             
             # Model generation with retry logic
             for attempt in range(max_retry + 1):
@@ -609,7 +705,7 @@ class AgentLoop:
                     self.__exception_handler(e, Notice(f"model endpoint retry attempt [{attempt}/{max_retry}]"))
                     if attempt == max_retry:
                         # Raise error after final failed attempt
-                        raise RuntimeError(f"failed to receive from model endpoint after {max_retry} attempts")
+                        raise RuntimeError(content = f"failed to receive from model endpoint after {max_retry} attempts")
                     await asyncio.sleep(0.5)
                     continue
                 except Exception as e:
@@ -619,8 +715,8 @@ class AgentLoop:
                 break
             
             # Post-response lifecycle hooks
-            await self._call_async('after_response_async', **_capture(deep_copy = True))
-            self._call_sequential('after_response', **_capture())
+            await self._call_async('after_response_async')
+            self._call_sequential('after_response')
             
             # Process tool calls if present in response
             if self.__model_response.tool_call is not None and len(self.__model_response.tool_call) > 0:
@@ -658,28 +754,31 @@ class AgentLoop:
                 self.__exception_handler(tool_return_with_exceptions)
 
                 # Post-tool-execution lifecycle hooks
-                await self._call_async('after_tool_call_async', **_capture(deep_copy = True))
-                self._call_sequential('after_tool_call', **_capture())
+                await self._call_async('after_tool_call_async')
+                self._call_sequential('after_tool_call')
 
                 # Update model input for next iteration
                 self.__model_input = self.__model.tool_return_integrate(self.__model_input, self.__model_response, self.__tool_returns)
 
             elif self.__model_response.response is not None and len(self.__model_response.response) > 0:
                 # Post-final-response lifecycle hooks
-                await self._call_async('after_final_response_async', **_capture(deep_copy = True))
-                self._call_sequential('after_final_response', **_capture())
+                await self._call_async('after_final_response_async')
+                self._call_sequential('after_final_response')
+
+                # Update model input for output
+                self.__model_input = self.__model.final_response_integrate(self.__model_input, self.__model_response)
                 break # Terminate loop (final answer generated)
             
             # End-of-iteration lifecycle hooks
-            await self._call_async('on_loop_end_async', **_capture(deep_copy = True))
-            self._call_sequential('on_loop_end', **_capture())
+            await self._call_async('on_loop_end_async')
+            self._call_sequential('on_loop_end')
 
             # Check for early exit flag
-            if self.__exit_flag[0]:
+            if self.__exit_flag:
                 break
         
         # Return final model response
-        return self.__model_response
+        return self.__model_input
 
     async def __aenter__(self):
         # Async context manager entry point - build resources

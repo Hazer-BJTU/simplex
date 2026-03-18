@@ -1,0 +1,23 @@
+subprocess_executor:
+  description: >-
+    Executes bash commands in the local environment under a specified working directory.
+    This tool requires user permission before execution to ensure security.
+    It captures both standard output (STDOUT) and standard error (STDERR) of the command execution,
+    and returns detailed execution results or error information if the command fails.
+    Always remember that every bash execution you made will be reported to the user and permission is required. 
+    This is automatically handled by the agent system.
+  params:
+    - field: cwd
+      type: string
+      description: >-
+        The current working directory (CWD) where the bash command will be executed.
+        Please use an absolute path or a valid relative path in the local filesystem.
+      required: True
+
+    - field: command
+      type: string
+      description: >-
+        The bash command to be executed. This can be a single command or a series of commands
+        combined with bash syntax (e.g., "ls -l && grep .py"). Do not include sensitive operations
+        (such as rm -rf /) unless explicitly authorized by the user.
+      required: True

@@ -1,0 +1,228 @@
+title: Bash Python Runner
+description: Provides instructions on how to use bash commands to correctly run Python scripts and manage Python environments for AI code agents.
+tags: ['bash', 'python', 'environment', 'script execution', 'ai agent', 'command line']
+
+content: |
+  # Bash Python Runner
+
+  This skill provides comprehensive guidance on executing Python scripts via bash commands and managing Python environments effectively for AI code agents. It covers best practices for ensuring consistent execution environments and avoiding common pitfalls.
+
+  This skill focuses on advanced methods for executing Python scripts via bash commands and managing Python environments (including venv, conda, and uv) for AI code agents, particularly in non-interactive contexts.
+  ## Core Commands
+
+  ### 1. Running Python Scripts
+
+  To execute a Python script from the command line:
+
+  ```bash
+  python script_name.py
+  ```
+
+  For Python 3 specifically (recommended):
+  ```bash
+  python3 script_name.py
+  ```
+
+  To pass arguments to the script:
+  ```bash
+  python3 script_name.py arg1 arg2 arg3
+  ```
+
+  ### 2. Managing Python Environments
+
+  #### Creating a Virtual Environment
+  ```bash
+  python3 -m venv myenv
+  ```
+
+  Where `myenv` is the name of your virtual environment directory.
+
+  #### Activating a Virtual Environment
+  ```bash
+  source myenv/bin/activate  # On Linux/macOS
+  # OR
+  myenv\Scripts\activate     # On Windows
+  ```
+
+  After activation, your prompt should change to indicate the active environment:
+  ```bash
+  (myenv) $
+  ```
+
+  #### Deactivating a Virtual Environment
+  ```bash
+  deactivate
+  ```
+
+  #### Installing Packages in an Environment
+  With the environment activated:
+  ```bash
+  pip install package_name
+  ```
+
+  Or install from a requirements file:
+  ```bash
+  pip install -r requirements.txt
+  ```
+
+  ## Best Practices for AI Agents
+
+  1. **Always Use Virtual Environments**: Ensure each project has its own isolated environment to prevent dependency conflicts.
+
+  2. **Check Python Version**: Verify the correct Python version before running scripts:
+  ## Best Practices for AI Agents
+
+  1. **Always Use Virtual Environments**: Ensure each project has its own isolated environment (venv, conda, uv) to prevent dependency conflicts.
+
+  3. **Use Full Paths**: When scripting, use absolute paths to avoid issues with current working directory:
+     ```bash
+     /full/path/to/script.py
+     ```
+     /full/path/to/script.py
+     ```
+
+  3. **Capture Output**: Use redirection to capture output or errors:
+     ```bash
+     python3 script.py > output.log 2>&1
+     ```
+
+  4. **Verify Execution Success**: Check the exit status after running a command:
+     ```bash
+     python3 script.py
+     echo $?  # This shows the exit code of the last command
+     ```
+
+  5. **Environment Activation in Scripts**: Include explicit activation in automated scripts:
+     ```bash
+     #!/bin/bash
+     source myenv/bin/activate
+     python3 my_script.py
+     deactivate
+     ```
+  4. **Capture Output**: Use redirection to capture output or errors:
+     ```bash
+     python3 script.py > output.log 2>&1
+     ```
+
+  5. **Verify Execution Success**: Check the exit status after running a command:
+     ```bash
+     python3 script.py
+     echo $?  # This shows the exit code of the last command
+     ```
+
+  6. **Environment Activation in Scripts**: Include explicit activation in automated scripts:
+     ```bash
+     #!/bin/bash
+     source myenv/bin/activate
+     python3 my_script.py
+     deactivate
+     ```
+  ## Advanced Environment Management
+
+  ### Using Conda
+  Conda is a powerful package and environment manager that works well with Python projects, especially in data science contexts.
+
+  Creating a conda environment:
+  ```bash
+  conda create -n env_name python=3.x
+  ```
+
+  Activating a conda environment:
+  ```bash
+  conda activate env_name
+  ```
+
+  Deactivating a conda environment:
+  ```bash
+  conda deactivate
+  ```
+
+  Installing packages in a conda environment:
+  ```bash
+  conda install package_name
+  # OR
+  conda env update -f environment.yml
+  ```
+
+  ### Using uv for Fast Dependency Management
+  `uv` is a fast Python package installer and resolver.
+
+  Installing uv (requires Python 3.8+):
+  ```bash
+  pip install uv
+  ```
+
+  Creating a virtual environment with uv:
+  ```bash
+  uv venv .venv
+  ```
+
+  Activating the environment created by uv:
+  ```bash
+  source .venv/bin/activate  # On Linux/macOS
+  # OR
+  .venv\Scripts\activate     # On Windows
+  ```
+
+  Installing dependencies with uv (from pyproject.toml or requirements.txt):
+  ```bash
+  uv sync               # Installs from pyproject.toml
+  # OR
+  uv pip install -r requirements.txt
+  ```
+
+  ### Non-Interactive Terminal Execution
+
+  When running commands in non-interactive environments (like CI/CD pipelines, Docker containers, or scheduled tasks), special care is needed to ensure proper execution flow.
+
+  #### Concatenating Commands
+  Use `&&` to chain commands so that subsequent commands only run if the previous ones succeed:
+  ```bash
+  source myenv/bin/activate && python3 my_script.py && deactivate
+  ```
+
+  Use `;` to run commands sequentially regardless of success/failure:
+  ```bash
+  source myenv/bin/activate ; python3 my_script.py ; deactivate
+  ```
+
+  Use `||` to run alternative commands if the first fails:
+  ```bash
+  python3 my_script.py || echo "Script failed"
+  ```
+
+  #### Running Scripts Without Interactive Activation
+  To run Python scripts without manually activating the environment, specify the full path to the Python interpreter within the environment:
+  ```bash
+  /path/to/myenv/bin/python3 script.py
+  # OR for conda
+  /path/to/conda/envs/env_name/bin/python3 script.py
+  # OR for uv
+  .venv/bin/python3 script.py
+  ```
+
+  This approach is often preferred in automated scripts and deployment scenarios.
+
+  ## Troubleshooting Common Issues
+
+  ## Troubleshooting Common Issues
+
+  ### Command Not Found
+  If you encounter `python: command not found`, check:
+  - If Python is installed on the system
+  - If Python is added to your PATH variable
+  - Try using `python3` instead of `python`
+
+  ### Permission Denied
+  If you get permission errors, try:
+  ```bash
+  chmod +x script_name.py
+  ```
+  Then run with `./script_name.py`.
+
+  ### Module Not Found Error
+  This usually indicates that required packages aren't installed in the active environment. Activate your environment and install the necessary packages:
+  ```bash
+  source myenv/bin/activate
+  pip install -r requirements.txt
+  ```

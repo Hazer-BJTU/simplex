@@ -1,0 +1,99 @@
+title: Python Environment Manager
+description: Manages Python virtual environments for isolated project dependency management.
+tags: ['python', 'environment', 'virtualenv', 'venv', 'dependency', 'management']
+
+content: |
+  # Python Environment Manager
+  
+  This skill provides comprehensive guidance for creating, activating, and managing Python virtual environments to avoid dependency conflicts across projects.
+  
+  ## Core Concepts
+  
+  ### What is a Python Virtual Environment?
+  - **Definition**: A self-contained directory that houses a Python installation and project-specific packages
+  - **Purpose**: Isolates project dependencies from the system Python and other projects
+  - **Key Tools**: `venv` (built-in), `virtualenv`, `conda`
+  
+  ## Step-by-Step Usage
+  
+  ### 1. Create a Virtual Environment
+  #### Using built-in `venv` (Python 3.3+)
+  ```bash
+  # Basic creation
+  python -m venv my_project_env
+  
+  # Specify Python version (if multiple versions installed)
+  python3.11 -m venv my_project_env
+  ```
+  
+  #### Using `virtualenv` (third-party)
+  ```bash
+  # Install virtualenv first
+  pip install virtualenv
+  
+  # Create environment
+  virtualenv my_project_env
+  ```
+  
+  ### 2. Activate the Environment
+  #### Windows (Command Prompt)
+  ```cmd
+  my_project_env\Scripts\activate.bat
+  ```
+  
+  #### Windows (PowerShell)
+  ```powershell
+  .\my_project_env\Scripts\Activate.ps1
+  ```
+  
+  #### macOS/Linux
+  ```bash
+  source my_project_env/bin/activate
+  ```
+  
+  ### 3. Verify Activation
+  ```bash
+  # Check Python path (should point to env directory)
+  which python  # macOS/Linux
+  where python  # Windows
+  
+  # Check pip path
+  which pip  # macOS/Linux
+  ```
+  
+  ### 4. Install Dependencies
+  ```bash
+  # Install packages in activated environment
+  pip install requests pandas
+  
+  # Save dependencies to requirements.txt
+  pip freeze > requirements.txt
+  
+  # Install from requirements.txt
+  pip install -r requirements.txt
+  ```
+  
+  ### 5. Deactivate the Environment
+  ```bash
+  deactivate
+  ```
+  
+  ### 6. Delete the Environment
+  ```bash
+  # Simply delete the environment directory
+  rm -rf my_project_env  # macOS/Linux
+  rmdir /s my_project_env  # Windows
+  ```
+  
+  ## Best Practices
+  - Always activate the environment before working on the project
+  - Add the environment directory to `.gitignore` (e.g., `my_project_env/`)
+  - Regularly update `requirements.txt` when adding/removing packages
+  - Use specific Python versions for reproducibility
+  - Avoid installing global packages in virtual environments
+  
+  ## Troubleshooting
+  - **Activation error (macOS/Linux)**: Ensure execute permissions on activate script (`chmod +x my_project_env/bin/activate`)
+  - **Permission denied**: Avoid using `sudo` with pip in virtual environments
+  - **Python version mismatch**: Specify exact Python version when creating the environment
+

@@ -1,0 +1,67 @@
+title: Skill Generator
+description: A meta-skill that helps create new skills in the required YAML format with proper fields and documentation.
+tags: ['skill', 'meta', 'management', 'documentation']
+
+content: |
+  # Skill Generator
+  
+  This skill assists in creating new skills following the required format. Each skill must include the following fields:
+  
+  ## Required Fields
+  
+  ### `title`
+  - **Type**: String
+  - **Format**: Single word or short phrase
+  - **Purpose**: Brief identifier for the skill
+  - **Example**: `"Code Reviewer"`, `"Web Scraper"`, `"Data Analyzer"`
+  
+  ### `description`
+  - **Type**: String
+  - **Format**: Single sentence
+  - **Purpose**: One-line summary of the skill's purpose
+  - **Example**: `"Analyzes Python code for bugs and suggests improvements"`
+  
+  ### `tags`
+  - **Type**: Array of strings
+  - **Format**: List of relevant keywords
+  - **Purpose**: Search indexing and categorization
+  - **Example**: `['python', 'code_review', 'debugging', 'programming']`
+  
+  ### `content`
+  - **Type**: String (Multi-line)
+  - **Format**: Markdown
+  - **Purpose**: Main instruction/content of the skill
+  - **Structure**: Should include clear sections and examples
+  
+  ## Content Guidelines
+  
+  The `content` field should follow markdown format with:
+  - **Headers** (`#`, `##`, `###`) for section organization
+  - **Lists** (`-` or `1.`) for steps or items
+  - **Code blocks** (```) for examples
+  - **Emphasis** (`**bold**`, `*italic*`) for important points
+  
+  ## Example Skill Template
+  
+  Here's a complete template you can use:
+  
+  ```yaml
+  title: Example Skill
+  description: A brief one-sentence description of what this skill does.
+  tags: ['relevant', 'tags', 'here']
+  
+  content: |
+    # Skill Title
+    
+    ## Overview
+    Brief introduction explaining the skill's purpose and use cases.
+    
+    ## Usage
+    Step-by-step instructions on how to use this skill:
+    1. First step
+    2. Second step
+    3. Third step
+    
+    ## Examples
+    ### Example 1: Basic Usage
+    

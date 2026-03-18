@@ -1,0 +1,95 @@
+title: Docker Container Manager
+description: Provides comprehensive guidance on Docker operations for containerizing applications and managing containerized environments.
+tags: ['docker', 'containerization', 'devops', 'deployment', 'virtualization']
+
+content: |
+  # Docker Container Manager
+  
+  This skill provides comprehensive guidance on Docker operations for containerizing applications and managing containerized environments. It covers essential commands, Dockerfile best practices, and common scenarios encountered in container-based development workflows.
+  
+  ## Core Docker Operations
+  
+  ### 1. Container Lifecycle Management
+  - **Run a container**: `docker run <image_name>` starts a new container from an image
+  - **Run with options**: `docker run -d -p 8080:80 --name my_container nginx` runs container in background, maps ports, and assigns name
+  - **Stop container**: `docker stop <container_id_or_name>` gracefully stops a running container
+  - **Start stopped container**: `docker start <container_id_or_name>` restarts a stopped container
+  - **Remove container**: `docker rm <container_id_or_name>` deletes a container (must be stopped first)
+  
+  ### 2. Image Management
+  - **Pull image**: `docker pull <image_name>` downloads an image from registry
+  - **List images**: `docker images` shows all locally stored images
+  - **Build image**: `docker build -t <image_name> .` creates an image from Dockerfile in current directory
+  - **Remove image**: `docker rmi <image_name>` deletes an image
+  - **Inspect image**: `docker inspect <image_name>` shows detailed image information
+  
+  ## Dockerfile Best Practices
+  
+  ### Writing Effective Dockerfiles
+  1. **Use official base images**: Start with official images from Docker Hub when possible (e.g., `FROM node:16-alpine`)
+  2. **Minimize layers**: Combine related commands with `&&` to reduce the number of layers
+  3. **Copy dependencies first**: Copy package files before application code to leverage Docker's caching mechanism
+  4. **Use .dockerignore**: Exclude unnecessary files with a `.dockerignore` file similar to `.gitignore`
+  5. **Run as non-root user**: Create and switch to a non-root user for security (e.g., `USER app`)
+  
+  ### Example Dockerfile Structure
+  ```dockerfile
+  FROM python:3.9-slim
+  WORKDIR /app
+  COPY requirements.txt .
+  RUN pip install --no-cache-dir -r requirements.txt
+  COPY . .
+  EXPOSE 8000
+  CMD ["python", "app.py"]
+  ```
+  
+  ## Volume and Network Management
+  
+  ### Managing Data Persistence
+  - **Create volume**: `docker volume create my_volume` creates a named volume
+  - **Mount volume**: `docker run -v my_volume:/path/in/container image_name` mounts volume to container
+  - **Bind mount**: `docker run -v /host/path:/container/path image_name` mounts host directory to container
+  - **Anonymous volumes**: `docker run -v /container/path image_name` creates temporary storage
+  
+  ### Networking Between Containers
+  - **List networks**: `docker network ls` shows available networks
+  - **Create network**: `docker network create my_network` creates a custom network
+  - **Connect containers**: `docker run --network my_network image_name` connects container to network
+  - **Container communication**: Containers on same network can communicate using container names as hostnames
+  
+  ## Docker Compose for Multi-Container Applications
+  
+  ### Basic Compose File Structure
+  ```yaml
+  version: '3.8'
+  services:
+    web:
+      build: .
+      ports:
+        - "8000:8000"
+      volumes:
+        - .:/app
+      depends_on:
+        - db
+    db:
+      image: postgres:13
+      environment:
+        POSTGRES_DB: mydb
+        POSTGRES_USER: user
+        POSTGRES_PASSWORD: password
+  ```
+  
+  ### Common Compose Commands
+  - **Start services**: `docker-compose up` starts all services defined in docker-compose.yml
+  - **Start in background**: `docker-compose up -d` runs services in detached mode
+  - **Stop services**: `docker-compose down` stops and removes containers
+  - **View logs**: `docker-compose logs` shows logs from all services
+  - **Scale services**: `docker-compose up --scale web=3` runs multiple instances of a service
+  
+  ## Troubleshooting Common Issues
+  - **Permission errors**: Ensure Docker daemon is running with appropriate permissions
+  - **Port conflicts**: Check if port is already in use with `netstat -an | grep :port_number`
+  - **Image pull failures**: Verify network connectivity and registry credentials if using private registries
+  - **Container exits immediately**: Check logs with `docker logs <container_id>` to identify startup issues
+  - **Slow builds**: Optimize Dockerfile layer caching by ordering commands appropriately
+  

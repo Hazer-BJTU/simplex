@@ -6,6 +6,7 @@
 #include <memory>
 #include <vector>
 #include <unordered_set>
+#include <unordered_map>
 
 #include "basics.h"
 
@@ -21,6 +22,7 @@ public:
     };
 
     using EntityTagList = std::vector<std::unique_ptr<EntityTag>>;
+    using LineIndex = std::unordered_map<std::string, std::vector<size_t>>;
 
 public:
     virtual ~LangIntegrate() = 0;
@@ -29,6 +31,7 @@ public:
     virtual LangIntegrate* reset() noexcept = 0;
     virtual const std::string& source() const noexcept = 0;
     virtual const EntityTagList& result() const noexcept = 0;
+    virtual const LineIndex& index() const noexcept = 0;
 };
 
 // std::ostream& operator << (std::ostream& stream, const LangIntegrate::EntityTag& entity_tag) noexcept;

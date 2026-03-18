@@ -112,6 +112,7 @@ public:
     void navigate_target(const boost::filesystem::path& path);
     PathTuple touch(const boost::filesystem::path& path, const std::string& content);
     PathTuple remove(const boost::filesystem::path& path);
+    std::tuple<PathTuple, PathTuple> rename(const boost::filesystem::path& src, const boost::filesystem::path& dst);
     const std::string& base_dir() const noexcept;
     std::tuple<PathReader::Type, boost::filesystem::path> normalize(boost::filesystem::path& path) const noexcept;
 };

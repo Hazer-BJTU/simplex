@@ -228,7 +228,7 @@ SIMPLEX_COMMAND_DEF(search_entity) {
         mode = command.at("mode");
     } catch(...) {
         scope = "global";
-        mode = "pattern_match";
+        mode = "pattern";
     }
 
     try {
@@ -263,7 +263,7 @@ SIMPLEX_COMMAND_DEF(search_entity) {
         return output.str();
     }
 
-    if (mode == "semantic_search") {
+    if (mode == "definition") {
         const auto& results = searcher->search_entity(key_words, targets); // noexcept
         if (results.size()) {
             output << "[" << results.size() << " entities found]: " << std::endl;
@@ -271,15 +271,24 @@ SIMPLEX_COMMAND_DEF(search_entity) {
                 output << entity << std::endl;
             }
         } else {
-            output << "[no entities have been found; try another set of key words]" << std::endl;
+            output << "[no entities have been found; try another set of key words or 'identifier' mode]" << std::endl;
         }
-    } else if (mode == "pattern_match") {
+    } else if (mode == "identifier") {
+        const auto& results = searcher->search_index(key_words, targets); //noexcept
+        if (results.size()) {
+            output << results << std::endl;
+        } else {
+            output << "[no entities have been found; try another set of key words or 'pattern' mode]" << std::endl;
+        }
+    } else if (mode == "pattern") {
         auto results = searcher->search_snippet(key_words, targets); // nodexcept
         if (results.size()) {
             output << results << std::endl;
         } else {
             output << "[no entities have been found; try another set of key words]" << std::endl;
         }
+    } else {
+        output << "[unsupported mode: " << mode << "; choose from 'definition', 'identifier', 'pattern']" << std::endl;
     }
     
     server->safe_output("[Session#", session_id, "]: command got: search entity ", command);
@@ -353,7 +362,7 @@ SIMPLEX_COMMAND_DEF(remove) {
     try {
         ptuple = path_reader->remove(target_path);
     } catch(const std::exception& e) {
-        output << "[error occurred: " << e.what() << "; failed to remove target file]" << std::endl;
+        output << "[error occurred: " << e.what() << "; failed to remove target]" << std::endl;
         server->safe_output("[Session#", session_id, "]: command got: remove ", command);
         server->safe_output("[Session#", session_id, "]: response:", '\n', output.str());
         return output.str();
@@ -365,6 +374,41 @@ SIMPLEX_COMMAND_DEF(remove) {
     searcher->cache_expire(ptuple); // noexcept
 
     server->safe_output("[Session#", session_id, "]: command got: remove ", command);
+    server->safe_output("[Session#", session_id, "]: response:", '\n', output.str());
+    return output.str();
+}
+
+SIMPLEX_COMMAND_DEF(rename) {
+    std::ostringstream output;
+    std::string src_path, dst_path;
+    try {
+        src_path = command.at("src_path");
+        dst_path = command.at("dst_path");
+    } catch(const std::exception& e) {
+        output << "[json error: " << e.what() << "]" << std::endl;
+        server->safe_output("[Session#", session_id, "]: invalid command: ", command);
+        server->safe_output("[Session#", session_id, "]: response:", '\n', output.str());
+        return output.str();
+    }
+
+    simplex::PathTuple psrc = {}, pdst = {};
+    try {
+        auto [returned_psrc, returned_pdst] = path_reader->rename(src_path, dst_path);
+        psrc = returned_psrc, pdst = returned_pdst;
+    } catch(const std::exception& e) {
+        output << "[error occurred: " << e.what() << "; failed to rename target]" << std::endl;
+        server->safe_output("[Session#", session_id, "]: command got: rename ", command);
+        server->safe_output("[Session#", session_id, "]: response:", '\n', output.str());
+        return output.str();
+    }
+
+    path_reader->navigate_target(pdst.view);
+    output << "[successfully renamed " << psrc.view << " to " << pdst.view << "]: " << std::endl;
+    output << "[updated workspace: " << path_reader->base_dir() << ", [D]: directory, [F]: regular file]: " << std::endl << *path_reader;
+
+    searcher->cache_expire(psrc); // noexcept
+
+    server->safe_output("[Session#", session_id, "]: command got: rename ", command);
     server->safe_output("[Session#", session_id, "]: response:", '\n', output.str());
     return output.str();
 }
@@ -418,6 +462,8 @@ simplex::WebsocketServer::TransferFunction TFGenerator(std::shared_ptr<simplex::
             return REDIRECT_TO(touch);
         } else if (command_type == "remove") {
             return REDIRECT_TO(remove);
+        } else if (command_type == "rename") {
+            return REDIRECT_TO(rename);
         } else {
             return REDIRECT_TO(not_support);
         }

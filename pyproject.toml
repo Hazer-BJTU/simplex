@@ -14,8 +14,11 @@ dependencies = [
     "openai>=2.14.0",
     "pexpect>=4.9.0",
     "protobuf>=6.33.5",
+    "ptyprocess>=0.7.0",
     "pyright>=1.1.408",
     "pyyaml>=6.0.3",
+    "rank-bm25>=0.2.2",
+    "rich>=14.3.3",
     "websockets>=16.0",
 ]
 

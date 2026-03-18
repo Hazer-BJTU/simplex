@@ -12,7 +12,12 @@ from simplex.basics.dataclass import (
     ToolReturn,
     ModelResponse,
     ModelInput,
-    ToolSchema
+    ToolSchema,
+    LoopInformation,
+    AgentLoopStateEdit,
+    UserMessage,
+    UserNotify,
+    UserResponse
 )
 from simplex.basics.exception import (
     EntityInitializationError,
@@ -23,9 +28,11 @@ from simplex.basics.exception import (
     UnbuiltError,
     ConflictError,
     RuntimeError,
-    Notice
+    Notice,
+    ExceptionHandler,
+    LogExceptionHandler
 )
-from simplex.basics.prompt import PromptTemplate
+from simplex.basics.prompt import PromptTemplate, SkillRetriever
 
 
 __all__ = [
@@ -38,6 +45,11 @@ __all__ = [
     "ModelResponse",
     "ModelInput",
     "ToolSchema",
+    "LoopInformation",
+    "AgentLoopStateEdit",
+    "UserMessage",
+    "UserNotify",
+    "UserResponse",
     "EntityInitializationError",
     "RequestError",
     "ParameterError",
@@ -47,5 +59,8 @@ __all__ = [
     "ConflictError",
     "RuntimeError",
     "PromptTemplate",
-    "Notice"
+    "SkillRetriever",
+    "Notice",
+    "ExceptionHandler",
+    "LogExceptionHandler"
 ]

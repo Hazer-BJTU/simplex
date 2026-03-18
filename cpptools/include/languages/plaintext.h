@@ -2,6 +2,7 @@
 
 #include "languages/languages.hpp"
 
+#include <cctype>
 #include <fstream>
 
 #include <boost/format.hpp>
@@ -12,10 +13,12 @@ class PlainIntegrate: public LangIntegrate {
 public:
     using EntityTag = typename LangIntegrate::EntityTag;
     using EntityTagList = typename LangIntegrate::EntityTagList;
+    using LineIndex = typename LangIntegrate::LineIndex;
 
 private:
     PathTuple _ptuple;
     std::string _source;
+    LineIndex _token_index;
     inline static const EntityTagList _no_output = {};
 
 public:
@@ -32,6 +35,7 @@ public:
     PlainIntegrate* reset() noexcept override;
     const std::string& source() const noexcept override;
     const EntityTagList& result() const noexcept override;
+    const LineIndex& index() const noexcept override;
 };
 
 }
