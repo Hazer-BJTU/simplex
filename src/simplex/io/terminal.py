@@ -179,11 +179,17 @@ class RichTerminalInterface(UserInputInterface, UserOutputInterface):
             self.style_set = self.style_set | style_set
 
         self.console = Console()
+        self.skills_loaded: bool = False
 
     def _get_style(self, key: str) -> Any:
         return self.style_set.get(key, '')
     
     def _load_skills(self, instruction: str) -> Optional[PromptTemplate]:
+        if self.skills_loaded:
+            return None
+        
+        self.skills_loaded = True
+
         if self.retriever:
             retrieved = self.retriever.search(instruction)
 
@@ -240,7 +246,10 @@ class RichTerminalInterface(UserInputInterface, UserOutputInterface):
         if instruction.strip() == 'exit':
             return UserMessage(quit = True)
         else:
-            system_prompt = PromptTemplate(self.system_prompt)
+            if self.retriever:
+                system_prompt = self.retriever.get_system_prompt()
+            else:
+                system_prompt = PromptTemplate(self.system_prompt)
             skills_prompt = self._load_skills(instruction)
             if skills_prompt:
                 user_prompt = PromptTemplate(instruction) + skills_prompt

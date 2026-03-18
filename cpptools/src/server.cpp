@@ -38,7 +38,11 @@ asio::awaitable<void> WebsocketServer::_listen() noexcept {
 asio::awaitable<void> WebsocketServer::_ws_session(tcp::socket socket) noexcept {
     const size_t session_id = _session_num.fetch_add(1, std::memory_order_acq_rel);
     beast::websocket::stream<tcp::socket> ws(std::move(socket));
-    ws.set_option(beast::websocket::stream_base::timeout::suggested(beast::role_type::server));
+
+    beast::websocket::stream_base::timeout opt = beast::websocket::stream_base::timeout::suggested(beast::role_type::server);
+    opt.idle_timeout = std::chrono::hours(24);
+    ws.set_option(opt);
+    
     TransferFunction transfer_function = _generator(shared_from_this(), session_id);
     bool ws_accepted = false;
     try {

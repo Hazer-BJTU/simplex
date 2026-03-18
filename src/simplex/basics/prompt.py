@@ -131,6 +131,15 @@ class SkillRetriever:
                 break
 
         return [self.skills[idx] for idx in selected_indices]
+    
+    def get_system_prompt(self, path: Optional[Path] = None) -> PromptTemplate:
+        if not path:
+            path = SYSTEM_PATH / 'general_develop.md'
+
+        with open(path, 'r', encoding = 'utf8') as file:
+            content = file.read()
+
+        return PromptTemplate(content)
 
 if __name__ == '__main__':
     pass
