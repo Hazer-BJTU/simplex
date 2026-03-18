@@ -242,6 +242,11 @@ class EditTools(ToolCollection):
         if not self.initialized:
             raise UnbuiltError(self.__class__.__name__)
         
+        if self.input_interface and self.permission_required:
+            user_response = await self.input_interface.notify_user(UserNotify('permission', f"Do you allow agent to create file: {target_path}?"))
+            if not user_response.permitted:
+                return f"[ERROR]: Permission error! {user_response.reason}"
+        
         query: Dict = {
             'type': 'touch',
             'target_path': target_path,
@@ -281,6 +286,11 @@ class EditTools(ToolCollection):
     async def _tool_rename(self, src_path: str, dst_path: str, **kwargs) -> str:
         if not self.initialized:
             raise UnbuiltError(self.__class__.__name__)
+
+        if self.input_interface and self.permission_required:
+            user_response = await self.input_interface.notify_user(UserNotify('permission', f"Do you allow agent to move {src_path} to {dst_path}?"))
+            if not user_response.permitted:
+                return f"[ERROR]: Permission error! {user_response.reason}"
         
         query: Dict = {
             'type': 'rename',
