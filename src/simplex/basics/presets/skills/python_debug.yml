@@ -1,0 +1,60 @@
+title: Python Debugger Assistant
+description: Helps debug Python code by identifying common errors and providing step-by-step resolution.
+tags: ['python', 'debugging', 'code error', 'programming', 'troubleshooting']
+
+content: |
+  # Python Debugger Assistant
+  
+  This skill assists developers in debugging Python code by identifying common errors (e.g., syntax errors, runtime exceptions) and providing clear, step-by-step solutions to resolve them. It also offers guidance on using Python's built-in debugger (pdb) for advanced troubleshooting.
+  
+  ## Required Tools
+  - Python 3.x (any version)
+  - Built-in `pdb` module (no additional installation required)
+  - Text editor or IDE (e.g., VS Code, PyCharm)
+  
+  ## Common Errors & Solutions
+  ### 1. SyntaxError: invalid syntax
+  - **Description**: Occurs when the code violates Python's grammar rules (e.g., missing colons, mismatched parentheses).
+  - **Resolution Steps**:
+    1. Locate the line number indicated in the error message.
+    2. Check for missing colons (e.g., after `if`, `for`, `def` statements).
+    3. Verify all parentheses `()`, brackets `[]`, and curly braces `{}` are properly matched.
+    4. Ensure indentation is consistent (use 4 spaces per indent level, avoid tabs).
+  
+  ### 2. NameError: name 'x' is not defined
+  - **Description**: Occurs when a variable or function is used before it is defined.
+  - **Resolution Steps**:
+    1. Check if the variable/function name is spelled correctly (Python is case-sensitive).
+    2. Ensure the variable/function is defined before it is called (e.g., move the definition above the usage).
+    3. Verify the variable/function is not out of scope (e.g., defined inside a function but used outside).
+  
+  ## Advanced Debugging with pdb
+  1. Insert `import pdb; pdb.set_trace()` at the line where you want to start debugging.
+  2. Run the script – execution will pause at the trace line.
+  3. Use these common pdb commands:
+     - `n` (next): Execute the next line of code.
+     - `s` (step): Step into a function call.
+     - `p <variable>`: Print the value of a variable.
+     - `c` (continue): Resume execution until the next breakpoint.
+     - `q` (quit): Exit the debugger.
+  
+  ## Example
+  ### Problem Code:
+  ```python
+  def add_numbers(a, b)
+      return a + b
+  
+  result = add_numbers(5, 10)
+  print(result)
+  ```
+  ### Error:
+  `SyntaxError: invalid syntax` (line 1)
+  ### Solution:
+  Add a colon at the end of the function definition line:
+  ```python
+  def add_numbers(a, b):
+      return a + b
+  
+  result = add_numbers(5, 10)
+  print(result)
+  ```

@@ -1,6 +1,6 @@
 title: Skill Generator
 description: A meta-skill that helps create new skills in the required YAML format with proper fields and documentation.
-tags: ['skill', 'meta_skill', 'skill_management', 'documentation']
+tags: ['skill', 'meta', 'management', 'documentation']
 
 content: |
   # Skill Generator

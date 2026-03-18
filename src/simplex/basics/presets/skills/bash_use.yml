@@ -1,0 +1,124 @@
+title: Bash Command Utility
+description: Provides guidance for using essential Bash commands for file system and process management.
+tags: ['bash', 'shell', 'command line', 'linux', 'unix', 'file management', 'processes']
+
+content: |
+  # Bash Command Utility
+  
+  This skill covers essential Bash (Bourne Again Shell) commands for day-to-day file system navigation, manipulation, and process management in Linux/macOS environments.
+  
+  ## Core Navigation Commands
+  
+  ### 1. Basic Directory Operations
+  | Command | Purpose | Example |
+  |---------|---------|---------|
+  | `pwd` | Print working directory (show current path) | `pwd` |
+  | `cd` | Change directory | `cd /home/user/documents` |
+  | `cd ~` | Go to home directory | `cd ~` |
+  | `cd ..` | Go up one directory level | `cd ..` |
+  | `cd -` | Go to previous directory | `cd -` |
+  | `ls` | List directory contents | `ls -lha` |
+  
+  ### 2. File/Directory Management
+  ```bash
+  # List files with details (long format, human-readable, show hidden)
+  ls -lha
+  
+  # Create a new directory
+  mkdir my_new_folder
+  mkdir -p parent/child/grandchild  # Create nested directories
+  
+  # Create a new file
+  touch new_file.txt
+  touch file1.txt file2.txt file3.txt  # Multiple files
+  
+  # Copy files/directories
+  cp source.txt destination.txt
+  cp -r source_dir/ destination_dir/  # Recursive copy (directories)
+  
+  # Move/Rename files/directories
+  mv old_name.txt new_name.txt
+  mv file.txt /new/location/
+  
+  # Delete files/directories
+  rm unwanted_file.txt
+  rm -rf unwanted_dir/  # Recursive force delete (use with caution!)
+  
+  # View file contents
+  cat file.txt  # Entire file
+  less file.txt  # Paginated view (press q to exit)
+  head -10 file.txt  # First 10 lines
+  tail -20 file.txt  # Last 20 lines
+  tail -f logfile.txt  # Follow real-time updates
+  ```
+  
+  ## Process Management
+  ```bash
+  # List running processes
+  ps  # Basic process list
+  ps aux  # Detailed process list
+  top  # Real-time process monitor (press q to exit)
+  htop  # Enhanced process monitor (may need installation)
+  
+  # Find a specific process
+  ps aux | grep python
+  
+  # Kill a process
+  kill 1234  # Kill by PID
+  kill -9 1234  # Force kill (use as last resort)
+  pkill firefox  # Kill by process name
+  ```
+  
+  ## File Operations & Text Processing
+  ```bash
+  # Search for text in files
+  grep "error" logfile.txt
+  grep -r "TODO" /project/dir/  # Recursive search
+  
+  # Find files by name
+  find /path/to/search -name "*.py"
+  find . -type f -mtime -7  # Files modified in last 7 days
+  
+  # File permissions
+  ls -l  # View permissions
+  chmod +x script.sh  # Add execute permission
+  chmod 644 file.txt  # Set read/write for owner, read for others
+  
+  # Compression/Extraction
+  tar -czf archive.tar.gz directory/  # Create compressed tar archive
+  tar -xzf archive.tar.gz  # Extract tar.gz archive
+  unzip archive.zip  # Extract zip file
+  ```
+  
+  ## Advanced Tips
+  ### 1. Command Chaining
+  ```bash
+  # Run commands sequentially (only if previous succeeds)
+  cd /project && pip install -r requirements.txt && python app.py
+  
+  # Run commands regardless of success
+  cd /project; pip install -r requirements.txt; python app.py
+  
+  # Pipe output of one command to another
+  cat large_file.txt | grep "important" | sort | uniq
+  
+  # Redirect output to file
+  ls -l > file_list.txt  # Overwrite file
+  echo "new line" >> file_list.txt  # Append to file
+  ```
+  
+  ### 2. Command History
+  ```bash
+  history  # Show command history
+  !50  # Run 50th command in history
+  !ls  # Run last ls command
+  Ctrl+R  # Reverse search history (type to find commands)
+  ```
+  
+  ## Best Practices
+  - Use `man <command>` to view full documentation (e.g., `man ls`, `man grep`)
+  - Test destructive commands (rm, mv) with `ls` first to verify targets
+  - Use tab completion (press Tab) to avoid typos in paths/commands
+  - Backup important files before bulk operations
+  - Use `sudo` only when necessary (admin privileges)
+  

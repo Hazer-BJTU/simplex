@@ -32,7 +32,7 @@ from simplex.basics.exception import (
     ExceptionHandler,
     LogExceptionHandler
 )
-from simplex.basics.prompt import PromptTemplate
+from simplex.basics.prompt import PromptTemplate, SkillRetriever
 
 
 __all__ = [
@@ -59,6 +59,7 @@ __all__ = [
     "ConflictError",
     "RuntimeError",
     "PromptTemplate",
+    "SkillRetriever",
     "Notice",
     "ExceptionHandler",
     "LogExceptionHandler"
