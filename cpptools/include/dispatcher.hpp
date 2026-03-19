@@ -57,10 +57,10 @@ inline auto get_global_pathreader(const std::string& base_dir) {
         auto path_reader = std::make_shared<PathReader>(base_dir);
         path_reader->set_qualified_for_scan(
             PathReader::exists() &&
-            PathReader::visible() &&
             make_filter(&not_pycache)
         );
         path_reader->set_qualified_for_search(
+            PathReader::visible() &&
             make_filter(&is_general_text_files) &&
             make_filter(&not_general_build_targets)
         );

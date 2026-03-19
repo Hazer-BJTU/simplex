@@ -121,6 +121,7 @@ class RichTerminalOutputPlugin(ContextPlugin):
         console: Console, 
         style_set: Dict, 
         max_string: int = 80, 
+        max_text: int = 2000,
         instance_id: Optional[str] = None
     ) -> None:
         """
@@ -137,6 +138,7 @@ class RichTerminalOutputPlugin(ContextPlugin):
         self.console = console
         self.style_set = style_set
         self.max_string = max_string
+        self.max_text = max_text
 
         self.live_display: Optional[Live] = None
 
@@ -255,6 +257,7 @@ class RichTerminalOutputPlugin(ContextPlugin):
             text.append(f"{ret.original_call.name} ", style = self._get_style('text_explicit'))
             text.append("returns: ", style = self._get_style('text'))
             text.append(f"{ret.content}", style = self._get_style('text'))
+            text.truncate(self.max_text, overflow = 'ellipsis')
             # Display the return value in a styled panel
             panel = Panel(
                 text,
@@ -294,7 +297,8 @@ class RichTerminalInterface(UserInputInterface, UserOutputInterface):
         system_prompt: str = 'You are a helpful assistant.',
         retriever: Optional[SkillRetriever] = None,
         style_set: Optional[Dict] = None,
-        max_string: int = 80
+        max_string: int = 80,
+        max_text: int = 2000
     ) -> None:
         """
         Initialize the RichTerminalInterface with configuration options.
@@ -329,6 +333,7 @@ class RichTerminalInterface(UserInputInterface, UserOutputInterface):
             'box_line_explicit': 'gold1'                # Style for explicit panel borders
         }
         self.max_string = max_string
+        self.max_text = max_text
 
         # Override default styles if custom style set provided
         if style_set is not None:
@@ -481,7 +486,7 @@ class RichTerminalInterface(UserInputInterface, UserOutputInterface):
         Returns:
             RichTerminalOutputPlugin instance configured with this interface's settings
         """
-        return RichTerminalOutputPlugin(self.console, self.style_set, self.max_string)
+        return RichTerminalOutputPlugin(self.console, self.style_set, self.max_string, self.max_text)
 
     async def push_message(self, notify: UserNotify) -> None:
         if notify.notify_type == 'notify':

@@ -32,6 +32,7 @@ EditOperation = Literal[
     'show_details',
     'view_file_content',
     'edit_file_content',
+    'undo',
     'search',
     'create',
     'remove',
@@ -52,6 +53,7 @@ class EditTools(ToolCollection):
             'show_details': 'show_details',
             'view_file_content': 'view_file_content',
             'edit_file_content': 'edit_file_content',
+            'undo': 'undo',
             'search': 'search',
             'create': 'create',
             'remove': 'remove',
@@ -72,6 +74,7 @@ class EditTools(ToolCollection):
         self.show_details_schema = load_schema(self.SCHEMA_FILE, 'show_details', self.names['show_details'])
         self.view_file_content_schema = load_schema(self.SCHEMA_FILE, 'view_file_content', self.names['view_file_content'])
         self.edit_file_content_schema = load_schema(self.SCHEMA_FILE, 'edit_file_content', self.names['edit_file_content'])
+        self.undo_schema = load_schema(self.SCHEMA_FILE, 'undo', self.names['undo'])
         self.search_schema = load_schema(self.SCHEMA_FILE, 'search', self.names['search'])
         self.create_schema = load_schema(self.SCHEMA_FILE, 'create', self.names['create'])
         self.remove_schema = load_schema(self.SCHEMA_FILE, 'remove', self.names['remove'])
@@ -82,6 +85,7 @@ class EditTools(ToolCollection):
             'show_details': self.show_details_schema,
             'view_file_content': self.view_file_content_schema,
             'edit_file_content': self.edit_file_content_schema,
+            'undo': self.undo_schema,
             'search': self.search_schema,
             'create': self.create_schema,
             'remove': self.remove_schema,
@@ -119,6 +123,19 @@ class EditTools(ToolCollection):
 
     async def bind_io(self, input_interface: UserInputInterface, **kwargs) -> None:
         self.input_interface = input_interface
+
+    async def start_loop_async(self, *args, **kwargs) -> None:
+        if not self.initialized:
+            raise UnbuiltError(self.__class__.__name__)
+        
+        query: Dict = { 'type': 'refresh' }
+
+        try:
+            response: str = await self.client.exchange(json.dumps(query))
+            if response is None:
+                raise RequestError(content = f'unable to access {self.client.url}')
+        except Exception:
+            raise
 
     def get_tool_schemas(self) -> List[ToolSchema]:
         return list(self.schemas.values())
@@ -210,6 +227,27 @@ class EditTools(ToolCollection):
             query['line_start'] = line_start
         if line_end is not None:
             query['line_end'] = line_end
+
+        try:
+            response: str = await self.client.exchange(json.dumps(query))
+            if response is None:
+                raise RequestError(content = f'unable to access {self.client.url}')
+            return response.strip()
+        except Exception:
+            raise
+
+    async def _tool_undo(
+        self,
+        target_path: str,
+        **kwargs
+    ) -> str:
+        if not self.initialized:
+            raise UnbuiltError(self.__class__.__name__)
+        
+        query: Dict = {
+            'type': 'undo',
+            'target_path': target_path,
+        }
 
         try:
             response: str = await self.client.exchange(json.dumps(query))
