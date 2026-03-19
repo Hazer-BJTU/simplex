@@ -1,0 +1,499 @@
+title: PyTorch Deep Learning Research & Environment Management
+description: Comprehensive guide for using PyTorch in machine learning and deep learning research, including environment setup, model development, training, and best practices.
+tags: ['pytorch', 'deep-learning', 'machine-learning', 'research', 'neural-networks', 'environment', 'cuda', 'gpu']
+
+content: |
+  # PyTorch Deep Learning Research & Environment Management
+  
+  This skill provides comprehensive guidance for conducting machine learning and deep learning research using PyTorch, including proper environment setup, model development, training techniques, and research best practices.
+  
+  ## Core Concepts
+  
+  ### What is PyTorch?
+  - **Definition**: An open-source machine learning library developed by Facebook's AI Research lab
+  - **Purpose**: Provides tensor computation with strong GPU acceleration and deep neural networks built on a tape-based autograd system
+  - **Key Features**: Dynamic computational graphing (define-by-run), native Python integration, extensive ecosystem
+  
+  ### Why PyTorch for Research?
+  - **Flexibility**: Dynamic graph construction allows for easy experimentation
+  - **Intuitive Design**: Pythonic API that feels natural to Python developers
+  - **Strong Ecosystem**: Rich libraries like torchvision, torchaudio, torchtext, and Hugging Face integration
+  - **Research-Friendly**: Easy debugging, visualization, and rapid prototyping capabilities
+  
+  ## Environment Setup
+  
+  ### 1. Creating a PyTorch-Specific Environment
+  ```bash
+  # Create a dedicated environment for PyTorch projects
+  python -m venv pytorch_env
+  source pytorch_env/bin/activate  # Linux/macOS
+  # OR
+  pytorch_env\Scripts\activate  # Windows
+  
+  # Upgrade pip
+  pip install --upgrade pip
+  ```
+  
+  ### 2. Installing PyTorch
+  ```bash
+  # CPU-only version
+  pip install torch torchvision torchaudio
+  
+  # CUDA 11.8 (check https://pytorch.org/get-started/locally/ for latest)
+  pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+  
+  # CUDA 12.1
+  pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+  ```
+  
+  ### 3. Installing Research Dependencies
+  ```bash
+  # Essential research libraries
+  pip install numpy pandas matplotlib seaborn scikit-learn jupyter notebook ipywidgets
+  
+  # Advanced research tools
+  pip install tensorboard wandb datasets transformers accelerate
+  
+  # Computer vision
+  pip install opencv-python pillow albumentations
+  
+  # Natural language processing
+  pip install nltk spacy transformers sentencepiece
+  
+  # Generate requirements file
+  pip freeze > pytorch_research_requirements.txt
+  ```
+  
+  ## Basic PyTorch Usage for Research
+  
+  ### 1. Setting up Device Management
+  ```python
+  import torch
+  import torch.nn as nn
+  
+  # Check for GPU availability
+  device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+  print(f"Using device: {device}")
+  
+  # For multi-GPU systems
+  if torch.cuda.device_count() > 1:
+      print(f"Using {torch.cuda.device_count()} GPUs")
+  ```
+  
+  ### 2. Defining Neural Networks
+  ```python
+  class SimpleNet(nn.Module):
+      def __init__(self, input_size, hidden_size, num_classes):
+          super(SimpleNet, self).__init__()
+          self.fc1 = nn.Linear(input_size, hidden_size)
+          self.relu = nn.ReLU()
+          self.fc2 = nn.Linear(hidden_size, num_classes)
+          
+      def forward(self, x):
+          x = self.fc1(x)
+          x = self.relu(x)
+          x = self.fc2(x)
+          return x
+  ```
+  
+  ### 3. Data Loading and Preprocessing
+  ```python
+  from torch.utils.data import DataLoader, Dataset
+  from torchvision import transforms
+  
+  # Custom dataset example
+  class CustomDataset(Dataset):
+      def __init__(self, data, labels, transform=None):
+          self.data = data
+          self.labels = labels
+          self.transform = transform
+      
+      def __len__(self):
+          return len(self.data)
+      
+      def __getitem__(self, idx):
+          sample = self.data[idx]
+          label = self.labels[idx]
+          
+          if self.transform:
+              sample = self.transform(sample)
+              
+          return sample, label
+  
+  # Data loading
+  transform = transforms.Compose([
+      transforms.ToTensor(),
+      transforms.Normalize((0.5,), (0.5,))
+  ])
+  
+  dataset = CustomDataset(data, labels, transform=transform)
+  dataloader = DataLoader(dataset, batch_size=32, shuffle=True, num_workers=4)
+  ```
+  
+  ## Training Loop Best Practices
+  
+  ### 1. Standard Training Loop Template
+  ```python
+  def train_model(model, dataloader, criterion, optimizer, device):
+      model.train()
+      running_loss = 0.0
+      correct = 0
+      total = 0
+      
+      for batch_idx, (data, targets) in enumerate(dataloader):
+          # Move data to device
+          data, targets = data.to(device), targets.to(device)
+          
+          # Zero gradients
+          optimizer.zero_grad()
+          
+          # Forward pass
+          outputs = model(data)
+          loss = criterion(outputs, targets)
+          
+          # Backward pass
+          loss.backward()
+          optimizer.step()
+          
+          # Statistics
+          running_loss += loss.item()
+          _, predicted = outputs.max(1)
+          total += targets.size(0)
+          correct += predicted.eq(targets).sum().item()
+          
+      epoch_acc = 100. * correct / total
+      epoch_loss = running_loss / len(dataloader)
+      
+      return epoch_loss, epoch_acc
+  ```
+  
+  ### 2. Validation Loop
+  ```python
+  def validate_model(model, dataloader, criterion, device):
+      model.eval()
+      val_loss = 0.0
+      correct = 0
+      total = 0
+      
+      with torch.no_grad():
+          for data, targets in dataloader:
+              data, targets = data.to(device), targets.to(device)
+              outputs = model(data)
+              loss = criterion(outputs, targets)
+              
+              val_loss += loss.item()
+              _, predicted = outputs.max(1)
+              total += targets.size(0)
+              correct += predicted.eq(targets).sum().item()
+      
+      val_acc = 100. * correct / total
+      avg_val_loss = val_loss / len(dataloader)
+      
+      return avg_val_loss, val_acc
+  ```
+  
+  ## Advanced Research Techniques
+  
+  ### 1. Mixed Precision Training
+  ```python
+  from torch.cuda.amp import autocast, GradScaler
+  
+  scaler = GradScaler()
+  
+  for data, targets in dataloader:
+      data, targets = data.to(device), targets.to(device)
+      
+      optimizer.zero_grad()
+      
+      # Use autocast for mixed precision
+      with autocast():
+          outputs = model(data)
+          loss = criterion(outputs, targets)
+      
+      # Scale loss and backpropagate
+      scaler.scale(loss).backward()
+      scaler.step(optimizer)
+      scaler.update()
+  ```
+  
+  ### 2. Gradient Clipping
+  ```python
+  # To prevent gradient explosion
+  torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+  ```
+  
+  ### 3. Learning Rate Scheduling
+  ```python
+  from torch.optim.lr_scheduler import StepLR, ReduceLROnPlateau, CosineAnnealingLR
+  
+  # Step decay
+  scheduler = StepLR(optimizer, step_size=10, gamma=0.1)
+  
+  # Decay on plateau
+  scheduler = ReduceLROnPlateau(optimizer, mode='min', patience=5)
+  
+  # Cosine annealing
+  scheduler = CosineAnnealingLR(optimizer, T_max=num_epochs)
+  ```
+  
+  ## Experiment Tracking and Reproducibility
+  
+  ### 1. Setting Random Seeds
+  ```python
+  import random
+  import numpy as np
+  
+  def set_seed(seed=42):
+      torch.manual_seed(seed)
+      torch.cuda.manual_seed(seed)
+      torch.cuda.manual_seed_all(seed)  # for multi-GPU
+      np.random.seed(seed)
+      random.seed(seed)
+      torch.backends.cudnn.deterministic = True
+      torch.backends.cudnn.benchmark = False
+  ```
+  
+  ### 2. Model Saving and Loading
+  ```python
+  # Save model checkpoint
+  torch.save({
+      'epoch': epoch,
+      'model_state_dict': model.state_dict(),
+      'optimizer_state_dict': optimizer.state_dict(),
+      'loss': loss,
+  }, 'checkpoint.pth')
+  
+  # Load model checkpoint
+  checkpoint = torch.load('checkpoint.pth')
+  model.load_state_dict(checkpoint['model_state_dict'])
+  optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+  epoch = checkpoint['epoch']
+  loss = checkpoint['loss']
+  ```
+  
+  ## Environment Management Best Practices
+  
+  ### 1. Project Structure
+  ```
+  research_project/
+  ├── data/
+  │   ├── raw/
+  │   └── processed/
+  ├── models/
+  │   ├── checkpoints/
+  │   └── saved_models/
+  ├── notebooks/
+  ├── src/
+  │   ├── data/
+  │   ├── models/
+  │   ├── training/
+  │   └── utils/
+  ├── requirements.txt
+  ├── config.yaml
+  └── experiments/
+      └── experiment_logs/
+  ```
+  
+  ### 2. Using Conda for PyTorch Environments
+  ```bash
+  # Create conda environment with PyTorch
+  conda create -n pytorch_research python=3.9
+  conda activate pytorch_research
+  conda install pytorch torchvision torchaudio pytorch-cuda=11.8 -c pytorch -c nvidia
+  
+  # Export conda environment
+  conda env export > environment.yml
+  ```
+  
+  ### 3. Containerization with Docker
+  ```dockerfile
+  FROM pytorch/pytorch:2.0.1-cuda11.7-cudnn8-devel
+  
+  WORKDIR /app
+  COPY requirements.txt .
+  RUN pip install -r requirements.txt
+  
+  COPY . .
+  CMD ["python", "train.py"]
+  ```
+  
+  ## Performance Optimization
+  
+  ### 1. Memory Management
+  ```python
+  # Clear GPU cache
+  torch.cuda.empty_cache()
+  
+  # Monitor GPU memory
+  if torch.cuda.is_available():
+      print(f"GPU memory allocated: {torch.cuda.memory_allocated() / 1024**3:.2f} GB")
+      print(f"GPU memory reserved: {torch.cuda.memory_reserved() / 1024**3:.2f} GB")
+  ```
+  
+  ### 2. Data Pipeline Optimization
+  ```python
+  # Use pin_memory for faster GPU transfer
+  dataloader = DataLoader(dataset, batch_size=32, 
+                         shuffle=True, num_workers=4, 
+                         pin_memory=True)
+  ```
+  
+  ## Debugging and Profiling
+  
+  ### 1. Using PyTorch Profiler
+  ```python
+  from torch.profiler import profile, record_function, ProfilerActivity
+  
+  with profile(activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA],
+               schedule=torch.profiler.schedule(wait=1, warmup=1, active=3, repeat=2),
+               on_trace_ready=torch.profiler.tensorboard_trace_handler('./log/profiler'),
+               record_shapes=True,
+               profile_memory=True,
+               with_stack=True) as prof:
+      for i, (data, target) in enumerate(dataloader):
+          if i >= 10:  # Profile first 10 iterations
+              break
+          output = model(data)
+          loss = criterion(output, target)
+          loss.backward()
+          optimizer.step()
+          prof.step()
+  ```
+  
+  ## Common Pitfalls and Solutions
+  
+  - **Memory Issues**: Use smaller batch sizes, clear cache regularly, move unused tensors to CPU
+  - **Gradient Vanishing/Exploding**: Use proper weight initialization, gradient clipping, normalization layers
+  - **Overfitting**: Implement dropout, regularization, early stopping, data augmentation
+  - **Reproducibility**: Set all relevant seeds, avoid non-deterministic algorithms when possible
+  - **Device Mismatch**: Always ensure tensors are on the same device before operations
+  
+  ## Research Workflow Tips
+  
+  - Start with a minimal viable model and gradually add complexity
+  - Use logging and experiment tracking tools (Weights & Biases, TensorBoard)
+  - Implement checkpoint saving to resume training
+  - Keep a research log of experiments, hyperparameters, and results
+  - Use configuration files for hyperparameters to ensure reproducibility
+  
+  ## Real-World Research Examples
+  
+  ### 1. Complete Training Script Template
+  ```python
+  import torch
+  import torch.nn as nn
+  import torch.optim as optim
+  from torch.utils.data import DataLoader
+  import argparse
+  from pathlib import Path
+  
+  def train(args):
+      # Set device
+      device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+      
+      # Initialize model, loss, optimizer
+      model = SimpleNet(args.input_size, args.hidden_size, args.num_classes).to(device)
+      criterion = nn.CrossEntropyLoss()
+      optimizer = optim.Adam(model.parameters(), lr=args.learning_rate)
+      
+      # Load datasets
+      train_loader, val_loader = get_dataloaders(args.batch_size)
+      
+      # Training loop
+      for epoch in range(args.epochs):
+          train_loss, train_acc = train_model(model, train_loader, criterion, optimizer, device)
+          val_loss, val_acc = validate_model(model, val_loader, criterion, device)
+          
+          print(f'Epoch {epoch}: Train Loss: {train_loss:.4f}, Val Acc: {val_acc:.2f}%')
+          
+          # Save checkpoint
+          if epoch % args.save_freq == 0:
+              save_checkpoint(model, optimizer, epoch, val_loss, args.checkpoint_dir)
+  ```
+  
+  ### 2. Hyperparameter Configuration File
+  ```yaml
+  # config.yaml
+  model:
+    input_size: 784
+    hidden_size: 512
+    num_classes: 10
+    dropout: 0.3
+  
+  training:
+    epochs: 100
+    batch_size: 64
+    learning_rate: 0.001
+    weight_decay: 1e-4
+    scheduler_step: 30
+    scheduler_gamma: 0.1
+  
+  data:
+    dataset: 'MNIST'
+    augment: true
+    normalize: true
+  
+  logging:
+    log_dir: './logs'
+    checkpoint_dir: './checkpoints'
+    save_freq: 10
+  ```
+
+  ## Common Research Workflows
+  
+  ### 1. Rapid Prototyping Cycle
+  1. Start with a simple model architecture
+  2. Verify the training loop works with small dataset
+  3. Gradually increase model complexity
+  4. Implement proper validation and monitoring
+  5. Scale up data and compute resources
+  
+  ### 2. Experiment Reproduction
+  - Document all hyperparameters and configurations
+  - Save model checkpoints at regular intervals
+  - Log metrics using tools like TensorBoard or Weights & Biases
+  - Record PyTorch and CUDA versions for reproducibility
+  - Use version control for code changes
+  
+  ## Quick Reference / Cheat Sheet
+  
+  ### Essential PyTorch Commands
+  | Task | Command |
+  |------|---------|
+  | Check GPU availability | `torch.cuda.is_available()` |
+  | Get device count | `torch.cuda.device_count()` |
+  | Set seed | `torch.manual_seed(42)` |
+  | Save model | `torch.save(model.state_dict(), path)` |
+  | Load model | `model.load_state_dict(torch.load(path))` |
+  | Enable/disable gradients | `torch.set_grad_enabled(True/False)` |
+  | Mixed precision | `torch.cuda.amp.GradScaler()` |
+  
+  ### Installation Commands
+  ```bash
+  # CPU-only
+  pip install torch torchvision torchaudio
+  
+  # With CUDA 11.8
+  pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+  
+  # With CUDA 12.1
+  pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+  ```
+  
+  ## Official Resources
+  - [PyTorch Official Website](https://pytorch.org/)
+  - [PyTorch Documentation](https://pytorch.org/docs/stable/index.html)
+  - [PyTorch Tutorials](https://pytorch.org/tutorials/)
+  - [Torchvision Documentation](https://pytorch.org/vision/stable/index.html)
+  - [PyTorch GitHub Repository](https://github.com/pytorch/pytorch)
+  
+  ## Complexity Level
+  - **Target Audience**: Intermediate to Advanced Researchers
+  - **Prerequisites**: Basic Python knowledge, understanding of neural networks
+  - **Time to Master**: 2-4 weeks of dedicated study and practice
+  
+  ## See Also
+  - [Python Environment Manager](skills/python_env.yml) - For setting up isolated environments
+  - [Python Debugger Assistant](skills/python_debug.yml) - For debugging PyTorch code
+  - [Database Manager](skills/database_manager.yml) - For managing research data
+  - [Git Operations Assistant](skills/git_operations.yml) - For version controlling research code

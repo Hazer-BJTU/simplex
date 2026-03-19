@@ -1,0 +1,127 @@
+title: File Edition Accuracy
+description: Master accurate file editing operations using the EditTools suite for precise modifications and file management.
+tags: ['editing', 'file management', 'code', 'file', 'edit', 'precision', 'workspace', 'tools']
+
+content: |
+  # File Edition Accuracy
+  
+  ## Overview
+  This skill provides comprehensive guidance on performing accurate file edition operations using the EditTools suite. Learn to leverage various tools for precise file modifications, navigation, and management while maintaining code integrity and avoiding common pitfalls.
+  
+  ## Core Editing Tools
+  
+  ### 1. Workspace Navigation
+  - **`view_workspace()`**: Retrieve the current workspace file structure to understand project layout
+  - **`show_details(target_path)`**: Display detailed information about directories or files
+  - **Usage**: Always start by exploring the workspace structure before making changes
+  
+  ```yaml
+  # Example: View the entire workspace
+  - view_workspace()
+  
+  # Example: Examine a specific directory
+  - show_details(target_path: "src/simplex/tools")
+  ```
+  
+  ### 2. File Content Inspection
+  - **`view_file_content(target_path, line_start, line_end)`**: Browse specific file content
+  - **Purpose**: Understand existing code structure before making modifications
+  - **Best Practice**: Use line ranges to focus on specific sections without overwhelming output
+  
+  ```yaml
+  # Example: View first 20 lines of a file
+  - view_file_content(target_path: "src/simplex/tools/edit.py", line_start: 1, line_end: 20)
+  
+  # Example: View entire file (without line limits)
+  - view_file_content(target_path: "config.json")
+  ```
+  
+  ## Editing Operations
+  
+  ### 3. Content Modification
+  - **`edit_file_content(target_path, edit_type, content, line_start, line_end)`**
+  - **Two Modes**:
+    - `insert`: Insert content after specified `line_start`
+    - `replace`: Replace content between `line_start` and `line_end`
+  - **Important**: Pay attention to indentation alignment, especially for Python code
+  
+  ```yaml
+  # Example: Insert content after line 10
+  - edit_file_content(
+      target_path: "example.py",
+      edit_type: "insert",
+      line_start: 10,
+      content: "    print('New line added')"
+    )
+  
+  # Example: Replace content between lines 5-8
+  - edit_file_content(
+      target_path: "example.py",
+      edit_type: "replace",
+      line_start: 5,
+      line_end: 8,
+      content: "    # New implementation here\n    result = calculate_new_value()"
+    )
+  ```
+  
+  ### 4. File Creation and Management
+  - **`create(target_path, content)`**: Create new files with initial content
+  - **`remove(target_path)`**: Remove files or directories (requires permission)
+  - **`rename(src_path, dst_path)`**: Rename/move files or directories (requires permission)
+  
+  ```yaml
+  # Example: Create a new configuration file
+  - create(
+      target_path: "configs/new_settings.json",
+      content: "{\n  \"setting1\": \"value1\",\n  \"setting2\": \"value2\"\n}"
+    )
+  ```
+  
+  ## Advanced Operations
+  
+  ### 5. Search and Discovery
+  - **`search(key_words, mode, scope)`**: Find specific content across files
+  - **Modes**:
+    - `definition`: Exact match on defined code elements (classes, functions)
+    - `identifier`: Match identifiers within code or text
+    - `pattern`: Pure string matching for specific patterns
+  - **Scopes**:
+    - `workspace`: Search in files from recent workspace view
+    - `global`: Search in all project files
+  
+  ```yaml
+  # Example: Find all function definitions containing "process"
+  - search(key_words: "process", mode: "definition", scope: "global")
+  
+  # Example: Find usage of specific variable across workspace
+  - search(key_words: "my_variable", mode: "identifier", scope: "workspace")
+  ```
+  
+  ## Best Practices for Accurate Editions
+  
+  ### 6. Verification Workflow
+  1. **Inspect**: Use `view_file_content` to examine current state
+  2. **Plan**: Decide on the appropriate edit operation and line numbers
+  3. **Execute**: Perform the edit with `edit_file_content`
+  4. **Verify**: Check the result by viewing the modified content again
+  
+  ### 7. Safety Measures
+  - Always verify file paths are relative to the workspace base directory
+  - Test edits on small sections first before applying to large files
+  - Use version control to track changes and enable rollbacks
+  - Be cautious with `remove` operations as they permanently delete files
+  - Respect indentation and formatting to maintain code quality
+  
+  ### 8. Common Patterns
+  - **Adding imports**: Use `insert` at the top of the file (after module docstring if present)
+  - **Appending methods**: Use `insert` after the last method definition
+  - **Updating configurations**: Use `replace` to modify specific values
+  - **Refactoring**: Combine `search` to locate references and `edit_file_content` to update them
+  
+  ## Troubleshooting Tips
+  - If getting permission errors, ensure user consent for file modification operations
+  - If edit operations fail, check that target files exist and paths are correct
+  - For indentation issues in Python, ensure proper spacing alignment
+  - Use `show_details` to confirm directory structure before creating files
+  - **Critical**: Always review edit feedback carefully to catch bracket, indentation, and comment alignment issues
+  - When receiving edit feedback, verify that brackets are properly matched, indentation aligns correctly, and comments don't break code structure

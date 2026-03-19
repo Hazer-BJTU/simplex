@@ -74,7 +74,7 @@ class PromptTemplate:
         return self
     
 class SkillRetriever:
-    def __init__(self, p: float = 0.5, path: Path = SKILLS_PATH) -> None:
+    def __init__(self, p: float = 0.9, path: Path = SKILLS_PATH) -> None:
         self.p = p
         self.path = path
 
