@@ -11,6 +11,7 @@ from rich.pretty import Pretty
 from rich.spinner import Spinner
 from rich.console import Console, Group
 from rich.markdown import Markdown
+from rich.table import Table
 from typing import Optional, Dict, Any, List
 
 import simplex.io.base
@@ -480,15 +481,31 @@ class RichTerminalInterface(UserInputInterface, UserOutputInterface):
             RichTerminalOutputPlugin instance configured with this interface's settings
         """
         return RichTerminalOutputPlugin(self.console, self.style_set, self.max_string)
-    
-    def push_message(self, *args, **kwargs) -> Any:
-        """
-        Push a message to the interface (placeholder implementation).
-        
-        Currently a no-op method that can be extended to support message pushing
-        functionality if needed in the future.
-        """
-        pass
+
+    async def push_message(self, notify: UserNotify) -> None:
+        if notify.notify_type == 'notify':
+            if notify.title:
+                title = Text(notify.title, style = self._get_style('box_title_explicit'))
+            else:
+                title = Text('Notice', style = self._get_style('box_title_explicit'))
+
+            if notify.content:
+                panel = Panel(
+                    Text(notify.content, style = self._get_style('text')),
+                    border_style = self._get_style('box_line_explicit'),
+                    title = title,
+                    title_align = 'left'
+                )
+                self.console.print(panel)
+
+            if notify.objects:
+                table = Table(title = title, border_style = self._get_style('box_line_explicit'))
+                for k, v in notify.objects.items():
+                    table.add_row(
+                        Text(str(k), style = self._get_style('text_explicit')), 
+                        Text(str(v), style = self._get_style('text'))
+                    )
+                self.console.print(table)
 
     async def notify_user(self, notify: UserNotify) -> UserResponse:
         """

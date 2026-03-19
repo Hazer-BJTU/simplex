@@ -275,7 +275,9 @@ AgentLoopAction = Literal[
     'after_final_response',       # Run after final response (sync)
     'after_final_response_async', # Run after final response (async)
     'on_loop_end',                # Run at end of iteration (sync)
-    'on_loop_end_async'           # Run at end of iteration (async)
+    'on_loop_end_async',          # Run at end of iteration (async)
+    'on_exit',                    # Run at end of whole loop (sync)
+    'on_exit_async'               # Run at end of whole loop (async)
 ]
 
 class AgentLoop(AgentLoopAdapter):
@@ -777,6 +779,8 @@ class AgentLoop(AgentLoopAdapter):
             if self.__exit_flag:
                 break
         
+        await self._call_async('on_exit_async')
+        self._call_sequential('on_exit')
         # Return final model response
         return self.__model_input
 

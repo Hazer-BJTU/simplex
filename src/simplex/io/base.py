@@ -4,10 +4,9 @@ from abc import ABC, abstractmethod
 from typing import Optional, Any
 
 import simplex.basics
-import simplex.context
 
 from simplex.basics import UserMessage, UserNotify, UserResponse
-from simplex.context import ContextPlugin
+from simplex.context.base import ContextPlugin
 
 
 class UserInputInterface(ABC):
@@ -31,7 +30,7 @@ class UserOutputInterface(ABC):
         super().__init__()
 
     @abstractmethod
-    async def push_message(self, *args, **kwargs) -> Any:
+    async def push_message(self, notify: UserNotify) -> Any:
         pass
 
     @abstractmethod

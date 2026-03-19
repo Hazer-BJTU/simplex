@@ -339,6 +339,37 @@ class ContextPlugin(ABC):
         """
         pass
 
+    def on_exit(self, *args, **kwargs) -> Any:
+        """
+        Lifecycle hook called at the end of the whole loop (sync).
+        
+        Subclasses should override this to implement post-loop cleanup/processing logic.
+        
+        Args:
+            *args: Variable length argument list
+            **kwargs: Arbitrary keyword arguments (typically contains loop state)
+            
+        Returns:
+            Any result (return value is context-dependent)
+        """
+        pass
+
+    async def on_exit_async(self, *args, **kwargs) -> Any:
+        """
+        Async lifecycle hook called at the end of the whole loop (async).
+        
+        Async version of on_exit, called first to avoid state modification conflicts.
+        Subclasses should override this to implement async per-iteration logic.
+        
+        Args:
+            *args: Variable length argument list
+            **kwargs: Arbitrary keyword arguments (typically contains loop state)
+            
+        Returns:
+            Any result (return value is context-dependent)
+        """
+        pass
+
 class TrajectoryLogContext(ContextPlugin):
     """
     Context plugin for logging and tracking agent loop trajectory information.

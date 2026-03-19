@@ -4,8 +4,8 @@ import hashlib
 import textwrap
 import numpy as np
 
-from typing import Dict, Optional, List, Literal
 from dataclasses import dataclass, field, asdict
+from typing import Dict, Optional, List, Literal, Any
 
 import simplex.basics.prompt
 
@@ -228,8 +228,10 @@ class UserMessage:
 
 @dataclass
 class UserNotify:
-    notify_type: Literal['unknown', 'permission'] = 'permission'
+    notify_type: Literal['unknown', 'permission', 'notify'] = 'permission'
     content: str = ''
+    title: str = ''
+    objects: Optional[Dict[str, Any]] = None
 
 @dataclass
 class UserResponse:

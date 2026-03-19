@@ -101,7 +101,7 @@ class SkillRetriever:
                 if not all([title, description, tags,  content]):
                     continue
 
-                search_text = f"{title}: {' '.join(tags)} {description}".lower()
+                search_text = f"{title}: {' '.join(tags)} {description} {content}".lower()
                 words = re.findall(r"[a-zA-Z']+", search_text)
 
                 self.skills.append({'title': title, 'description': description, 'tags': ' '.join(tags), 'content': content})
