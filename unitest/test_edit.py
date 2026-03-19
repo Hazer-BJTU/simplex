@@ -1,4 +1,5 @@
 import os
+import json
 import pytest
 import difflib
 import pathlib
@@ -75,6 +76,33 @@ def test_search_only() -> None:
             await sub_test('#20', 'search', {'key_words': 'logdocument, MultiScaleCNN, load_data_isruc1', 'scope': 'global', 'mode': 'definition'})
             await sub_test('#21', 'search', {'key_words': 'weight_decay', 'scope': 'global', 'mode': 'identifier'})
         target_path = OUTPUT_PATH / 'test_search_only.txt'
+        target_path.parent.mkdir(parents = True, exist_ok = True)
+        with open(target_path, 'w', encoding = 'utf8') as file:
+            file.write(output)
+
+    try:
+        output = asyncio.run(test_body())
+    except Exception:
+        raise
+
+@pytest.mark.tool_server_required
+def test_undo() -> None:
+    async def test_body() -> None:
+        output: str = ''
+        async with EditTools(MOCK_PROJ_PATH, WebsocketClient(PORT, HOST)) as tools:
+            async def sub_test(input) -> None:
+                nonlocal output
+                response = await tools.client.exchange(json.dumps(input))
+                output += response + '\n\n'
+            await sub_test({'type': 'get_workspace_view'})
+            await sub_test({'type': 'view_file_content', 'target_path': 'GeCoSleep/EEGGR.py'})
+            await sub_test({'type': 'edit_file_content', 'target_path': 'GeCoSleep/EEGGR.py', 'edit_type': 'replace', 'line_start': 40, 'line_end': 49, 'content': '        self.teacher_model = MultiHeadSleepNet(self.num_channels, args.dropout, args.task_num, self.args.enable_multihead)'})
+            await sub_test({'type': 'edit_file_content', 'target_path': 'GeCoSleep/EEGGR.py', 'edit_type': 'insert', 'line_start': 40, 'content': '        self.teacher_model = MultiHeadSleepNet(self.num_channels, args.dropout, args.task_num, self.args.enable_multihead)'})
+            await sub_test({'type': 'undo', 'target_path': 'GeCoSleep/EEGGR.py'})
+            await sub_test({'type': 'undo', 'target_path': 'GeCoSleep/EEGGR.py'})
+            await sub_test({'type': 'search_entity', 'scope': 'global', 'mode': 'definition', 'key_words': 'linear_warmup_cosine_annealing'})
+            await sub_test({'type': 'refresh'})
+        target_path = OUTPUT_PATH / 'test_undo.txt'
         target_path.parent.mkdir(parents = True, exist_ok = True)
         with open(target_path, 'w', encoding = 'utf8') as file:
             file.write(output)

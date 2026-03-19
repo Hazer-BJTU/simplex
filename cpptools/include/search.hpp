@@ -221,6 +221,15 @@ public:
         return;
     }
 
+    void cache_expire_all(std::ostream& stream) noexcept {
+        stream << "[searcher cache expired]:" << std::endl;
+        for (const auto& [key, _]: _cache) {
+            stream << key << std::endl;
+        }
+        _cache.clear();
+        return;
+    }
+
     const EntityTagList& get_file_entities(const PathTuple& ptuple) {
         try {
             auto it = _cache.find(ptuple.full.string());

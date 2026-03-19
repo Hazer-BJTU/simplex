@@ -2,6 +2,7 @@
 #include <csignal>
 #include <iostream>
 
+#include "undo.h"
 #include "server.h"
 #include "locate.h"
 #include "search.hpp"
@@ -15,6 +16,7 @@ boost::program_options::variables_map GLOBAL_ARGS;
 #define SIMPLEX_COMMAND_DEF(name) std::string _command_##name (              \
     std::shared_ptr<simplex::Searcher<simplex::GlobalDispatcher>>& searcher, \
     std::shared_ptr<simplex::PathReader>& path_reader,                       \
+    std::shared_ptr<simplex::HistoryUndoLog>& undo_log,                      \
     std::shared_ptr<simplex::WebsocketServer>& server,                       \
     nlohmann::json& command,                                                 \
     const size_t session_id                                                  \
@@ -198,6 +200,9 @@ SIMPLEX_COMMAND_DEF(edit_file_content) {
         boost::filesystem::path normalized_path = target_path;
         auto [type, full_path] = path_reader->normalize(normalized_path);
         if (type == simplex::PathReader::Type::REGULAR_FILE) {
+            // updage undo-log
+            undo_log->push({full_path, normalized_path});
+
             auto lines_record = searcher->edit_file_content({full_path, normalized_path}, edit_type, content, line_start, line_end);
             output << "[changes have been written to: " << normalized_path << "]: " << std::endl << lines_record;
         } else if (type == simplex::PathReader::Type::DIRECTORY) {
@@ -413,6 +418,61 @@ SIMPLEX_COMMAND_DEF(rename) {
     return output.str();
 }
 
+SIMPLEX_COMMAND_DEF(undo) {
+    std::ostringstream output;
+    std::string target_path;
+    try {
+        target_path = command.at("target_path");
+    } catch(const std::exception& e) {
+        output << "[json error: " << e.what() << "]" << std::endl;
+        server->safe_output("[Session#", session_id, "]: invalid command: ", command);
+        server->safe_output("[Session#", session_id, "]: response:", '\n', output.str());
+        return output.str();
+    }
+
+    boost::filesystem::path normalized_path = target_path;
+    auto [type, full_path] = path_reader->normalize(normalized_path);
+
+    simplex::PathTuple ptuple = {full_path, normalized_path};
+    try {
+        undo_log->undo(ptuple);
+    } catch(const std::exception& e) {
+        output << "[error occurred: " << e.what() << "; failed to undo edition]" << std::endl;
+        server->safe_output("[Session#", session_id, "]: command got: undo ", command);
+        server->safe_output("[Session#", session_id, "]: response:", '\n', output.str());
+        return output.str();
+    }
+
+    searcher->cache_expire(ptuple); // noexcept
+
+    try {
+        auto lines_record = searcher->view_file_content(ptuple);
+        output << std::endl << "[successfully undo edition: " << ptuple.view << "]: " << std::endl;
+        output << lines_record;
+    } catch(const std::exception& e) {
+        output << "[unable to view file content: " << e.what() << "]" << std::endl;
+        server->safe_output("[Session#", session_id, "]: command got: undo ", command);
+        server->safe_output("[Session#", session_id, "]: response:", '\n', output.str());
+        return output.str();
+    }
+
+    server->safe_output("[Session#", session_id, "]: command got: undo ", command);
+    server->safe_output("[Session#", session_id, "]: response:", '\n', output.str());
+    return output.str();
+}
+
+SIMPLEX_COMMAND_DEF(refresh) {
+    std::ostringstream output;
+    searcher->cache_expire_all(output); // noexcept
+    try {
+        path_reader->_update_workspace();
+    } catch(...) {}
+
+    server->safe_output("[Session#", session_id, "]: command got: refresh ", command);
+    server->safe_output("[Session#", session_id, "]: response:", '\n', output.str());
+    return output.str();
+}
+
 SIMPLEX_COMMAND_DEF(not_support) {
     std::ostringstream output;
     output << "[command not supported: " << command.at("type") << "]";
@@ -424,10 +484,12 @@ SIMPLEX_COMMAND_DEF(not_support) {
 simplex::WebsocketServer::TransferFunction TFGenerator(std::shared_ptr<simplex::WebsocketServer> _server_ptr, size_t session_id) noexcept {
     auto _searcher = std::make_shared<simplex::Searcher<simplex::GlobalDispatcher>>(GLOBAL_ARGS["concurrent"].as<size_t>());
     auto _path_reader = simplex::get_global_pathreader(".");
+    auto _undo_log = std::make_shared<simplex::HistoryUndoLog>(GLOBAL_ARGS["history"].as<size_t>());
     return [
         session_id,
         searcher = std::move(_searcher), 
         path_reader = std::move(_path_reader),
+        undo_log = std::move(_undo_log),
         server_ptr = std::move(_server_ptr)
     ](const std::string& input) mutable -> std::string {
         nlohmann::json command;
@@ -437,7 +499,7 @@ simplex::WebsocketServer::TransferFunction TFGenerator(std::shared_ptr<simplex::
             return str("[json error: ", e.what(), "]");
         }
 
-        #define REDIRECT_TO(name) _command_##name(searcher, path_reader, server_ptr, command, session_id)
+        #define REDIRECT_TO(name) _command_##name(searcher, path_reader, undo_log, server_ptr, command, session_id)
 
         std::string command_type;
         try {
@@ -464,6 +526,10 @@ simplex::WebsocketServer::TransferFunction TFGenerator(std::shared_ptr<simplex::
             return REDIRECT_TO(remove);
         } else if (command_type == "rename") {
             return REDIRECT_TO(rename);
+        } else if (command_type == "undo") {
+            return REDIRECT_TO(undo);
+        } else if (command_type == "refresh") {
+            return REDIRECT_TO(refresh);
         } else {
             return REDIRECT_TO(not_support);
         }
@@ -480,7 +546,8 @@ int main(int argc, char** argv) {
     ("help,h", "guide for command line arguments")
     ("port,p", boost::program_options::value<unsigned short>()->required(), "port number to listen on (required)")
     ("jobs,j", boost::program_options::value<size_t>()->default_value(1), "number of workers for asynchronous server (default to 1)")
-    ("head-n,n", boost::program_options::value<size_t>()->default_value(20), "number of lines for file preview (default to 20)")
+    ("head-n,n", boost::program_options::value<size_t>()->default_value(200), "number of lines for file preview (default to 200)")
+    ("history,s", boost::program_options::value<size_t>()->default_value(15), "number of history entries per file for undo log (default to 15)")
     ("concurrent,c", boost::program_options::value<size_t>()->default_value(4), "number of threads for concurrent search (default to 4)");
 
     boost::program_options::store(boost::program_options::parse_command_line(argc, argv, arguments), GLOBAL_ARGS);
