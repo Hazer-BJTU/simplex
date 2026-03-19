@@ -13,9 +13,9 @@ import simplex.loop
 import simplex.tools
 import simplex.io
 
-from simplex.basics import ModelResponse, ToolCall, WebsocketClient
-from simplex.models import MockConversationModel, QwenConversationModel
-from simplex.context import TrajectoryLogContext
+from simplex.basics import WebsocketClient
+from simplex.models import QwenConversationModel
+from simplex.context import TrajectoryLogContext, TokenCostCounter
 from simplex.loop import AgentLoop, UserLoop
 from simplex.tools import EditTools, SubprocessExecutorLocal
 from simplex.io import RichTerminalInterface
@@ -34,7 +34,8 @@ if __name__ == '__main__':
             interface.get_exception_handler(), 
             TrajectoryLogContext(instance_id = 'log'), 
             EditTools('/home/hazer/simplex', WebsocketClient(9002)),
-            SubprocessExecutorLocal()
+            SubprocessExecutorLocal(),
+            TokenCostCounter()
         )
 
         await UserLoop(interface, interface, loop).serve()

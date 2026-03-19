@@ -231,7 +231,7 @@ class UserNotify:
     notify_type: Literal['unknown', 'permission', 'notify'] = 'permission'
     content: str = ''
     title: str = ''
-    objects: Optional[Dict[str, Any]] = None
+    objects: Optional[List[Dict[str, Any]]] = None
 
 @dataclass
 class UserResponse:

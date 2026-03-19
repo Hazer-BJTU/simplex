@@ -4,6 +4,7 @@ import uuid
 import rich
 import asyncio
 
+from rich import box
 from rich.text import Text
 from rich.live import Live
 from rich.panel import Panel
@@ -499,12 +500,15 @@ class RichTerminalInterface(UserInputInterface, UserOutputInterface):
                 self.console.print(panel)
 
             if notify.objects:
-                table = Table(title = title, border_style = self._get_style('box_line_explicit'))
-                for k, v in notify.objects.items():
-                    table.add_row(
-                        Text(str(k), style = self._get_style('text_explicit')), 
-                        Text(str(v), style = self._get_style('text'))
-                    )
+                table = Table(title = title, border_style = self._get_style('box_line_explicit'), expand = True, box = box.HORIZONTALS)
+                first_item = notify.objects[0]
+                for k, _ in first_item.items():
+                    table.add_column(Text(str(k), style = self._get_style('text_explicit')), justify = 'left')
+                for item in notify.objects:
+                    entries = []
+                    for v in item.values():
+                        entries.append(Text(str(v), style = self._get_style('text')))
+                    table.add_row(*entries)
                 self.console.print(table)
 
     async def notify_user(self, notify: UserNotify) -> UserResponse:
