@@ -444,9 +444,10 @@ class AgentLoop(AgentLoopAdapter):
             List of results/errors from method execution
         """
 
-        captured: Dict[str, Any] = self._captured_states
         results: List[Any] = []
         for instance in self._instance_list:
+            captured: Dict[str, Any] = self._captured_states
+            
             if not hasattr(instance, name):
                 results.append(Notice(f"{repr(instance)} doesn't have attribute: {name}"))
                 continue
@@ -462,27 +463,26 @@ class AgentLoop(AgentLoopAdapter):
                     result = target(**params)
                 else:
                     result = target(**copy.deepcopy(captured))
+
+                if isinstance(result, AgentLoopStateEdit):
+                    if result.system_prompt:
+                        self.__system_prompt = result.system_prompt
+                    if result.user_prompt:
+                        self.__user_prompt = result.user_prompt
+                    if result.model_input:
+                        self.__model_input = result.model_input
+                    if result.model_response:
+                        self.__model_response = result.model_response
+                    if result.tool_returns:
+                        self.__tool_returns = result.tool_returns
+                    if result.exit_flag:
+                        self.__exit_flag = result.exit_flag
             except Exception as e:
                 result = e
             results.append(result)
 
         # Pass results to exception handler
         self.__exception_handler(results)
-
-        for result in results:
-            if isinstance(result, AgentLoopStateEdit):
-                if result.system_prompt:
-                    self.__system_prompt = result.system_prompt
-                if result.user_prompt:
-                    self.__user_prompt = result.user_prompt
-                if result.model_input:
-                    self.__model_input = result.model_input
-                if result.model_response:
-                    self.__model_response = result.model_response
-                if result.tool_returns:
-                    self.__tool_returns = result.tool_returns
-                if result.exit_flag:
-                    self.__exit_flag = result.exit_flag
 
         return results
     
