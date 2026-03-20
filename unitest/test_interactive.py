@@ -13,11 +13,11 @@ import simplex.loop
 import simplex.tools
 import simplex.io
 
-from simplex.basics import WebsocketClient
-from simplex.models import QwenConversationModel
+from simplex.basics import WebsocketClient, ModelResponse, ToolCall
+from simplex.models import QwenConversationModel, MockConversationModel
 from simplex.context import TrajectoryLogContext, TokenCostCounter
 from simplex.loop import AgentLoop, UserLoop
-from simplex.tools import EditTools, SubprocessExecutorLocal
+from simplex.tools import EditTools, SubprocessExecutorLocal, SequentialPlan
 from simplex.io import RichTerminalInterface
 
 
@@ -26,15 +26,24 @@ OUTPUT_PATH: Path = MODULE_PATH / 'output/test_interactive'
 
 if __name__ == '__main__':
     async def test_body() -> None:
-        model = QwenConversationModel('https://dashscope.aliyuncs.com/compatible-mode/v1', os.getenv('API_KEY'), qwen_model = 'qwen3-coder-plus', enable_thinking = False) # type: ignore
+        # model = QwenConversationModel('https://dashscope.aliyuncs.com/compatible-mode/v1', os.getenv('API_KEY'), qwen_model = 'qwen3-coder-plus', enable_thinking = False) # type: ignore
 
-        interface = RichTerminalInterface(model.qwen_model)
+        model_mock = MockConversationModel(
+            expected_responses = [
+                ModelResponse(tool_call = [ToolCall('x', 'make_plan', {'content': 'This is my plan A.'})]),
+                ModelResponse(response = 'Hello!'),
+                ModelResponse(tool_call = [ToolCall('x', 'make_plan', {'content': 'This is my plan B.'})]),
+            ]
+        )
+
+        interface = RichTerminalInterface('cool agent')
         loop = AgentLoop(
-            model, 
+            model_mock, 
             interface.get_exception_handler(), 
             TrajectoryLogContext(instance_id = 'log'), 
-            EditTools('/home/hazer/simplex', WebsocketClient(9002)),
+            # EditTools('/home/hazer/simplex', WebsocketClient(9002)),
             SubprocessExecutorLocal(),
+            SequentialPlan(),
             TokenCostCounter()
         )
 

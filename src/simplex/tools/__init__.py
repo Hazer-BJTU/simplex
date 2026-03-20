@@ -3,6 +3,7 @@ import simplex.tools.edit
 import simplex.tools.mock
 import simplex.tools.pyinterpreter
 import simplex.tools.pysublocal
+import simplex.tools.plan
 
 from simplex.tools.base import (
     ToolCollection, 
@@ -13,6 +14,7 @@ from simplex.tools.edit import EditTools
 from simplex.tools.mock import MockCalculator
 from simplex.tools.pyinterpreter import PythonInterpreter
 from simplex.tools.pysublocal import SubprocessExecutorLocal
+from simplex.tools.plan import SequentialPlan
 
 
 __all__ = [
@@ -22,5 +24,6 @@ __all__ = [
     "EditTools",
     "MockCalculator",
     "PythonInterpreter",
-    "SubprocessExecutorLocal"
+    "SubprocessExecutorLocal",
+    "SequentialPlan"
 ]

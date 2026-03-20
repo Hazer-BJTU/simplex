@@ -74,8 +74,8 @@ class PromptTemplate:
         return self
     
 class SkillRetriever:
-    def __init__(self, p: float = 0.9, path: Path = SKILLS_PATH) -> None:
-        self.p = p
+    def __init__(self, top_k: int = 5, path: Path = SKILLS_PATH) -> None:
+        self.top_k = top_k
         self.path = path
 
         self.skills: List[Dict] = []
@@ -83,6 +83,7 @@ class SkillRetriever:
         self._load_all_skills()
 
         self.bm25 = BM25Okapi(self.corpus)
+        self.sorted_indices: Optional[np.ndarray] = None
 
     def _load_all_skills(self) -> None:
         if not os.path.exists(self.path):
@@ -109,28 +110,25 @@ class SkillRetriever:
             except Exception:
                 continue
 
-    def search(self, query: str, p: Optional[float] = None) -> List[Dict]:
-        if not p:
-            p = self.p
+    def search(self, query: str, top_k: Optional[int] = None) -> List[Dict]:
+        if not top_k:
+            top_k = self.top_k
 
         tokenized_query: List[str] = re.findall(r"[a-zA-Z']+", query)
         scores = self.bm25.get_scores(tokenized_query)
 
         scores = np.array(scores)
-        exp_scores = np.exp(scores - np.max(scores))
-        probs = exp_scores / np.sum(exp_scores)
-        sorted_indices = np.argsort(probs)[::-1]
-        sorted_probs = probs[sorted_indices]
-
-        accum_prob: float = 0
-        selected_indices: List = []
-        for idx, prob in zip(sorted_indices, sorted_probs):
-            selected_indices.append(idx)
-            accum_prob += prob
-            if accum_prob >= p:
-                break
+        self.sorted_indices = np.argsort(scores)[::-1]
+        selected_indices = self.sorted_indices[:top_k]
 
         return [self.skills[idx] for idx in selected_indices]
+    
+    def get_more(self, top_k: int) -> List[Dict]:
+        if self.sorted_indices:
+            selected_indices = self.sorted_indices[:top_k]
+            return [self.skills[idx] for idx in selected_indices]
+        else:
+            return []
     
     def get_system_prompt(self, path: Optional[Path] = None) -> PromptTemplate:
         if not path:

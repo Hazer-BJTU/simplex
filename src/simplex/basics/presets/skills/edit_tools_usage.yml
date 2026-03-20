@@ -1,0 +1,188 @@
+title: Edit Tools Usage Guide
+description: Comprehensive instructions for LLM-based code agents on how to accurately use the EditTools suite for precise file editing operations.
+tags: ['editing', 'tools', 'file management', 'workspace', 'llm', 'accuracy']
+
+content: |
+  # Edit Tools Usage Guide
+  
+  ## Overview
+  This skill provides comprehensive guidance for LLM-based code agents on how to effectively use the EditTools suite for precise file editing operations. The EditTools collection offers a variety of functions for navigating, inspecting, modifying, and managing files within the project workspace.
+  
+  ## Available Tools
+  
+  ### 1. Navigation Tools
+  
+  **`view_workspace()`**
+  - Purpose: Retrieve the current workspace file structure to understand the project layout
+  - When to use: Before beginning any editing task to understand the directory structure
+  - Returns: Complete directory tree showing all files and subdirectories
+  
+  **`show_details(target_path)`**
+  - Purpose: Display detailed information about a specific directory or file
+  - Parameters:
+    - `target_path` (str): Path to the directory or file to examine (relative to workspace base)
+  - When to use: To explore specific directories or get information about individual files
+  - Returns: Detailed listing of subdirectories/files for directories, or content/structure for files
+  
+  ### 2. Content Inspection Tools
+  
+  **`view_file_content(target_path, line_start, line_end)`**
+  - Purpose: Browse specific file content with optional line range selection
+  - Parameters:
+    - `target_path` (str): Path to the file to examine (relative to workspace base)
+    - `line_start` (int, optional): Starting line number (1-indexed), defaults to 1
+    - `line_end` (int, optional): Ending line number (inclusive), shows all if omitted
+  - When to use: Before making modifications to understand current content and structure
+  - Returns: File content within specified line range or entire file if no range provided
+  
+  ### 3. Content Modification Tools
+  
+  **`edit_file_content(target_path, edit_type, content, line_start, line_end)`**
+  - Purpose: Modify file content using insert or replace operations
+  - Parameters:
+    - `target_path` (str): Path to the file to modify (relative to workspace base)
+    - `edit_type` (str): Either 'insert' or 'replace'
+    - `content` (str): Content to add or replace with
+    - `line_start` (int, required for both insert and replace): Line number to start operation
+    - `line_end` (int, required only for 'replace'): Ending line number (inclusive) for replacement
+  - Two Operation Modes:
+    - `insert`: Adds content AFTER the specified `line_start` line
+    - `replace`: Replaces content BETWEEN `line_start` and `line_end` (inclusive)
+  - Critical: Pay careful attention to indentation alignment, especially for languages like Python that enforce indentation rules
+  - Note: Replacing text with empty content is equivalent to deleting the original text
+  
+  ### 4. File Management Tools
+  
+  **`create(target_path, content)`**
+  - Purpose: Create new files with initial content
+  - Parameters:
+    - `target_path` (str): Path for the new file (relative to workspace base)
+    - `content` (str): Initial content to write to the new file
+  - Note: Parent directories will be automatically created if they don't exist
+  - Note: Requires user permission for execution
+  
+  **`remove(target_path)`**
+  - Purpose: Delete files or directories permanently
+  - Parameters:
+    - `target_path` (str): Path to the file or directory to remove
+  - Warning: Files will be gone forever!
+  - Note: Requires user permission for execution
+  
+  **`rename(src_path, dst_path)`**
+  - Purpose: Rename or move files/directories
+  - Parameters:
+    - `src_path` (str): Current path of the file/directory
+    - `dst_path` (str): Destination path for the file/directory
+  - Note: Parent directories will be created automatically
+  - Note: Requires user permission for execution
+  
+  ### 5. Search and Discovery Tools
+  
+  **`search(key_words, mode, scope)`**
+  - Purpose: Find specific content across files using different search modes
+  - Parameters:
+    - `key_words` (str): Comma-separated list of keywords to search for
+    - `mode` (str): Search mode ('definition', 'identifier', or 'pattern')
+    - `scope` (str): Search scope ('workspace' or 'global')
+  - Search Modes:
+    - `definition`: Exact match on defined code elements like classes and functions
+    - `identifier`: Matches identifiers within code or text (variables, functions, etc.)
+    - `pattern`: Pure string matching for specific text patterns (no regex support)
+  - Scopes:
+    - `workspace`: Searches only files explicitly listed in the recent workspace view
+    - `global`: Searches all files in the entire project directory
+  - Note: Avoid overly broad keywords like '__init__' for Python projects as they may return too many irrelevant results
+  - Note: Regex is NOT supported
+  
+  ### 6. Undo Operations
+  
+  **`undo(target_path)`**
+  - Purpose: Revert the last `edit_file_content` operation on a specific file
+  - Parameters:
+    - `target_path` (str): Path to the file to revert changes on
+  - Limitations: Only applies to `edit_file_content` operations, cannot undo changes caused by creating, deleting, renaming files, or modifications made via bash commands
+  - Note: You can perform multiple undo operations on a single file, but you must specify the filename each time
+  
+  ## Best Practices for LLM Agents
+  
+  ### Pre-Editing Workflow
+  1. **Explore**: Use `view_workspace()` to understand the overall project structure
+  2. **Navigate**: Use `show_details()` to examine specific directories of interest
+  3. **Inspect**: Use `view_file_content()` to understand the current state of relevant files
+  4. **Plan**: Determine the exact line numbers and edit type needed for the modification
+  
+  ### Safe Editing Patterns
+  - **Always verify file paths** are relative to the workspace base directory, not full system paths
+  - **Use line ranges strategically** to focus on specific sections without overwhelming output
+  - **Test small changes first** before applying to large files or critical sections
+  - **Maintain proper indentation** especially for Python and other indentation-sensitive languages
+  - **Check bracket/parentheses balance** after making changes to avoid syntax errors
+  - **Use `line_start` equal to `line_end`** to represent a single line in replace operations
+  
+  ### Error Prevention Strategies
+  - **Verify file existence** using `view_file_content` before attempting modifications
+  - **Confirm line numbers** are within file bounds before specifying line ranges
+  - **Review content carefully** to ensure proper syntax and formatting after edits
+  - **Use search tools** to locate dependencies or related code that might need updating
+  - **Browse the file again after undoing** to maintain an accurate understanding
+  
+  ### Example Workflows
+  
+  **Adding a function to an existing file:**
+  ```yaml
+  # 1. Examine the file to find the right insertion point
+  - view_file_content(target_path: "src/utils/helper.py", line_end: 50)
+  
+  # 2. Insert the new function after the last function definition
+  - edit_file_content(
+      target_path: "src/utils/helper.py",
+      edit_type: "insert",
+      line_start: 45,  # After the last function
+      content: "\ndef new_helper_function():\n    '''Description of the function'''\n    return 'result'\n"
+    )
+  ```
+  
+  **Modifying existing function logic:**
+  ```yaml
+  # 1. First, examine the current function
+  - view_file_content(target_path: "src/main.py", line_start: 10, line_end: 25)
+  
+  # 2. Replace specific lines with improved logic
+  - edit_file_content(
+      target_path: "src/main.py",
+      edit_type: "replace",
+      line_start: 15,
+      line_end: 18,
+      content: "    # Improved algorithm here\n    result = optimized_calculation(data)"
+    )
+  ```
+  
+  **Creating a new configuration file:**
+  ```yaml
+  # 1. Check if the target directory exists
+  - show_details(target_path: "configs/")
+  
+  # 2. Create the new configuration file
+  - create(
+      target_path: "configs/new_config.json",
+      content: "{\n  \"api_url\": \"https://api.example.com\",\n  \"timeout\": 30,\n  \"retries\": 3\n}"
+    )
+  ```
+  
+  **Searching for specific code elements:**
+  ```yaml
+  # Find all function definitions containing "process" globally
+  - search(key_words: "process", mode: "definition", scope: "global")
+  
+  # Find usage of specific variable across workspace
+  - search(key_words: "my_variable", mode: "identifier", scope: "workspace")
+  ```
+  
+  ## Important Notes for LLM Agents
+  - All file paths must be relative to the workspace base directory, not absolute paths
+  - Pay close attention to indentation, especially when inserting code in Python files
+  - Some operations require user permission, particularly those that modify, create, or delete files
+  - The edit tools operate within a controlled environment for security purposes
+  - Always verify the success of operations by checking the results with view_file_content when appropriate
+  - Be mindful of the impact of changes on dependent code and consider using search tools to identify related components
+  - When receiving edit feedback, verify that brackets are properly matched, indentation aligns correctly, and comments don't break code structure
