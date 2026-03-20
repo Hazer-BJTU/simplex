@@ -90,10 +90,10 @@ edit_file_content:
 
 undo:
   description: >-
-    This tool is used to undo your last 'edit_file_content' operation. 
-    Note that it only applies to 'edit_file_content' and cannot undo changes caused by creating, deleting, renaming files, or modifications made via bash commands.
+    This tool is used to undo your last edit operation. 
+    Note that it only applies to edit operations and cannot undo changes caused by creating, deleting, renaming files, or modifications made via bash commands.
     You can perform multiple undo operations on a single file, but you must specify the filename. Only the specified file will be affected. 
-    The file content will be restored to the state before your 'edit_file_content' operation.
+    The file content will be restored to the state before your edit operation.
     Please browse the file again after undoing to maintain an accurate understanding.
   params:
     - field: target_path
