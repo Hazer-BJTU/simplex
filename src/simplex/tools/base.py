@@ -1,4 +1,5 @@
 import os
+import re
 import copy
 import yaml
 import inspect
@@ -19,6 +20,7 @@ from simplex.basics import (
 
 MODULE_PATH: Path = Path(__file__).resolve().parent
 SCHEMA_DIR: Path = MODULE_PATH / 'schema'
+SKILL_DIR: Path = MODULE_PATH / 'skill'
 
 class ToolCollection(ABC):
     """
@@ -517,6 +519,22 @@ def load_schema(file_name: str, tool_name: str, rename: Optional[str] = None) ->
             params = formated_params,
             extras = extras
         )
+    except Exception:
+        raise
+
+def load_tool_skill(file_name: str, replace_mapping: Optional[Dict[str, str]] = None) -> str:
+    try:
+        with open(SKILL_DIR / f"{file_name}.md", 'r', encoding = 'utf8') as skill_file:
+            content = skill_file.read()
+        
+        if replace_mapping:
+            pattern = r'%(\w+)%'
+            def replace_func(match):
+                key = match.group(1)
+                return replace_mapping.get(key, match.group(0))            
+            return re.sub(pattern, replace_func, content) # type: ignore
+        else:
+            return content
     except Exception:
         raise
 

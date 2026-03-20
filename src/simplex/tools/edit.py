@@ -17,13 +17,16 @@ from simplex.basics import (
     UnbuiltError,
     RequestError,
     UserNotify,
-    UserResponse
+    UserResponse,
+    AgentLoopStateEdit,
+    PromptTemplate
 )
 from simplex.tools.base import (
     ToolCollection,
     ToolSchema,
     load_tool_definitions,
-    load_schema
+    load_schema,
+    load_tool_skill
 )
 
 
@@ -41,6 +44,7 @@ EditOperation = Literal[
 
 class EditTools(ToolCollection):
     SCHEMA_FILE: str = 'schema_edit_collections'
+    SKILL_FILE: str = 'skill_edit_collections'
 
     def __init__(
         self,
@@ -93,6 +97,8 @@ class EditTools(ToolCollection):
         }
 
         self.schemas: Dict[EditOperation, ToolSchema] = { key: value for key, value in self.all_schemas.items() if key in self.names }
+        self.skill: str = load_tool_skill(self.SKILL_FILE, {str(k): f"`{v}`" for k, v in self.names.items()})
+        self.skill_added: bool = False
 
         self.input_interface: Optional[UserInputInterface] = None
 
@@ -123,6 +129,12 @@ class EditTools(ToolCollection):
 
     async def bind_io(self, input_interface: UserInputInterface, **kwargs) -> None:
         self.input_interface = input_interface
+
+    def process_prompt(self, user_prompt: PromptTemplate, **kwargs) -> Optional[AgentLoopStateEdit]:
+        if not self.skill_added:
+            self.skill_added = True
+            new_user_prompt = user_prompt + self.skill
+            return AgentLoopStateEdit(user_prompt = new_user_prompt)
 
     async def start_loop_async(self, *args, **kwargs) -> None:
         if not self.initialized:
