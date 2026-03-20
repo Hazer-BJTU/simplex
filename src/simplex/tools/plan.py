@@ -12,17 +12,21 @@ import simplex.tools.base
 from simplex.io import UserInputInterface
 from simplex.basics import (
     UserNotify,
-    UserResponse
+    UserResponse,
+    AgentLoopStateEdit,
+    PromptTemplate
 )
 from simplex.tools.base import (
     ToolSchema,
     ToolCollection,
     load_schema,
-    load_tool_definitions
+    load_tool_definitions,
+    load_tool_skill
 )
 
 class SequentialPlan(ToolCollection):
     SCHEMA_FILE: str = 'schema_plan'
+    SKILL_FILE: str = 'skill_plan'
 
     def __init__(
         self, 
@@ -39,6 +43,10 @@ class SequentialPlan(ToolCollection):
         self.tool_definitions = load_tool_definitions(self.SCHEMA_FILE)
 
         self.content: str = ''
+        
+        # Load the skill instructions
+        self.skill: str = load_tool_skill(self.SKILL_FILE, {'make_plan': f"`{self.name}`"})
+        self.skill_added: bool = False
 
     async def build(self) -> None:
         pass
@@ -61,6 +69,12 @@ class SequentialPlan(ToolCollection):
     
     def tools_descriptions(self) -> str:
         return self.tool_definitions
+    
+    def process_prompt(self, user_prompt: PromptTemplate, **kwargs) -> Optional[AgentLoopStateEdit]:
+        if not self.skill_added:
+            self.skill_added = True
+            new_user_prompt = user_prompt + self.skill
+            return AgentLoopStateEdit(user_prompt = new_user_prompt)
     
     async def _tool_sequential_plan(self, content: str, **kwargs) -> str:
         if self.content:

@@ -26,8 +26,9 @@ OUTPUT_PATH: Path = MODULE_PATH / 'output/test_interactive'
 
 if __name__ == '__main__':
     async def test_body() -> None:
-        model = QwenConversationModel('https://dashscope.aliyuncs.com/compatible-mode/v1', os.getenv('API_KEY'), qwen_model = 'qwen3-coder-plus', enable_thinking = False) # type: ignore
+        model = QwenConversationModel('https://dashscope.aliyuncs.com/compatible-mode/v1', os.getenv('API_KEY'), qwen_model = 'glm-5', enable_thinking = False) # type: ignore
 
+        '''
         model_mock = MockConversationModel(
             expected_responses = [
                 ModelResponse(tool_call = [ToolCall('x', 'make_plan', {'content': 'This is my plan A.'})]),
@@ -35,6 +36,7 @@ if __name__ == '__main__':
                 ModelResponse(tool_call = [ToolCall('x', 'make_plan', {'content': 'This is my plan B.'})]),
             ]
         )
+        '''
 
         interface = RichTerminalInterface(model.qwen_model)
         loop = AgentLoop(
