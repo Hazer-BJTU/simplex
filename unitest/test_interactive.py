@@ -26,7 +26,7 @@ OUTPUT_PATH: Path = MODULE_PATH / 'output/test_interactive'
 
 if __name__ == '__main__':
     async def test_body() -> None:
-        # model = QwenConversationModel('https://dashscope.aliyuncs.com/compatible-mode/v1', os.getenv('API_KEY'), qwen_model = 'qwen3-coder-plus', enable_thinking = False) # type: ignore
+        model = QwenConversationModel('https://dashscope.aliyuncs.com/compatible-mode/v1', os.getenv('API_KEY'), qwen_model = 'qwen3-coder-plus', enable_thinking = False) # type: ignore
 
         model_mock = MockConversationModel(
             expected_responses = [
@@ -36,12 +36,12 @@ if __name__ == '__main__':
             ]
         )
 
-        interface = RichTerminalInterface('cool agent')
+        interface = RichTerminalInterface(model.qwen_model)
         loop = AgentLoop(
-            model_mock, 
+            model, 
             interface.get_exception_handler(), 
             TrajectoryLogContext(instance_id = 'log'), 
-            # EditTools('/home/hazer/simplex', WebsocketClient(9002)),
+            EditTools('/home/hazer/simplex', WebsocketClient(9002)),
             SubprocessExecutorLocal(),
             SequentialPlan(),
             TokenCostCounter()
