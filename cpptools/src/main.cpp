@@ -56,10 +56,16 @@ SIMPLEX_COMMAND_DEF(set_working_dir) {
 }
 
 SIMPLEX_COMMAND_DEF(get_workspace_view) {
-    std::ostringstream output;
+    std::ostringstream output, log_output;
+    searcher->cache_expire_all(log_output); // noexcept
+    try {
+        path_reader->_update_workspace();
+    } catch(...) {}
+
     output << "[workspace: " << path_reader->base_dir() << ", [D]: directory, [F]: regular file]: " << std::endl << *path_reader;
     server->safe_output("[Session#", session_id, "]: command got: get workspace view");
     server->safe_output("[Session#", session_id, "]: response:", '\n', output.str());
+    server->safe_output("[Session#", session_id, "]: log output:", '\n', log_output.str());
     return output.str();
 }
 

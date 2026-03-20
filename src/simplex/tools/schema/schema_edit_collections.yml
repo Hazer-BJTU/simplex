@@ -1,6 +1,8 @@
 view_workspace:
   description: >-
     Used to retrieve the current workspace file structure.
+    This operation refreshes the workspace view. 
+    You can use this tool to refresh when you find the workspace structure or files' content are out of date.
     In some editing operations, updated workspace information may be provided directly,
     eliminating the need for repeated retrieval.
   params: []
@@ -111,6 +113,7 @@ search:
     When calling this function, try to avoid using overly broad keywords (e.g., '__init__' for python).
     Two retrieval scopes are supported: 'workspace' and 'global'.
     The 'workspace' scope only searches in files explicitly listed in a tree structure within the most recent workspace view from the history.
+    Files not DIRECTLY displayed in the workspace view will be skipped.
     The 'global' scope searches in all files in the project (entire working directory).
   params:
     - field: key_words
@@ -128,7 +131,7 @@ search:
     - field: scope
       type: string
       description:
-        Choose between 'global' or 'workspace'.
+        Choose between 'global' or 'workspace'. 'global' is recommended.
       required: True
 
 create:

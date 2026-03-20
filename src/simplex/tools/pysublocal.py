@@ -84,8 +84,15 @@ class SubprocessExecutorLocal(ToolCollection):
             if result.stderr:
                 message = message + '\n' + f"[STDERR]: {result.stderr}"
             return message
-        except Exception as e:
-            return f"[ERROR]: {e}"
+        except subprocess.CalledProcessError as e:
+            error_msg = (
+                f"[ERROR] bash execution failed (return code: {e.returncode})\n"
+                f"[COMMAND]: {command}\n"
+                f"[CWD]: {cwd}\n"
+                f"[STDOUT]: {e.stdout.strip()}\n"
+                f"[STDERR]: {e.stderr.strip()}"
+            )
+            return error_msg
 
 if __name__ == '__main__':
     pass

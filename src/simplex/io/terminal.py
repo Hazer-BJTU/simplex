@@ -255,7 +255,7 @@ class RichTerminalOutputPlugin(ContextPlugin):
             # Create formatted text showing the tool name and its return value
             text = Text(f"⚙️  Tool ", style = self._get_style('text'))
             text.append(f"{ret.original_call.name} ", style = self._get_style('text_explicit'))
-            text.append("returns: ", style = self._get_style('text'))
+            text.append("returns:\n", style = self._get_style('text'))
             text.append(f"{ret.content}", style = self._get_style('text'))
             text.truncate(self.max_text, overflow = 'ellipsis')
             # Display the return value in a styled panel
