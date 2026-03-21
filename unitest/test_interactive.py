@@ -49,7 +49,7 @@ if __name__ == '__main__':
             TokenCostCounter()
         )
 
-        await UserLoop(interface, interface, loop).serve()
+        await UserLoop(interface, interface, loop, complete_configs = {'max_iteration': 100}).serve()
 
         target_path = OUTPUT_PATH / 'test_interactive.md'
         target_path.parent.mkdir(parents = True, exist_ok = True)

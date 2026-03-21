@@ -505,11 +505,13 @@ def load_schema(file_name: str, tool_name: str, rename: Optional[str] = None) ->
             param_type: str = param.get('type', 'string')
             param_description: str = param.get('description', '')
             param_required: bool = param.get('required', True)
+            param_enum: Optional[List] = param.get('enum', None)
             param_extras: Dict = param.get('extras', {})
             formated_params.append(ToolSchema.Parameter(
                 field = param_field,
                 type = param_type,
                 description = param_description,
+                enum = param_enum,
                 required = param_required,
                 extras = param_extras
             ))

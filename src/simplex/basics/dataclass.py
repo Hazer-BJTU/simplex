@@ -97,6 +97,7 @@ class ToolSchema:
         type: str
         description: str
         required: bool = True
+        enum: Optional[List] = None
         extras: Optional[Dict] = None
         
         def to_dict(self) -> Dict:
@@ -104,6 +105,7 @@ class ToolSchema:
                 'field': self.field,
                 'type': self.type,
                 'description': self.description,
+                'enum': self.enum,
                 'required': self.required
             }
             if self.extras is not None:
