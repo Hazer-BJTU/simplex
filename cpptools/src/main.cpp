@@ -91,7 +91,7 @@ SIMPLEX_COMMAND_DEF(show_details) {
         return output.str();
     }
 
-    output << "[updated workspace: " << path_reader->base_dir() << ", [D]: directory, [F]: regular file]: " << std::endl << *path_reader;
+    output << "[updated workspace: " << path_reader->base_dir() << ", [D]: directory, [F]: regular file]: " << std::endl << *path_reader << std::endl;
 
     try {
         boost::filesystem::path normalized_path = target_path;
@@ -100,17 +100,17 @@ SIMPLEX_COMMAND_DEF(show_details) {
             const auto& entity_list = searcher->get_file_entities({full_path, normalized_path});
             if (entity_list.empty()) {
                 auto lines_record = searcher->view_file_content({full_path, normalized_path}, 0, GLOBAL_ARGS["head-n"].as<size_t>());
-                output << std::endl << "[content preview of file: " << normalized_path << "]: " << std::endl << lines_record;
+                output << "[content preview of file: " << normalized_path << "]: " << std::endl << lines_record;
             } else {
-                output << std::endl << "[source code skeleton of file: " << normalized_path << "]: " << std::endl;
+                output << "[source code skeleton of file: " << normalized_path << "]: " << std::endl;
                 for (const auto& entity: entity_list) {
                     output << entity << std::endl;
                 }
             }
         } else if (type == simplex::PathReader::Type::DIRECTORY || type == simplex::PathReader::Type::UNKNOWN) {
-            output << std::endl << "[workspace view is already navigated to: " << normalized_path << "]" << std::endl;
+            output << "[workspace view is already navigated to: " << normalized_path << "]" << std::endl;
         } else {
-            output << std::endl << "[target: " << normalized_path << " not found!]" << std::endl;
+            output << "[target: " << normalized_path << " not found!]" << std::endl;
         }
     } catch(const std::exception& e) {
         output << "[unable to show file details! error: " << e.what() << "]" << std::endl;
@@ -143,6 +143,18 @@ SIMPLEX_COMMAND_DEF(view_file_content) {
     } catch(const std::exception& e) {
         line_start = 0, line_end = line_start + GLOBAL_ARGS["head-n"].as<size_t>();
     }
+
+    try {
+        path_reader->navigate_target(target_path);
+    } catch(const std::exception& e) {
+        output << "[updated workspace: " << path_reader->base_dir() << ", [D]: directory, [F]: regular file]: " << std::endl << *path_reader;
+        output << std::endl << "[target: " << target_path << " not found!]" << std::endl;
+        server->safe_output("[Session#", session_id, "]: command got: show target details ", target_path);
+        server->safe_output("[Session#", session_id, "]: response:", '\n', output.str());
+        return output.str();
+    }
+
+    output << "[updated workspace: " << path_reader->base_dir() << ", [D]: directory, [F]: regular file]: " << std::endl << *path_reader << std::endl;
 
     try {
         boost::filesystem::path normalized_path = target_path;
@@ -201,6 +213,18 @@ SIMPLEX_COMMAND_DEF(edit_file_content) {
         line_start = command.at("line_start");
         line_end = command.at("line_end");
     } catch(...) {}
+
+    try {
+        path_reader->navigate_target(target_path);
+    } catch(const std::exception& e) {
+        output << "[updated workspace: " << path_reader->base_dir() << ", [D]: directory, [F]: regular file]: " << std::endl << *path_reader;
+        output << std::endl << "[target: " << target_path << " not found!]" << std::endl;
+        server->safe_output("[Session#", session_id, "]: command got: show target details ", target_path);
+        server->safe_output("[Session#", session_id, "]: response:", '\n', output.str());
+        return output.str();
+    }
+
+    output << "[updated workspace: " << path_reader->base_dir() << ", [D]: directory, [F]: regular file]: " << std::endl << *path_reader << std::endl;
 
     try {
         boost::filesystem::path normalized_path = target_path;

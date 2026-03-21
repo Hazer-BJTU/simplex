@@ -80,7 +80,7 @@ class QwenConversationModel(ConversationModel):
                 self._default_generate_configs | 
                 openai_compatiable_translate(model_input) |
                 self.completion_extras
-            ))
+            ), timeout = 600)
         except AssertionError:
             raise
         except Exception as e:
