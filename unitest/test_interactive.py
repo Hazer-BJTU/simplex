@@ -28,15 +28,17 @@ if __name__ == '__main__':
     async def test_body() -> None:
         model = QwenConversationModel('https://dashscope.aliyuncs.com/compatible-mode/v1', os.getenv('API_KEY'), qwen_model = 'glm-5', enable_thinking = False) # type: ignore
 
-        '''
+        
         model_mock = MockConversationModel(
             expected_responses = [
-                ModelResponse(tool_call = [ToolCall('x', 'make_plan', {'content': 'This is my plan A.'})]),
+                ModelResponse(tool_call = [ToolCall('x', 'make_plan', {'content': 'This is my plan A.', 'edit_type': 'append'})]),
                 ModelResponse(response = 'Hello!'),
-                ModelResponse(tool_call = [ToolCall('x', 'make_plan', {'content': 'This is my plan B.'})]),
+                ModelResponse(tool_call = [ToolCall('x', 'make_plan', {'content': 'This is my plan B.', 'edit_type': 'append'})]),
+                ModelResponse(tool_call = [ToolCall('x', 'make_plan', {'content': 'This is my plan B.', 'edit_type': 'replace'})]),
+                ModelResponse(tool_call = [ToolCall('x', 'make_plan', {'content': '', 'edit_type': 'check_only'})]),
+                ModelResponse(response = 'Hello!')
             ]
         )
-        '''
 
         interface = RichTerminalInterface(model.qwen_model)
         loop = AgentLoop(

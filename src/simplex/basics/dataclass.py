@@ -143,8 +143,10 @@ class ToolSchema:
                 subsequent_indent = '        ',
                 replace_whitespace = False,
                 drop_whitespace = True
-            )
-            output += f"\n      required: {param.required}\n"
+            ) + '\n'
+            if param.enum:
+                output += f"      enum: {str(param.enum)}\n"
+            output += f"      required: {param.required}\n"
         return output.strip()
     
     def to_dict(self) -> Dict:

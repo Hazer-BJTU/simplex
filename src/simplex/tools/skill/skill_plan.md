@@ -1,14 +1,15 @@
 # Plan Management Instructions
 
-## Purpose
-The %make_plan% tool helps you manage plans and checklists throughout your tasks. This allows for structured task management and clear communication of intentions to users.
+## Tool Overview
+The %make_plan% tool is a planning and checklist management tool designed to help agents track task progress, record statuses, and communicate intentions clearly to users. It supports editing plans/checklists via natural language and returns a comparison between the old and new plans after each operation, preventing information loss due to context collapse.
 
-## Usage
-Use the %make_plan% command to create, modify, or update your plans/checklists. The content you provide will overwrite the previous plan content, and you'll receive a comparison showing both the original and new plans.
+## Core Purpose
+- Record task plans and checklists at key nodes to avoid forgetting details when context is collapsed.
+- Intuitively show users your intentions, actions, and progress through clear plans.
+- Provide guidance when tasks are tricky or you are unsure about the next step (via check_only mode).
 
-## Best Practices
-1. At the start of any significant task, create an initial plan outlining your approach
-2. Update your plan at important milestones to reflect progress and any changes in approach
-3. Use the plan to communicate your intentions clearly to users
-4. Keep plans concise but informative
-5. Remember that each call to %make_plan% replaces the entire plan content - include all relevant information in each update
+## Important Notes
+- The content should be concise and specific; avoid vague descriptions (e.g., "do the task" is not acceptable; specify the task details).
+- Always select the correct edit_type: use "replace" for initial plans, "append" for updates, and "check_only" for reviews.
+- After each use, check the tool’s return (old vs. new plan) to ensure the operation is correct.
+- Do not skip using the tool at key nodes—this is crucial to avoid context loss and ensure user understanding.

@@ -76,13 +76,22 @@ class SequentialPlan(ToolCollection):
             new_user_prompt = user_prompt + self.skill
             return AgentLoopStateEdit(user_prompt = new_user_prompt)
     
-    async def _tool_sequential_plan(self, content: str, **kwargs) -> str:
-        if self.content:
-            response: str = f"[original plan]:\n{self.content}\n\n[new plan]:\n{content}"
+    async def _tool_sequential_plan(self, content: str, edit_type: str, **kwargs) -> str:
+        if edit_type == 'replace':
+            if self.content:
+                response: str = f"[original plan]:\n{self.content}\n\n[new plan]:\n{content}"
+            else:
+                response: str = f"[new plan]:\n{content}"
+            self.content = content.strip()
+            return response
+        elif edit_type == 'append':
+            self.content = f"{self.content.strip()}\n\n{content}"
+            self.content = self.content.strip()
+            return f"[current plan]:\n{self.content}"
+        elif edit_type == 'check_only':
+            return f"[current plan]:\n{self.content}"
         else:
-            response: str = f"[new plan]:\n{content}"
-        self.content = content
-        return response
+            return f"[ERROR]: Parameter 'edit_type' should be one of 'replace', 'append' or 'check_only'."
 
 if __name__ == '__main__':
     pass

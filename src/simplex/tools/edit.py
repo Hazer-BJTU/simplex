@@ -198,6 +198,13 @@ class EditTools(ToolCollection):
         if not self.initialized:
             raise UnbuiltError(self.__class__.__name__)
         
+        if line_start and line_start < 0:
+            return f"[ERROR]: Parameter 'line_start' should be non-negative!"
+        if line_end and line_end < 0:
+            return f"[ERROR]: Parameter 'line_end' should be non-negative!"
+        if line_start and line_end and line_end < line_start:
+            return f"[ERROR]: Parameter 'line_end' should be greater or equal to 'line_start'!"
+        
         query: Dict = {
             'type': 'view_file_content',
             'target_path': target_path,
@@ -227,6 +234,16 @@ class EditTools(ToolCollection):
     ) -> str:
         if not self.initialized:
             raise UnbuiltError(self.__class__.__name__)
+        
+        if line_start and line_start < 0:
+            return f"[ERROR]: Parameter 'line_start' should be non-negative!"
+        if line_end and line_end < 0:
+            return f"[ERROR]: Parameter 'line_end' should be non-negative!"
+        if line_start and line_end and line_end < line_start:
+            return f"[ERROR]: Parameter 'line_end' should be greater or equal to 'line_start'!"
+        
+        if edit_type not in ['replace', 'insert']:
+            return f"[ERROR]: Parameter 'edit_type' should be one of 'replace' or 'insert'."
         
         query: Dict = {
             'type': 'edit_file_content',
@@ -272,6 +289,12 @@ class EditTools(ToolCollection):
     async def _tool_search(self, key_words: str, scope: str, mode: str, **kwargs) -> str:
         if not self.initialized:
             raise UnbuiltError(self.__class__.__name__)
+        
+        if scope not in ['workspace', 'global']:
+            return f"[ERROR]: Parameter 'scope' should be one of 'workspace' or 'global'."
+        
+        if mode not in ['definition', 'identifier', 'pattern']:
+            return f"[ERROR]: Parameter 'mode' should be one of 'definition', 'identifier' or 'pattern'."
         
         query: Dict = {
             'type': 'search_entity',

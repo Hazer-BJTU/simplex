@@ -66,6 +66,7 @@ edit_file_content:
       type: string
       description:
         Choose between 'replace' and 'insert'.
+      enum: ['replace', 'insert']
       required: True
 
     - field: content
@@ -126,12 +127,14 @@ search:
       type: string
       description:
         Choose between 'definition', 'identifier' or 'pattern'. Regex is NOT supported.
+      enum: ['definition', 'identifier', 'pattern']
       required: True
 
     - field: scope
       type: string
       description:
         Choose between 'global' or 'workspace'. 'global' is recommended.
+      enum: ['global', 'workspace']
       required: True
 
 create:
