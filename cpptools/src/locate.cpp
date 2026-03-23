@@ -91,7 +91,7 @@ void PathReader::_open_dir(const boost::filesystem::path& path) {
     try {
         for (const auto& directory_netry: boost::filesystem::directory_iterator(full_path, boost::filesystem::directory_options::skip_permission_denied)) {
             const auto& curr_path = directory_netry.path();
-            if (!_qualified_scan(curr_path)) {
+            if (!boost::filesystem::exists(curr_path)) {
                 continue;
             }
             auto normalized_curr_path = boost::filesystem::relative(curr_path, _base_dir);
