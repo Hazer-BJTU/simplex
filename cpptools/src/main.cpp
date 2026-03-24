@@ -41,7 +41,9 @@ SIMPLEX_COMMAND_DEF(set_working_dir) {
 
     try {
         auto new_path_reader = simplex::get_global_pathreader(base_dir);
+        auto new_searcher = std::make_shared<simplex::Searcher<simplex::GlobalDispatcher>>(base_dir, GLOBAL_ARGS["concurrent"].as<size_t>());
         path_reader = new_path_reader;
+        searcher = new_searcher;
     } catch(const std::exception& e) {
         output << "[invalid working directory specified; " << e.what() << "]" << std::endl;
         simplex::safe_output("[Session#", session_id, "]: command got: change working directory to ", base_dir);
@@ -57,7 +59,6 @@ SIMPLEX_COMMAND_DEF(set_working_dir) {
 
 SIMPLEX_COMMAND_DEF(get_workspace_view) {
     std::ostringstream output, log_output;
-    searcher->cache_expire_all(log_output); // noexcept
     try {
         path_reader->_update_workspace();
     } catch(...) {}
@@ -363,8 +364,6 @@ SIMPLEX_COMMAND_DEF(touch) {
     path_reader->navigate_target(ptuple.view);
     output << "[updated workspace: " << path_reader->base_dir() << ", [D]: directory, [F]: regular file]: " << std::endl << *path_reader;
 
-    searcher->cache_expire(ptuple); // noexcept
-
     try {
         auto lines_record = searcher->view_file_content(ptuple);
         output << std::endl << "[successfully created file: " << ptuple.view << "]: " << std::endl;
@@ -406,8 +405,6 @@ SIMPLEX_COMMAND_DEF(remove) {
     output << "[successfully removed file: " << ptuple.view << "]: " << std::endl;
     output << "[updated workspace: " << path_reader->base_dir() << ", [D]: directory, [F]: regular file]: " << std::endl << *path_reader;
 
-    searcher->cache_expire(ptuple); // noexcept
-
     simplex::safe_output("[Session#", session_id, "]: command got: remove ", command);
     simplex::safe_output("[Session#", session_id, "]: response:", '\n', output.str());
     return output.str();
@@ -441,8 +438,6 @@ SIMPLEX_COMMAND_DEF(rename) {
     output << "[successfully renamed " << psrc.view << " to " << pdst.view << "]: " << std::endl;
     output << "[updated workspace: " << path_reader->base_dir() << ", [D]: directory, [F]: regular file]: " << std::endl << *path_reader;
 
-    searcher->cache_expire(psrc); // noexcept
-
     simplex::safe_output("[Session#", session_id, "]: command got: rename ", command);
     simplex::safe_output("[Session#", session_id, "]: response:", '\n', output.str());
     return output.str();
@@ -473,8 +468,6 @@ SIMPLEX_COMMAND_DEF(undo) {
         return output.str();
     }
 
-    searcher->cache_expire(ptuple); // noexcept
-
     try {
         auto lines_record = searcher->view_file_content(ptuple);
         output << std::endl << "[successfully undo edition: " << ptuple.view << "]: " << std::endl;
@@ -492,15 +485,12 @@ SIMPLEX_COMMAND_DEF(undo) {
 }
 
 SIMPLEX_COMMAND_DEF(refresh) {
-    std::ostringstream output;
-    searcher->cache_expire_all(output); // noexcept
     try {
         path_reader->_update_workspace();
     } catch(...) {}
 
     simplex::safe_output("[Session#", session_id, "]: command got: refresh ", command);
-    simplex::safe_output("[Session#", session_id, "]: response:", '\n', output.str());
-    return output.str();
+    return "";
 }
 
 SIMPLEX_COMMAND_DEF(not_support) {
@@ -512,7 +502,7 @@ SIMPLEX_COMMAND_DEF(not_support) {
 }
 
 simplex::WebsocketServer::TransferFunction TFGenerator(std::shared_ptr<simplex::WebsocketServer> _server_ptr, size_t session_id) noexcept {
-    auto _searcher = std::make_shared<simplex::Searcher<simplex::GlobalDispatcher>>(GLOBAL_ARGS["concurrent"].as<size_t>());
+    auto _searcher = std::make_shared<simplex::Searcher<simplex::GlobalDispatcher>>(".", GLOBAL_ARGS["concurrent"].as<size_t>());
     auto _path_reader = simplex::get_global_pathreader(".");
     auto _undo_log = std::make_shared<simplex::HistoryUndoLog>(GLOBAL_ARGS["history"].as<size_t>());
     return [
