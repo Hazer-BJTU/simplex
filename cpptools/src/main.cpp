@@ -34,8 +34,8 @@ SIMPLEX_COMMAND_DEF(set_working_dir) {
         base_dir = command.at("base_dir");
     } catch(const std::exception& e) {
         output << "[json error: " << e.what() << "]" << std::endl;
-        server->safe_output("[Session#", session_id, "]: invalid command: ", command);
-        server->safe_output("[Session#", session_id, "]: response:", '\n', output.str());
+        simplex::safe_output("[Session#", session_id, "]: invalid command: ", command);
+        simplex::safe_output("[Session#", session_id, "]: response:", '\n', output.str());
         return output.str();
     }
 
@@ -44,14 +44,14 @@ SIMPLEX_COMMAND_DEF(set_working_dir) {
         path_reader = new_path_reader;
     } catch(const std::exception& e) {
         output << "[invalid working directory specified; " << e.what() << "]" << std::endl;
-        server->safe_output("[Session#", session_id, "]: command got: change working directory to ", base_dir);
-        server->safe_output("[Session#", session_id, "]: response:", '\n', output.str());
+        simplex::safe_output("[Session#", session_id, "]: command got: change working directory to ", base_dir);
+        simplex::safe_output("[Session#", session_id, "]: response:", '\n', output.str());
         return output.str();
     }
 
     output << "[successfully changed working directory to: " << base_dir << "]:" << std::endl << *path_reader;
-    server->safe_output("[Session#", session_id, "]: command got: change working directory to ", base_dir);
-    server->safe_output("[Session#", session_id, "]: response:", '\n', output.str());
+    simplex::safe_output("[Session#", session_id, "]: command got: change working directory to ", base_dir);
+    simplex::safe_output("[Session#", session_id, "]: response:", '\n', output.str());
     return output.str();
 }
 
@@ -63,9 +63,9 @@ SIMPLEX_COMMAND_DEF(get_workspace_view) {
     } catch(...) {}
 
     output << "[workspace: " << path_reader->base_dir() << ", [D]: directory, [F]: regular file]: " << std::endl << *path_reader;
-    server->safe_output("[Session#", session_id, "]: command got: get workspace view");
-    server->safe_output("[Session#", session_id, "]: response:", '\n', output.str());
-    server->safe_output("[Session#", session_id, "]: log output:", '\n', log_output.str());
+    simplex::safe_output("[Session#", session_id, "]: command got: get workspace view");
+    simplex::safe_output("[Session#", session_id, "]: response:", '\n', output.str());
+    simplex::safe_output("[Session#", session_id, "]: log output:", '\n', log_output.str());
     return output.str();
 }
 
@@ -76,8 +76,8 @@ SIMPLEX_COMMAND_DEF(show_details) {
         target_path = command.at("target_path");
     } catch(const std::exception& e) {
         output << "[json error: " << e.what() << "]" << std::endl;
-        server->safe_output("[Session#", session_id, "]: invalid command: ", command);
-        server->safe_output("[Session#", session_id, "]: response:", '\n', output.str());
+        simplex::safe_output("[Session#", session_id, "]: invalid command: ", command);
+        simplex::safe_output("[Session#", session_id, "]: response:", '\n', output.str());
         return output.str();
     }
 
@@ -86,8 +86,8 @@ SIMPLEX_COMMAND_DEF(show_details) {
     } catch(const std::exception& e) {
         output << "[updated workspace: " << path_reader->base_dir() << ", [D]: directory, [F]: regular file]: " << std::endl << *path_reader;
         output << std::endl << "[target: " << target_path << " not found!]" << std::endl;
-        server->safe_output("[Session#", session_id, "]: command got: show target details ", target_path);
-        server->safe_output("[Session#", session_id, "]: response:", '\n', output.str());
+        simplex::safe_output("[Session#", session_id, "]: command got: show target details ", target_path);
+        simplex::safe_output("[Session#", session_id, "]: response:", '\n', output.str());
         return output.str();
     }
 
@@ -114,13 +114,13 @@ SIMPLEX_COMMAND_DEF(show_details) {
         }
     } catch(const std::exception& e) {
         output << "[unable to show file details! error: " << e.what() << "]" << std::endl;
-        server->safe_output("[Session#", session_id, "]: command got: show target details ", target_path);
-        server->safe_output("[Session#", session_id, "]: response:", '\n', output.str());
+        simplex::safe_output("[Session#", session_id, "]: command got: show target details ", target_path);
+        simplex::safe_output("[Session#", session_id, "]: response:", '\n', output.str());
         return output.str();
     }
 
-    server->safe_output("[Session#", session_id, "]: command got: show target details ", target_path);
-    server->safe_output("[Session#", session_id, "]: response:", '\n', output.str());
+    simplex::safe_output("[Session#", session_id, "]: command got: show target details ", target_path);
+    simplex::safe_output("[Session#", session_id, "]: response:", '\n', output.str());
     return output.str();
 }
 
@@ -131,8 +131,8 @@ SIMPLEX_COMMAND_DEF(view_file_content) {
         target_path = command.at("target_path");
     } catch(const std::exception& e) {
         output << "[json error: " << e.what() << "]" << std::endl;
-        server->safe_output("[Session#", session_id, "]: invalid command: ", command);
-        server->safe_output("[Session#", session_id, "]: response:", '\n', output.str());
+        simplex::safe_output("[Session#", session_id, "]: invalid command: ", command);
+        simplex::safe_output("[Session#", session_id, "]: response:", '\n', output.str());
         return output.str();
     }
 
@@ -149,8 +149,8 @@ SIMPLEX_COMMAND_DEF(view_file_content) {
     } catch(const std::exception& e) {
         output << "[updated workspace: " << path_reader->base_dir() << ", [D]: directory, [F]: regular file]: " << std::endl << *path_reader;
         output << std::endl << "[target: " << target_path << " not found!]" << std::endl;
-        server->safe_output("[Session#", session_id, "]: command got: show target details ", target_path);
-        server->safe_output("[Session#", session_id, "]: response:", '\n', output.str());
+        simplex::safe_output("[Session#", session_id, "]: command got: show target details ", target_path);
+        simplex::safe_output("[Session#", session_id, "]: response:", '\n', output.str());
         return output.str();
     }
 
@@ -171,13 +171,13 @@ SIMPLEX_COMMAND_DEF(view_file_content) {
         }
     } catch(const std::exception& e) {
         output << "[unable to view file content: " << e.what() << "]" << std::endl;
-        server->safe_output("[Session#", session_id, "]: command got: view file content ", target_path, " [", line_start, ", ", line_end, "]");
-        server->safe_output("[Session#", session_id, "]: response:", '\n', output.str());
+        simplex::safe_output("[Session#", session_id, "]: command got: view file content ", target_path, " [", line_start, ", ", line_end, "]");
+        simplex::safe_output("[Session#", session_id, "]: response:", '\n', output.str());
         return output.str();
     }
 
-    server->safe_output("[Session#", session_id, "]: command got: view file content ", target_path, " [", line_start, ", ", line_end, "]");
-    server->safe_output("[Session#", session_id, "]: response:", '\n', output.str());
+    simplex::safe_output("[Session#", session_id, "]: command got: view file content ", target_path, " [", line_start, ", ", line_end, "]");
+    simplex::safe_output("[Session#", session_id, "]: response:", '\n', output.str());
     return output.str();
 }
 
@@ -188,8 +188,8 @@ SIMPLEX_COMMAND_DEF(edit_file_content) {
         target_path = command.at("target_path");
     } catch(const std::exception& e) {
         output << "[json error: " << e.what() << "]" << std::endl;
-        server->safe_output("[Session#", session_id, "]: invalid command: ", command);
-        server->safe_output("[Session#", session_id, "]: response:", '\n', output.str());
+        simplex::safe_output("[Session#", session_id, "]: invalid command: ", command);
+        simplex::safe_output("[Session#", session_id, "]: response:", '\n', output.str());
         return output.str();
     }
 
@@ -205,8 +205,8 @@ SIMPLEX_COMMAND_DEF(edit_file_content) {
         }
     } catch(const std::exception& e) {
         output << "[json error: " << e.what() << "; no changes have been made to workspace]" << std::endl;
-        server->safe_output("[Session#", session_id, "]: invalid command: ", command);
-        server->safe_output("[Session#", session_id, "]: response:", '\n', output.str());
+        simplex::safe_output("[Session#", session_id, "]: invalid command: ", command);
+        simplex::safe_output("[Session#", session_id, "]: response:", '\n', output.str());
     }
 
     try {
@@ -219,8 +219,8 @@ SIMPLEX_COMMAND_DEF(edit_file_content) {
     } catch(const std::exception& e) {
         output << "[updated workspace: " << path_reader->base_dir() << ", [D]: directory, [F]: regular file]: " << std::endl << *path_reader;
         output << std::endl << "[target: " << target_path << " not found!]" << std::endl;
-        server->safe_output("[Session#", session_id, "]: command got: show target details ", target_path);
-        server->safe_output("[Session#", session_id, "]: response:", '\n', output.str());
+        simplex::safe_output("[Session#", session_id, "]: command got: show target details ", target_path);
+        simplex::safe_output("[Session#", session_id, "]: response:", '\n', output.str());
         return output.str();
     }
 
@@ -244,13 +244,13 @@ SIMPLEX_COMMAND_DEF(edit_file_content) {
         }
     } catch(const std::exception& e) {
         output << "[error occurred: " << e.what() << "; no changes have been made to workspace]" << std::endl;
-        server->safe_output("[Session#", session_id, "]: command got: edit file content ", command);
-        server->safe_output("[Session#", session_id, "]: response:", '\n', output.str());
+        simplex::safe_output("[Session#", session_id, "]: command got: edit file content ", command);
+        simplex::safe_output("[Session#", session_id, "]: response:", '\n', output.str());
         return output.str();
     }
 
-    server->safe_output("[Session#", session_id, "]: command got: edit file content ", command);
-    server->safe_output("[Session#", session_id, "]: response:", '\n', output.str());
+    simplex::safe_output("[Session#", session_id, "]: command got: edit file content ", command);
+    simplex::safe_output("[Session#", session_id, "]: response:", '\n', output.str());
     return output.str();
 }
 
@@ -277,8 +277,8 @@ SIMPLEX_COMMAND_DEF(search_entity) {
         }
     } catch(const std::exception& e) {
         output << "[json error: " << e.what() << "]" << std::endl;
-        server->safe_output("[Session#", session_id, "]: invalid command: ", command);
-        server->safe_output("[Session#", session_id, "]: response:", '\n', output.str());
+        simplex::safe_output("[Session#", session_id, "]: invalid command: ", command);
+        simplex::safe_output("[Session#", session_id, "]: response:", '\n', output.str());
         return output.str();
     }
     
@@ -293,8 +293,8 @@ SIMPLEX_COMMAND_DEF(search_entity) {
         }
     } catch(const std::exception& e) {
         output << "[error occurred: " << e.what() << "; no content retrieved]" << std::endl;
-        server->safe_output("[Session#", session_id, "]: command got: search entity ", command);
-        server->safe_output("[Session#", session_id, "]: response:", '\n', output.str());
+        simplex::safe_output("[Session#", session_id, "]: command got: search entity ", command);
+        simplex::safe_output("[Session#", session_id, "]: response:", '\n', output.str());
         return output.str();
     }
 
@@ -326,8 +326,8 @@ SIMPLEX_COMMAND_DEF(search_entity) {
         output << "[unsupported mode: " << mode << "; choose from 'definition', 'identifier', 'pattern']" << std::endl;
     }
     
-    server->safe_output("[Session#", session_id, "]: command got: search entity ", command);
-    server->safe_output("[Session#", session_id, "]: response:", '\n', output.str());
+    simplex::safe_output("[Session#", session_id, "]: command got: search entity ", command);
+    simplex::safe_output("[Session#", session_id, "]: response:", '\n', output.str());
     return output.str();
 }
 
@@ -338,8 +338,8 @@ SIMPLEX_COMMAND_DEF(touch) {
         target_path = command.at("target_path");
     } catch(const std::exception& e) {
         output << "[json error: " << e.what() << "]" << std::endl;
-        server->safe_output("[Session#", session_id, "]: invalid command: ", command);
-        server->safe_output("[Session#", session_id, "]: response:", '\n', output.str());
+        simplex::safe_output("[Session#", session_id, "]: invalid command: ", command);
+        simplex::safe_output("[Session#", session_id, "]: response:", '\n', output.str());
         return output.str();
     }
 
@@ -355,8 +355,8 @@ SIMPLEX_COMMAND_DEF(touch) {
         ptuple = path_reader->touch(target_path, content);
     } catch(const std::exception& e) {
         output << "[error occurred: " << e.what() << "; failed to create new file]" << std::endl;
-        server->safe_output("[Session#", session_id, "]: command got: touch ", command);
-        server->safe_output("[Session#", session_id, "]: response:", '\n', output.str());
+        simplex::safe_output("[Session#", session_id, "]: command got: touch ", command);
+        simplex::safe_output("[Session#", session_id, "]: response:", '\n', output.str());
         return output.str();
     }
         
@@ -371,13 +371,13 @@ SIMPLEX_COMMAND_DEF(touch) {
         output << lines_record;
     } catch(const std::exception& e) {
         output << "[unable to view file content: " << e.what() << "]" << std::endl;
-        server->safe_output("[Session#", session_id, "]: command got: touch ", command);
-        server->safe_output("[Session#", session_id, "]: response:", '\n', output.str());
+        simplex::safe_output("[Session#", session_id, "]: command got: touch ", command);
+        simplex::safe_output("[Session#", session_id, "]: response:", '\n', output.str());
         return output.str();
     }
 
-    server->safe_output("[Session#", session_id, "]: command got: touch", command);
-    server->safe_output("[Session#", session_id, "]: response:", '\n', output.str());
+    simplex::safe_output("[Session#", session_id, "]: command got: touch", command);
+    simplex::safe_output("[Session#", session_id, "]: response:", '\n', output.str());
     return output.str();
 }
 
@@ -388,8 +388,8 @@ SIMPLEX_COMMAND_DEF(remove) {
         target_path = command.at("target_path");
     } catch(const std::exception& e) {
         output << "[json error: " << e.what() << "]" << std::endl;
-        server->safe_output("[Session#", session_id, "]: invalid command: ", command);
-        server->safe_output("[Session#", session_id, "]: response:", '\n', output.str());
+        simplex::safe_output("[Session#", session_id, "]: invalid command: ", command);
+        simplex::safe_output("[Session#", session_id, "]: response:", '\n', output.str());
         return output.str();
     }
 
@@ -398,8 +398,8 @@ SIMPLEX_COMMAND_DEF(remove) {
         ptuple = path_reader->remove(target_path);
     } catch(const std::exception& e) {
         output << "[error occurred: " << e.what() << "; failed to remove target]" << std::endl;
-        server->safe_output("[Session#", session_id, "]: command got: remove ", command);
-        server->safe_output("[Session#", session_id, "]: response:", '\n', output.str());
+        simplex::safe_output("[Session#", session_id, "]: command got: remove ", command);
+        simplex::safe_output("[Session#", session_id, "]: response:", '\n', output.str());
         return output.str();
     }
 
@@ -408,8 +408,8 @@ SIMPLEX_COMMAND_DEF(remove) {
 
     searcher->cache_expire(ptuple); // noexcept
 
-    server->safe_output("[Session#", session_id, "]: command got: remove ", command);
-    server->safe_output("[Session#", session_id, "]: response:", '\n', output.str());
+    simplex::safe_output("[Session#", session_id, "]: command got: remove ", command);
+    simplex::safe_output("[Session#", session_id, "]: response:", '\n', output.str());
     return output.str();
 }
 
@@ -421,8 +421,8 @@ SIMPLEX_COMMAND_DEF(rename) {
         dst_path = command.at("dst_path");
     } catch(const std::exception& e) {
         output << "[json error: " << e.what() << "]" << std::endl;
-        server->safe_output("[Session#", session_id, "]: invalid command: ", command);
-        server->safe_output("[Session#", session_id, "]: response:", '\n', output.str());
+        simplex::safe_output("[Session#", session_id, "]: invalid command: ", command);
+        simplex::safe_output("[Session#", session_id, "]: response:", '\n', output.str());
         return output.str();
     }
 
@@ -432,8 +432,8 @@ SIMPLEX_COMMAND_DEF(rename) {
         psrc = returned_psrc, pdst = returned_pdst;
     } catch(const std::exception& e) {
         output << "[error occurred: " << e.what() << "; failed to rename target]" << std::endl;
-        server->safe_output("[Session#", session_id, "]: command got: rename ", command);
-        server->safe_output("[Session#", session_id, "]: response:", '\n', output.str());
+        simplex::safe_output("[Session#", session_id, "]: command got: rename ", command);
+        simplex::safe_output("[Session#", session_id, "]: response:", '\n', output.str());
         return output.str();
     }
 
@@ -443,8 +443,8 @@ SIMPLEX_COMMAND_DEF(rename) {
 
     searcher->cache_expire(psrc); // noexcept
 
-    server->safe_output("[Session#", session_id, "]: command got: rename ", command);
-    server->safe_output("[Session#", session_id, "]: response:", '\n', output.str());
+    simplex::safe_output("[Session#", session_id, "]: command got: rename ", command);
+    simplex::safe_output("[Session#", session_id, "]: response:", '\n', output.str());
     return output.str();
 }
 
@@ -455,8 +455,8 @@ SIMPLEX_COMMAND_DEF(undo) {
         target_path = command.at("target_path");
     } catch(const std::exception& e) {
         output << "[json error: " << e.what() << "]" << std::endl;
-        server->safe_output("[Session#", session_id, "]: invalid command: ", command);
-        server->safe_output("[Session#", session_id, "]: response:", '\n', output.str());
+        simplex::safe_output("[Session#", session_id, "]: invalid command: ", command);
+        simplex::safe_output("[Session#", session_id, "]: response:", '\n', output.str());
         return output.str();
     }
 
@@ -468,8 +468,8 @@ SIMPLEX_COMMAND_DEF(undo) {
         undo_log->undo(ptuple);
     } catch(const std::exception& e) {
         output << "[error occurred: " << e.what() << "; failed to undo edition]" << std::endl;
-        server->safe_output("[Session#", session_id, "]: command got: undo ", command);
-        server->safe_output("[Session#", session_id, "]: response:", '\n', output.str());
+        simplex::safe_output("[Session#", session_id, "]: command got: undo ", command);
+        simplex::safe_output("[Session#", session_id, "]: response:", '\n', output.str());
         return output.str();
     }
 
@@ -481,13 +481,13 @@ SIMPLEX_COMMAND_DEF(undo) {
         output << lines_record;
     } catch(const std::exception& e) {
         output << "[unable to view file content: " << e.what() << "]" << std::endl;
-        server->safe_output("[Session#", session_id, "]: command got: undo ", command);
-        server->safe_output("[Session#", session_id, "]: response:", '\n', output.str());
+        simplex::safe_output("[Session#", session_id, "]: command got: undo ", command);
+        simplex::safe_output("[Session#", session_id, "]: response:", '\n', output.str());
         return output.str();
     }
 
-    server->safe_output("[Session#", session_id, "]: command got: undo ", command);
-    server->safe_output("[Session#", session_id, "]: response:", '\n', output.str());
+    simplex::safe_output("[Session#", session_id, "]: command got: undo ", command);
+    simplex::safe_output("[Session#", session_id, "]: response:", '\n', output.str());
     return output.str();
 }
 
@@ -498,16 +498,16 @@ SIMPLEX_COMMAND_DEF(refresh) {
         path_reader->_update_workspace();
     } catch(...) {}
 
-    server->safe_output("[Session#", session_id, "]: command got: refresh ", command);
-    server->safe_output("[Session#", session_id, "]: response:", '\n', output.str());
+    simplex::safe_output("[Session#", session_id, "]: command got: refresh ", command);
+    simplex::safe_output("[Session#", session_id, "]: response:", '\n', output.str());
     return output.str();
 }
 
 SIMPLEX_COMMAND_DEF(not_support) {
     std::ostringstream output;
     output << "[command not supported: " << command.at("type") << "]";
-    server->safe_output("[Session#", session_id, "]: invalid command: ", command);
-    server->safe_output("[Session#", session_id, "]: unsupported command type got: ", command.at("type"));
+    simplex::safe_output("[Session#", session_id, "]: invalid command: ", command);
+    simplex::safe_output("[Session#", session_id, "]: unsupported command type got: ", command.at("type"));
     return output.str();
 }
 
@@ -596,7 +596,7 @@ int main(int argc, char** argv) {
 
     auto port = GLOBAL_ARGS["port"].as<unsigned short>();
     auto num_workers = GLOBAL_ARGS["jobs"].as<size_t>();
-    auto server = std::make_shared<simplex::WebsocketServer>(&TFGenerator, port, num_workers, std::cout);
+    auto server = std::make_shared<simplex::WebsocketServer>(&TFGenerator, port, num_workers);
     boost::asio::signal_set signals(server->get_executor(), SIGINT, SIGTERM);
     signals.async_wait([server](auto, auto) -> void { server->get_executor().stop(); });
     
