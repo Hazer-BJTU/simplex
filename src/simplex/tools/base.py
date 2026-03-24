@@ -1,4 +1,5 @@
 import os
+import re
 import copy
 import yaml
 import inspect
@@ -19,6 +20,7 @@ from simplex.basics import (
 
 MODULE_PATH: Path = Path(__file__).resolve().parent
 SCHEMA_DIR: Path = MODULE_PATH / 'schema'
+SKILL_DIR: Path = MODULE_PATH / 'skill'
 
 class ToolCollection(ABC):
     """
@@ -364,6 +366,37 @@ class ToolCollection(ABC):
         """
         pass
 
+    def on_exit(self, *args, **kwargs) -> Any:
+        """
+        Lifecycle hook called at the end of the whole loop (sync).
+        
+        Subclasses should override this to implement post-loop cleanup/processing logic.
+        
+        Args:
+            *args: Variable length argument list
+            **kwargs: Arbitrary keyword arguments (typically contains loop state)
+            
+        Returns:
+            Any result (return value is context-dependent)
+        """
+        pass
+
+    async def on_exit_async(self, *args, **kwargs) -> Any:
+        """
+        Async lifecycle hook called at the end of the whole loop (async).
+        
+        Async version of on_exit, called first to avoid state modification conflicts.
+        Subclasses should override this to implement async per-iteration logic.
+        
+        Args:
+            *args: Variable length argument list
+            **kwargs: Arbitrary keyword arguments (typically contains loop state)
+            
+        Returns:
+            Any result (return value is context-dependent)
+        """
+        pass
+
     # @abstractmethod
     # def get_names(self) -> List[str]:
     #     pass
@@ -472,11 +505,13 @@ def load_schema(file_name: str, tool_name: str, rename: Optional[str] = None) ->
             param_type: str = param.get('type', 'string')
             param_description: str = param.get('description', '')
             param_required: bool = param.get('required', True)
+            param_enum: Optional[List] = param.get('enum', None)
             param_extras: Dict = param.get('extras', {})
             formated_params.append(ToolSchema.Parameter(
                 field = param_field,
                 type = param_type,
                 description = param_description,
+                enum = param_enum,
                 required = param_required,
                 extras = param_extras
             ))
@@ -486,6 +521,22 @@ def load_schema(file_name: str, tool_name: str, rename: Optional[str] = None) ->
             params = formated_params,
             extras = extras
         )
+    except Exception:
+        raise
+
+def load_tool_skill(file_name: str, replace_mapping: Optional[Dict[str, str]] = None) -> str:
+    try:
+        with open(SKILL_DIR / f"{file_name}.md", 'r', encoding = 'utf8') as skill_file:
+            content = skill_file.read()
+        
+        if replace_mapping:
+            pattern = r'%(\w+)%'
+            def replace_func(match):
+                key = match.group(1)
+                return replace_mapping.get(key, match.group(0))            
+            return re.sub(pattern, replace_func, content) # type: ignore
+        else:
+            return content
     except Exception:
         raise
 

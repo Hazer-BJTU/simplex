@@ -174,12 +174,16 @@ class ConversationModel(BaseModel):
 
 def openai_compatiable_translate(model_input: ModelInput) -> Dict:
     def to_openai_function_calling_schema(tool_schema: ToolSchema) -> Dict:
-        properties: Dict = {
-            param.field: {
+        properties: Dict = {}
+        for param in tool_schema.params:
+            param_property: Dict[str, Any] = {
                 'type': param.type,
                 'description': param.description
-            } for param in tool_schema.params
-        }
+            }
+            if param.enum:
+                param_property['enum'] = param.enum
+            properties[param.field] = param_property
+
         required: List = [
             param.field
             for param in tool_schema.params

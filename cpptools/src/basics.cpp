@@ -2,6 +2,8 @@
 
 namespace simplex {
 
+const int context_window = 20;
+
 LineRecord::LineRecord(size_t num, const std::string& content, bool title, unsigned char mark): head(std::to_string(num)), content(content), title(title), mark(mark) {}
 
 LineRecord::LineRecord(const std::string& head, const std::string& content, bool title, unsigned char mark): head(head), content(content), title(title), mark(mark) {}
@@ -30,7 +32,6 @@ std::ostream& operator << (std::ostream& stream, const LineRecords& line_records
 }
 
 LineRecords view_file_content(const PathTuple& ptuple, const std::string& content, int line_start, int line_end) noexcept {
-    static const int default_context_window = 7;
     std::istringstream iss(content);
 
     if (line_start < 0) {
@@ -40,7 +41,7 @@ LineRecords view_file_content(const PathTuple& ptuple, const std::string& conten
     if (line_end < 0) {
         line_end = std::numeric_limits<int>::max();
     } else if (line_end < line_start) {
-        line_end = line_start + default_context_window - 1;
+        line_end = line_start + context_window - 1;
     }
 
     size_t line_counter = 0;
@@ -58,7 +59,6 @@ LineRecords view_file_content(const PathTuple& ptuple, const std::string& conten
 
 LineRecords edit_file_content(const PathTuple& ptuple, EditType type, const std::string& content, int line_start, int line_end) {
     static const size_t suffix_length = 13;
-    static const size_t context_window = 7;
     static const std::string valid_chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_";
     static std::uniform_int_distribution<size_t> dist(0, valid_chars.length() - 1);
     static std::mt19937 gen(42);
@@ -197,7 +197,6 @@ LineRecords edit_file_content(const PathTuple& ptuple, EditType type, const std:
 }
 
 std::tuple<LineRecords, bool> extract_code_snippet(const PathTuple& ptuple, AhoCorasick& automaton, const std::string& content) noexcept {
-    static const int context_window = 7;
     LineRecords result;
     size_t matched_cnt = 0;
     std::vector<bool> matched_lines, marked_lines;
@@ -246,7 +245,6 @@ std::tuple<LineRecords, bool> extract_code_snippet(const PathTuple& ptuple, AhoC
 }
 
 std::tuple<LineRecords, bool> extract_code_snippet_index(const PathTuple& ptuple, std::unordered_set<size_t> line_nums, const std::string& content) noexcept {
-    static const int context_window = 7;
     LineRecords result;
     size_t matched_cnt = 0;
     std::vector<bool> matched_lines, marked_lines;

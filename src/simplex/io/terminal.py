@@ -4,6 +4,7 @@ import uuid
 import rich
 import asyncio
 
+from rich import box
 from rich.text import Text
 from rich.live import Live
 from rich.panel import Panel
@@ -11,6 +12,7 @@ from rich.pretty import Pretty
 from rich.spinner import Spinner
 from rich.console import Console, Group
 from rich.markdown import Markdown
+from rich.table import Table
 from typing import Optional, Dict, Any, List
 
 import simplex.io.base
@@ -119,6 +121,7 @@ class RichTerminalOutputPlugin(ContextPlugin):
         console: Console, 
         style_set: Dict, 
         max_string: int = 80, 
+        max_text: int = 2000,
         instance_id: Optional[str] = None
     ) -> None:
         """
@@ -135,6 +138,7 @@ class RichTerminalOutputPlugin(ContextPlugin):
         self.console = console
         self.style_set = style_set
         self.max_string = max_string
+        self.max_text = max_text
 
         self.live_display: Optional[Live] = None
 
@@ -251,8 +255,9 @@ class RichTerminalOutputPlugin(ContextPlugin):
             # Create formatted text showing the tool name and its return value
             text = Text(f"⚙️  Tool ", style = self._get_style('text'))
             text.append(f"{ret.original_call.name} ", style = self._get_style('text_explicit'))
-            text.append("returns: ", style = self._get_style('text'))
+            text.append("returns:\n", style = self._get_style('text'))
             text.append(f"{ret.content}", style = self._get_style('text'))
+            text.truncate(self.max_text, overflow = 'ellipsis')
             # Display the return value in a styled panel
             panel = Panel(
                 text,
@@ -292,7 +297,8 @@ class RichTerminalInterface(UserInputInterface, UserOutputInterface):
         system_prompt: str = 'You are a helpful assistant.',
         retriever: Optional[SkillRetriever] = None,
         style_set: Optional[Dict] = None,
-        max_string: int = 80
+        max_string: int = 80,
+        max_text: int = 2000
     ) -> None:
         """
         Initialize the RichTerminalInterface with configuration options.
@@ -327,6 +333,7 @@ class RichTerminalInterface(UserInputInterface, UserOutputInterface):
             'box_line_explicit': 'gold1'                # Style for explicit panel borders
         }
         self.max_string = max_string
+        self.max_text = max_text
 
         # Override default styles if custom style set provided
         if style_set is not None:
@@ -479,16 +486,35 @@ class RichTerminalInterface(UserInputInterface, UserOutputInterface):
         Returns:
             RichTerminalOutputPlugin instance configured with this interface's settings
         """
-        return RichTerminalOutputPlugin(self.console, self.style_set, self.max_string)
-    
-    def push_message(self, *args, **kwargs) -> Any:
-        """
-        Push a message to the interface (placeholder implementation).
-        
-        Currently a no-op method that can be extended to support message pushing
-        functionality if needed in the future.
-        """
-        pass
+        return RichTerminalOutputPlugin(self.console, self.style_set, self.max_string, self.max_text)
+
+    async def push_message(self, notify: UserNotify) -> None:
+        if notify.notify_type == 'notify':
+            if notify.title:
+                title = Text(notify.title, style = self._get_style('box_title_explicit'))
+            else:
+                title = Text('Notice', style = self._get_style('box_title_explicit'))
+
+            if notify.content:
+                panel = Panel(
+                    Text(notify.content, style = self._get_style('text')),
+                    border_style = self._get_style('box_line_explicit'),
+                    title = title,
+                    title_align = 'left'
+                )
+                self.console.print(panel)
+
+            if notify.objects:
+                table = Table(title = title, border_style = self._get_style('box_line_explicit'), expand = True, box = box.HORIZONTALS)
+                first_item = notify.objects[0]
+                for k, _ in first_item.items():
+                    table.add_column(Text(str(k), style = self._get_style('text_explicit')), justify = 'left')
+                for item in notify.objects:
+                    entries = []
+                    for v in item.values():
+                        entries.append(Text(str(v), style = self._get_style('text')))
+                    table.add_row(*entries)
+                self.console.print(table)
 
     async def notify_user(self, notify: UserNotify) -> UserResponse:
         """

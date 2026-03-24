@@ -77,7 +77,7 @@ private:
     std::function<bool(const boost::filesystem::path&)> _qualified_scan, _qualified_search;
 
     void _open_dir(const boost::filesystem::path& path);
-    void _update_workspace();
+    // void _update_workspace();
 
     friend std::ostream& operator << (std::ostream& stream, const PathReader& path_reader) noexcept;
     friend std::ostream& operator << (std::ostream& stream, const PathTreeNode& root) noexcept;
@@ -115,6 +115,8 @@ public:
     std::tuple<PathTuple, PathTuple> rename(const boost::filesystem::path& src, const boost::filesystem::path& dst);
     const std::string& base_dir() const noexcept;
     std::tuple<PathReader::Type, boost::filesystem::path> normalize(boost::filesystem::path& path) const noexcept;
+
+    void _update_workspace();
 };
 
 }

@@ -13,11 +13,11 @@ import simplex.loop
 import simplex.tools
 import simplex.io
 
-from simplex.basics import ModelResponse, ToolCall, WebsocketClient
-from simplex.models import MockConversationModel, QwenConversationModel
-from simplex.context import TrajectoryLogContext
+from simplex.basics import WebsocketClient, ModelResponse, ToolCall
+from simplex.models import QwenConversationModel, MockConversationModel
+from simplex.context import TrajectoryLogContext, TokenCostCounter
 from simplex.loop import AgentLoop, UserLoop
-from simplex.tools import EditTools, SubprocessExecutorLocal
+from simplex.tools import EditTools, SubprocessExecutorLocal, SequentialPlan
 from simplex.io import RichTerminalInterface
 
 
@@ -26,7 +26,19 @@ OUTPUT_PATH: Path = MODULE_PATH / 'output/test_interactive'
 
 if __name__ == '__main__':
     async def test_body() -> None:
-        model = QwenConversationModel('https://dashscope.aliyuncs.com/compatible-mode/v1', os.getenv('API_KEY'), qwen_model = 'qwen3-coder-plus', enable_thinking = False) # type: ignore
+        model = QwenConversationModel('https://dashscope.aliyuncs.com/compatible-mode/v1', os.getenv('API_KEY'), qwen_model = 'glm-5', enable_thinking = False) # type: ignore
+
+        
+        model_mock = MockConversationModel(
+            expected_responses = [
+                ModelResponse(tool_call = [ToolCall('x', 'make_plan', {'content': 'This is my plan A.', 'edit_type': 'append'})]),
+                ModelResponse(response = 'Hello!'),
+                ModelResponse(tool_call = [ToolCall('x', 'make_plan', {'content': 'This is my plan B.', 'edit_type': 'append'})]),
+                ModelResponse(tool_call = [ToolCall('x', 'make_plan', {'content': 'This is my plan B.', 'edit_type': 'replace'})]),
+                ModelResponse(tool_call = [ToolCall('x', 'make_plan', {'content': '', 'edit_type': 'check_only'})]),
+                ModelResponse(response = 'Hello!')
+            ]
+        )
 
         interface = RichTerminalInterface(model.qwen_model)
         loop = AgentLoop(
@@ -34,10 +46,12 @@ if __name__ == '__main__':
             interface.get_exception_handler(), 
             TrajectoryLogContext(instance_id = 'log'), 
             EditTools('/home/hazer/simplex', WebsocketClient(9002)),
-            SubprocessExecutorLocal()
+            SubprocessExecutorLocal(),
+            SequentialPlan(),
+            TokenCostCounter()
         )
 
-        await UserLoop(interface, interface, loop).serve()
+        await UserLoop(interface, interface, loop, complete_configs = {'max_iteration': 100}).serve()
 
         target_path = OUTPUT_PATH / 'test_interactive.md'
         target_path.parent.mkdir(parents = True, exist_ok = True)

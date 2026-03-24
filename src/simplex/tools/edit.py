@@ -17,13 +17,16 @@ from simplex.basics import (
     UnbuiltError,
     RequestError,
     UserNotify,
-    UserResponse
+    UserResponse,
+    AgentLoopStateEdit,
+    PromptTemplate
 )
 from simplex.tools.base import (
     ToolCollection,
     ToolSchema,
     load_tool_definitions,
-    load_schema
+    load_schema,
+    load_tool_skill
 )
 
 
@@ -32,6 +35,7 @@ EditOperation = Literal[
     'show_details',
     'view_file_content',
     'edit_file_content',
+    'undo',
     'search',
     'create',
     'remove',
@@ -40,6 +44,7 @@ EditOperation = Literal[
 
 class EditTools(ToolCollection):
     SCHEMA_FILE: str = 'schema_edit_collections'
+    SKILL_FILE: str = 'skill_edit_collections'
 
     def __init__(
         self,
@@ -52,6 +57,7 @@ class EditTools(ToolCollection):
             'show_details': 'show_details',
             'view_file_content': 'view_file_content',
             'edit_file_content': 'edit_file_content',
+            'undo': 'undo',
             'search': 'search',
             'create': 'create',
             'remove': 'remove',
@@ -72,6 +78,7 @@ class EditTools(ToolCollection):
         self.show_details_schema = load_schema(self.SCHEMA_FILE, 'show_details', self.names['show_details'])
         self.view_file_content_schema = load_schema(self.SCHEMA_FILE, 'view_file_content', self.names['view_file_content'])
         self.edit_file_content_schema = load_schema(self.SCHEMA_FILE, 'edit_file_content', self.names['edit_file_content'])
+        self.undo_schema = load_schema(self.SCHEMA_FILE, 'undo', self.names['undo'])
         self.search_schema = load_schema(self.SCHEMA_FILE, 'search', self.names['search'])
         self.create_schema = load_schema(self.SCHEMA_FILE, 'create', self.names['create'])
         self.remove_schema = load_schema(self.SCHEMA_FILE, 'remove', self.names['remove'])
@@ -82,6 +89,7 @@ class EditTools(ToolCollection):
             'show_details': self.show_details_schema,
             'view_file_content': self.view_file_content_schema,
             'edit_file_content': self.edit_file_content_schema,
+            'undo': self.undo_schema,
             'search': self.search_schema,
             'create': self.create_schema,
             'remove': self.remove_schema,
@@ -89,6 +97,8 @@ class EditTools(ToolCollection):
         }
 
         self.schemas: Dict[EditOperation, ToolSchema] = { key: value for key, value in self.all_schemas.items() if key in self.names }
+        self.skill: str = load_tool_skill(self.SKILL_FILE, {str(k): f"`{v}`" for k, v in self.names.items()})
+        self.skill_added: bool = False
 
         self.input_interface: Optional[UserInputInterface] = None
 
@@ -119,6 +129,25 @@ class EditTools(ToolCollection):
 
     async def bind_io(self, input_interface: UserInputInterface, **kwargs) -> None:
         self.input_interface = input_interface
+
+    def process_prompt(self, user_prompt: PromptTemplate, **kwargs) -> Optional[AgentLoopStateEdit]:
+        if not self.skill_added:
+            self.skill_added = True
+            new_user_prompt = user_prompt + self.skill
+            return AgentLoopStateEdit(user_prompt = new_user_prompt)
+
+    async def start_loop_async(self, *args, **kwargs) -> None:
+        if not self.initialized:
+            raise UnbuiltError(self.__class__.__name__)
+        
+        query: Dict = { 'type': 'refresh' }
+
+        try:
+            response: str = await self.client.exchange(json.dumps(query))
+            if response is None:
+                raise RequestError(content = f'unable to access {self.client.url}')
+        except Exception:
+            raise
 
     def get_tool_schemas(self) -> List[ToolSchema]:
         return list(self.schemas.values())
@@ -169,6 +198,13 @@ class EditTools(ToolCollection):
         if not self.initialized:
             raise UnbuiltError(self.__class__.__name__)
         
+        if line_start and line_start < 0:
+            return f"[ERROR]: Parameter 'line_start' should be non-negative!"
+        if line_end and line_end < 0:
+            return f"[ERROR]: Parameter 'line_end' should be non-negative!"
+        if line_start and line_end and line_end < line_start:
+            return f"[ERROR]: Parameter 'line_end' should be greater or equal to 'line_start'!"
+        
         query: Dict = {
             'type': 'view_file_content',
             'target_path': target_path,
@@ -199,6 +235,16 @@ class EditTools(ToolCollection):
         if not self.initialized:
             raise UnbuiltError(self.__class__.__name__)
         
+        if line_start and line_start < 0:
+            return f"[ERROR]: Parameter 'line_start' should be non-negative!"
+        if line_end and line_end < 0:
+            return f"[ERROR]: Parameter 'line_end' should be non-negative!"
+        if line_start and line_end and line_end < line_start:
+            return f"[ERROR]: Parameter 'line_end' should be greater or equal to 'line_start'!"
+        
+        if edit_type not in ['replace', 'insert']:
+            return f"[ERROR]: Parameter 'edit_type' should be one of 'replace' or 'insert'."
+        
         query: Dict = {
             'type': 'edit_file_content',
             'target_path': target_path,
@@ -218,10 +264,37 @@ class EditTools(ToolCollection):
             return response.strip()
         except Exception:
             raise
+
+    async def _tool_undo(
+        self,
+        target_path: str,
+        **kwargs
+    ) -> str:
+        if not self.initialized:
+            raise UnbuiltError(self.__class__.__name__)
+        
+        query: Dict = {
+            'type': 'undo',
+            'target_path': target_path,
+        }
+
+        try:
+            response: str = await self.client.exchange(json.dumps(query))
+            if response is None:
+                raise RequestError(content = f'unable to access {self.client.url}')
+            return response.strip()
+        except Exception:
+            raise
     
     async def _tool_search(self, key_words: str, scope: str, mode: str, **kwargs) -> str:
         if not self.initialized:
             raise UnbuiltError(self.__class__.__name__)
+        
+        if scope not in ['workspace', 'global']:
+            return f"[ERROR]: Parameter 'scope' should be one of 'workspace' or 'global'."
+        
+        if mode not in ['definition', 'identifier', 'pattern']:
+            return f"[ERROR]: Parameter 'mode' should be one of 'definition', 'identifier' or 'pattern'."
         
         query: Dict = {
             'type': 'search_entity',

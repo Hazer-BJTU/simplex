@@ -2,7 +2,7 @@ import json
 import uuid
 import copy
 
-from typing import List, Dict
+from typing import List, Dict, Optional
 
 import simplex.basics
 import simplex.models.base
@@ -27,9 +27,9 @@ class QwenConversationModel(ConversationModel):
         self, 
         base_url: str, 
         api_key: str, 
-        client_configs: Dict = {}, 
-        default_generate_configs: Dict = {}, 
-        instance_id: str = uuid.uuid4().hex,
+        client_configs: Optional[Dict] = None, 
+        default_generate_configs: Optional[Dict] = None, 
+        instance_id: Optional[str] = None,
         qwen_model: str = 'qwen-coder-plus',
         enable_thinking: bool = True,
         thinking_budget: int = 1024
@@ -37,9 +37,9 @@ class QwenConversationModel(ConversationModel):
         super().__init__(
             base_url, 
             api_key, 
-            client_configs, 
-            default_generate_configs, 
-            instance_id
+            client_configs if client_configs is not None else {}, 
+            default_generate_configs if default_generate_configs is not None else {}, 
+            instance_id if instance_id is not None else uuid.uuid4().hex
         )
         
         self.qwen_model = qwen_model
@@ -80,7 +80,7 @@ class QwenConversationModel(ConversationModel):
                 self._default_generate_configs | 
                 openai_compatiable_translate(model_input) |
                 self.completion_extras
-            ))
+            ), timeout = 600)
         except AssertionError:
             raise
         except Exception as e:

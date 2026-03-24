@@ -1,0 +1,22 @@
+make_plan:
+  description: >-
+    This planning tool is equivalent to a special file, which can be used to manage plan and checklist. 
+    You can directly write and modify plans / checklists through natural language, 
+    and the tool will return a comparison between the old plan and the new plan after operation.
+    You need to plan at the start of the task and at each important intermediate milestone, 
+    and you can also use this plan to explain your intentions to the user.
+    There are three modes: 'replace', 'append' and 'check_only'.
+  params:
+    - field: content
+      type: string
+      description:
+        Indicate your plan or create/modify a checklist.
+      required: True
+    
+    - field: edit_type
+      type: string
+      description:
+        Choose from 'replace', 'append' or 'check_only'
+      enum: ['replace', 'append', 'check_only']
+      required: True
+      

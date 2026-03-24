@@ -5,19 +5,13 @@ namespace simplex {
 WebsocketServer::WebsocketServer(
     const TFGenerator& generator,
     unsigned short port, 
-    size_t num_workers, 
-    std::ostream& stream
+    size_t num_workers
 ): _generator(generator),
    _port(port),
    _num_workers(std::max<size_t>(num_workers, 1u)),
    _executor(_num_workers),
-   _stream(stream),
    _server_mtx(),
-   _session_num(1),
-   _thread_map(),
-   _thread_num(0) {
-    co_spawn(_executor, _listen(), asio::detached);
-}
+   _session_num(1) { co_spawn(_executor, _listen(), asio::detached); }
 
 asio::awaitable<void> WebsocketServer::_listen() noexcept {
     auto acceptor = tcp::acceptor{ _executor, tcp::endpoint{ tcp::v4(), _port } };

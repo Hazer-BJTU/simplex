@@ -4,8 +4,8 @@ import hashlib
 import textwrap
 import numpy as np
 
-from typing import Dict, Optional, List, Literal
 from dataclasses import dataclass, field, asdict
+from typing import Dict, Optional, List, Literal, Any
 
 import simplex.basics.prompt
 
@@ -97,6 +97,7 @@ class ToolSchema:
         type: str
         description: str
         required: bool = True
+        enum: Optional[List] = None
         extras: Optional[Dict] = None
         
         def to_dict(self) -> Dict:
@@ -104,6 +105,7 @@ class ToolSchema:
                 'field': self.field,
                 'type': self.type,
                 'description': self.description,
+                'enum': self.enum,
                 'required': self.required
             }
             if self.extras is not None:
@@ -141,8 +143,10 @@ class ToolSchema:
                 subsequent_indent = '        ',
                 replace_whitespace = False,
                 drop_whitespace = True
-            )
-            output += f"\n      required: {param.required}\n"
+            ) + '\n'
+            if param.enum:
+                output += f"      enum: {str(param.enum)}\n"
+            output += f"      required: {param.required}\n"
         return output.strip()
     
     def to_dict(self) -> Dict:
@@ -228,8 +232,10 @@ class UserMessage:
 
 @dataclass
 class UserNotify:
-    notify_type: Literal['unknown', 'permission'] = 'permission'
+    notify_type: Literal['unknown', 'permission', 'notify'] = 'permission'
     content: str = ''
+    title: str = ''
+    objects: Optional[List[Dict[str, Any]]] = None
 
 @dataclass
 class UserResponse:

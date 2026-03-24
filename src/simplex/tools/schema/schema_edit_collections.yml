@@ -1,6 +1,8 @@
 view_workspace:
   description: >-
     Used to retrieve the current workspace file structure.
+    This operation refreshes the workspace view. 
+    You can use this tool to refresh when you find the workspace structure or files' content are out of date.
     In some editing operations, updated workspace information may be provided directly,
     eliminating the need for repeated retrieval.
   params: []
@@ -10,8 +12,9 @@ show_details:
     Used to display detailed information about a directory or file in the workspace.
     For a directory, list all its subdirectories and files;
     for a file, attempt to analyze its source code structure or provide a content preview.
-    You can navigate directly to the corresponding target without concerning current the workspace view.
+    You can directly navigate to the target directory / file without calling this function step by step to show each directory level.
     It is a good practice to use this method to show a structural preview before browsing the file content directly.
+    Dependencies and function / class definitions of the source file will be displayed directly.
   params:
     - field: target_path
       type: string
@@ -40,7 +43,7 @@ view_file_content:
       type: int
       description: >-
         Indicates the ending line number (inclusive).
-        If not specified, the tool server will browse the file until EOF is reached.
+        If not specified, the tool server will browse the file for the first several lines.
       required: False
 
 edit_file_content:
@@ -63,6 +66,7 @@ edit_file_content:
       type: string
       description:
         Choose between 'replace' and 'insert'.
+      enum: ['replace', 'insert']
       required: True
 
     - field: content
@@ -87,6 +91,20 @@ edit_file_content:
         Indicates the ending line number (inclusive). This parameter is ignored in 'insert' mode.
       required: False
 
+undo:
+  description: >-
+    This tool is used to undo your last edit operation. 
+    Note that it only applies to edit operations and cannot undo changes caused by creating, deleting, renaming files, or modifications made via bash commands.
+    You can perform multiple undo operations on a single file, but you must specify the filename. Only the specified file will be affected. 
+    The file content will be restored to the state before your edit operation.
+    Please browse the file again after undoing to maintain an accurate understanding.
+  params:
+    - field: target_path
+      type: string
+      description:
+        Indicates the target file path. You should use relative paths relative to the workspace base directory, not full paths (i.e., paths that include the base directory).
+      required: True
+
 search:
   description: >-
     Used for keyword retrieval. There are three modes: 'definition', 'identifier' or 'pattern'.
@@ -96,6 +114,7 @@ search:
     When calling this function, try to avoid using overly broad keywords (e.g., '__init__' for python).
     Two retrieval scopes are supported: 'workspace' and 'global'.
     The 'workspace' scope only searches in files explicitly listed in a tree structure within the most recent workspace view from the history.
+    Files not DIRECTLY displayed in the workspace view will be skipped.
     The 'global' scope searches in all files in the project (entire working directory).
   params:
     - field: key_words
@@ -108,12 +127,14 @@ search:
       type: string
       description:
         Choose between 'definition', 'identifier' or 'pattern'. Regex is NOT supported.
+      enum: ['definition', 'identifier', 'pattern']
       required: True
 
     - field: scope
       type: string
       description:
-        Choose between 'global' or 'workspace'.
+        Choose between 'global' or 'workspace'. 'global' is recommended.
+      enum: ['global', 'workspace']
       required: True
 
 create:
