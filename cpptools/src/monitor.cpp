@@ -120,17 +120,33 @@ void FileSystemMonitor::_handle_inotify_events() noexcept {
                     else if (event->mask & IN_ATTRIB) { _call_back(full_path, Type::CHANGED_ATTRIBUTE); }
                 } catch(...) {}
             }
-            
-            if ((event->mask & IN_CREATE) && (event->mask & IN_ISDIR)) {
+
+            if (event->mask & IN_DELETE_SELF) {
+                _remove_watch(event->wd);
+            }
+
+            if ((event->mask & IN_MOVED_FROM) && (event->mask & IN_ISDIR)) {
+                std::vector<int> wd_to_remove;
+                for (auto& [wd, path]: _wd_to_path) {
+                    if (path.string().starts_with(full_path.string())) {
+                        wd_to_remove.push_back(wd);
+                    }
+                }
+                for (auto wd: wd_to_remove) {
+                    _remove_watch(wd);
+                }
+                
+                try {
+                    _call_back(full_path, Type::MOVED_DIRECTORY);
+                } catch(...) {}
+            }
+
+            if ((event->mask & (IN_CREATE | IN_MOVED_TO)) && (event->mask & IN_ISDIR)) {
                 try {
                     _add_watch_recursive(full_path);
                 } catch(const std::exception& e) {
                     safe_output("[Filesystem Monitor]: Failed to establish monitor under ", full_path, " due to exception ", e.what(), ".");
                 }
-            }
-
-            if (event->mask & IN_DELETE_SELF) {
-                _remove_watch(event->wd);
             }
         }
 
@@ -178,6 +194,9 @@ std::ostream& operator << (std::ostream& stream, const FileSystemMonitor::Type& 
             break;
         case FileSystemMonitor::Type::CHANGED_ATTRIBUTE:
             stream << "attribute_changed";
+            break;
+        case FileSystemMonitor::Type::MOVED_DIRECTORY:
+            stream << "moved_directory";
             break;
     }
     return stream;

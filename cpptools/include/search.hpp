@@ -131,10 +131,21 @@ public:
     _num_workers(std::max<size_t>(1u, std::thread::hardware_concurrency() >> 1u)), _workers(), _monitor(nullptr) {
         _monitor = std::make_unique<FileSystemMonitor>(base_dir, [this](const boost::filesystem::path& path, FileSystemMonitor::Type type) -> void {
             std::lock_guard<std::mutex> lock(_cache_mtx);
-            auto it = _cache.find(path.string());
-            if (it != _cache.end()) {
-                safe_output("[Searcher]: Expired target ", path, " is removed from cache.");
-                _cache.erase(it);
+            if (type == FileSystemMonitor::Type::MOVED_DIRECTORY) {
+                for (auto it = _cache.begin(); it != _cache.end(); ) {
+                    if (it->first.starts_with(path.string())) {
+                        safe_output("[Searcher]: Expired target ", it->first, " is removed from cache.");
+                        it = _cache.erase(it);
+                    } else {
+                        ++ it;
+                    }
+                }
+            } else {
+                auto it = _cache.find(path.string());
+                if (it != _cache.end()) {
+                    safe_output("[Searcher]: Expired target ", path, " is removed from cache.");
+                    _cache.erase(it);
+                }
             }
             return;
         });

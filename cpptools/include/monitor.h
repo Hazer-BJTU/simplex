@@ -15,7 +15,7 @@ namespace simplex {
 
 class FileSystemMonitor {
 public:
-    enum class Type { MODIFIED, DELETED, MOVED, CHANGED_ATTRIBUTE };
+    enum class Type { MODIFIED, DELETED, MOVED, CHANGED_ATTRIBUTE, MOVED_DIRECTORY };
     using MonitorCallback = std::function<void(const boost::filesystem::path& path, Type)>;
     static constexpr size_t BUFFER_SIZE = 4096;
 
