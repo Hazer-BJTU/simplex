@@ -15,7 +15,7 @@ import simplex.io
 
 from simplex.basics import WebsocketClient, ModelResponse, ToolCall
 from simplex.models import QwenConversationModel, MockConversationModel
-from simplex.context import TrajectoryLogContext, TokenCostCounter
+from simplex.context import TrajectoryLogContext, TokenCostCounter, ActionSelfEvaluation
 from simplex.loop import AgentLoop, UserLoop
 from simplex.tools import EditTools, SubprocessExecutorLocal, SequentialPlan
 from simplex.io import RichTerminalInterface
@@ -26,7 +26,7 @@ OUTPUT_PATH: Path = MODULE_PATH / 'output/test_interactive'
 
 if __name__ == '__main__':
     async def test_body() -> None:
-        model = QwenConversationModel('https://dashscope.aliyuncs.com/compatible-mode/v1', os.getenv('API_KEY'), qwen_model = 'glm-5', enable_thinking = False) # type: ignore
+        # model = QwenConversationModel('https://dashscope.aliyuncs.com/compatible-mode/v1', os.getenv('API_KEY'), qwen_model = 'glm-5', enable_thinking = False) # type: ignore
 
         
         model_mock = MockConversationModel(
@@ -40,15 +40,16 @@ if __name__ == '__main__':
             ]
         )
 
-        interface = RichTerminalInterface(model.qwen_model)
+        interface = RichTerminalInterface('cool agent')
         loop = AgentLoop(
-            model, 
+            model_mock, 
             interface.get_exception_handler(), 
             TrajectoryLogContext(instance_id = 'log'), 
             EditTools('/home/hazer/simplex', WebsocketClient(9002)),
             SubprocessExecutorLocal(),
             SequentialPlan(),
-            TokenCostCounter()
+            TokenCostCounter(),
+            ActionSelfEvaluation()
         )
 
         await UserLoop(interface, interface, loop, complete_configs = {'max_iteration': 100}).serve()

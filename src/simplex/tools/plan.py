@@ -32,12 +32,14 @@ class SequentialPlan(ToolCollection):
         self, 
         rename: str = 'make_plan',
         empty_on_reset: bool = True,
-        instance_id: Optional[str] = None
+        instance_id: Optional[str] = None,
+        add_skill: bool = True
     ) -> None:
         super().__init__(instance_id if instance_id is not None else uuid.uuid4().hex, {rename: '_tool_sequential_plan'})
 
         self.name = rename
         self.empty_on_reset = empty_on_reset
+        self.add_skill = add_skill
         
         self.schema = load_schema(self.SCHEMA_FILE, 'make_plan', self.name)
         self.tool_definitions = load_tool_definitions(self.SCHEMA_FILE)
@@ -71,7 +73,7 @@ class SequentialPlan(ToolCollection):
         return self.tool_definitions
     
     def process_prompt(self, user_prompt: PromptTemplate, **kwargs) -> Optional[AgentLoopStateEdit]:
-        if not self.skill_added:
+        if not self.skill_added and self.add_skill:
             self.skill_added = True
             new_user_prompt = user_prompt + self.skill
             return AgentLoopStateEdit(user_prompt = new_user_prompt)

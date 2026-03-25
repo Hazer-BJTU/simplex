@@ -95,7 +95,7 @@ class TrajectoryLogContext(ContextPlugin):
         """
 
         # Log details.
-        self.log.append(LoopInformation(model_input = model_input))
+        # self.log.append(LoopInformation(model_input = model_input))
         
         # Log markdown.
         self.markdown.add_main_title('Initial states')
@@ -107,6 +107,25 @@ class TrajectoryLogContext(ContextPlugin):
         #             self.markdown.add_simple(message['content'], message['role'])
         self.markdown.add_simple(str(system_prompt), 'System')
         self.markdown.add_simple(str(user_prompt), 'User')
+
+    async def before_response_async(self, iter: int, model_input: ModelInput, **kwargs) -> Any:
+        """
+        Async lifecycle hook before sending model request - logs model input.
+        
+        Records the initial model input (tools, messages) within a request to the raw log.
+        
+        Overrides the base ContextPlugin.before_response_async() method.
+        
+        Args:
+            model_input: Initial input data for the agent loop containing tools and messages
+            **kwargs: Additional keyword arguments (unused in this implementation)
+        
+        Returns:
+            None
+        """
+
+        # Log details.
+        self.loopinfo = LoopInformation(model_input = model_input)
     
     async def after_response_async(self, iter: int, model_response: ModelResponse, **kwargs) -> Any:
         """
@@ -127,7 +146,7 @@ class TrajectoryLogContext(ContextPlugin):
         """
 
         # Log details.
-        self.loopinfo = LoopInformation(model_response = model_response)
+        self.loopinfo.model_response = model_response
 
         # Log markdown.
         self.markdown.add_main_title(f"Agent iteration #{iter}")

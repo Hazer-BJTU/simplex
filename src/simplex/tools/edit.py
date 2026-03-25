@@ -62,13 +62,15 @@ class EditTools(ToolCollection):
             'create': 'create',
             'remove': 'remove',
             'rename': 'rename'
-        }
+        },
+        add_skill: bool = True
     ) -> None:
         super().__init__(instance_id if instance_id is not None else uuid.uuid4().hex, { value: f"_tool_{key}" for key, value in rename_mapping.items() })
         
         self.client = client
         self.permission_required = permission_required
         self.names = rename_mapping
+        self.add_skill = add_skill
 
         self.base_dir: Path = Path(base_dir)
         self.initialized: bool = False
@@ -131,7 +133,7 @@ class EditTools(ToolCollection):
         self.input_interface = input_interface
 
     def process_prompt(self, user_prompt: PromptTemplate, **kwargs) -> Optional[AgentLoopStateEdit]:
-        if not self.skill_added:
+        if not self.skill_added and self.add_skill:
             self.skill_added = True
             new_user_prompt = user_prompt + self.skill
             return AgentLoopStateEdit(user_prompt = new_user_prompt)
