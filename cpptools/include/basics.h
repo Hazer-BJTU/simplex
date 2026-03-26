@@ -54,6 +54,15 @@ LineRecords edit_file_content(const PathTuple& ptuple, EditType type, const std:
 std::tuple<LineRecords, bool> extract_code_snippet(const PathTuple& ptuple, AhoCorasick& automaton, const std::string& content) noexcept;
 std::tuple<LineRecords, bool> extract_code_snippet_index(const PathTuple& ptuple, std::unordered_set<size_t> index, const std::string& content) noexcept;
 
+#ifdef QUIET_MODE
+
+template<class... Args>
+void safe_output(Args&&... args) noexcept {
+    return;
+}
+
+#else
+
 template<class... Args>
 void safe_output(Args&&... args) noexcept {
     static std::mutex output_mtx;
@@ -70,5 +79,7 @@ void safe_output(Args&&... args) noexcept {
     ((std::cout << std::put_time(std::localtime(&now_time), "%Y-%m-%d %H:%M:%S") << " (Thread#" << output_thread_map[thread_id] << ")") << ... << std::forward<Args>(args)) << std::endl;
     return;
 }
+
+#endif 
 
 }

@@ -12,6 +12,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 option(BUILD_RELEASE OFF)
 option(BUILD_UNITEST ON)
+option(QUIET_MODE OFF)
 
 set(Boost_USE_STATIC_LIBS ON)
 
@@ -54,6 +55,10 @@ set(EXECUTABLE_NAME "simplex_tool_server")
 add_executable(${EXECUTABLE_NAME} ${SOURCES})
 target_compile_options(${EXECUTABLE_NAME} PRIVATE ${COMPLIER_OPTION_FLAGS})
 target_link_libraries(${EXECUTABLE_NAME} PRIVATE ${MAIN_DEPENDENCIES} ${LANG_LIBRARY})
+if(QUIET_MODE)
+    target_compile_definitions(${EXECUTABLE_NAME} PRIVATE "QUIET_MODE")
+    message(STATUS "[Options]- ${EXECUTABLE_NAME} enables quiet mode")
+endif()
 if(LTO_SUPPORT AND BUILD_RELEASE)
     set_property(TARGET ${EXECUTABLE_NAME} PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
     message(STATUS "[Options]- ${EXECUTABLE_NAME} enables interprocedural optimization")
