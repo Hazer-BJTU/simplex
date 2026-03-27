@@ -49,7 +49,7 @@ if __name__ == '__main__':
             EditTools('/home/hazer/simplex', WebsocketClient(9002)),
             SubprocessExecutorLocal(),
             SequentialPlan(),
-            RollContextClipper(),
+            RollContextClipper(threshold_ratio = 0.4, keep_fc_msgs = 30),
             TokenCostCounter()
         )
 

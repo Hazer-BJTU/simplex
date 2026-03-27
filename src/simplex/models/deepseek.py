@@ -129,11 +129,14 @@ class DeepSeekConversationModel(ConversationModel):
         tool_calls = completion.choices[0].message.tool_calls
 
         prompt_tokens, completion_tokens = 0, 0
+        prompt_cache_hit_tokens = 0
         if hasattr(completion, 'usage'):
             if hasattr(completion.usage, 'prompt_tokens'):
                 prompt_tokens += completion.usage.prompt_tokens
             if hasattr(completion.usage, 'completion_tokens'):
                 completion_tokens += completion.usage.completion_tokens
+            if hasattr(completion.usage, 'prompt_cache_hit_tokens'):
+                prompt_cache_hit_tokens += completion.usage.prompt_cache_hit_tokens
 
         if tool_calls:
             tool_call_objects: Optional[List[ToolCall]] = [
@@ -151,6 +154,7 @@ class DeepSeekConversationModel(ConversationModel):
             extras = {
                 'prompt_tokens': prompt_tokens, 
                 'completion_tokens': completion_tokens,
+                'prompt_cache_hit_tokens': prompt_cache_hit_tokens,
                 'original_message': completion.choices[0].message
             }
         )

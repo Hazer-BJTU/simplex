@@ -1,4 +1,5 @@
 import os
+import copy
 import uuid
 import hashlib
 import textwrap
@@ -87,7 +88,12 @@ class ModelResponse:
     extras: Optional[Dict] = None
 
     def to_dict(self) -> Dict:
-        return asdict(self)
+        copied = copy.deepcopy(self)
+        if copied.embedding:
+            copied.embedding = None
+        if copied.extras and 'original_call' in copied.extras:
+            del copied.extras['original_call']
+        return asdict(copied)
     
 @dataclass
 class ToolSchema:
