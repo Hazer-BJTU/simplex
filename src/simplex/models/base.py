@@ -23,9 +23,9 @@ class BaseModel(ABC):
         self, 
         base_url: str, 
         api_key: str, 
-        client_configs: Dict = {}, 
-        default_generate_configs: Dict = {},
-        instance_id: str = uuid.uuid4().hex,
+        client_configs: Dict, 
+        default_generate_configs: Dict,
+        instance_id: str,
         disable_openai_backend: bool = False
     ) -> None:
         super().__init__()
@@ -93,9 +93,9 @@ class EmbeddingModel(BaseModel):
         self, 
         base_url: str, 
         api_key: str, 
-        client_configs: Dict = {}, 
-        default_generate_configs: Dict = {},
-        instance_id: str = uuid.uuid4().hex,
+        client_configs: Dict, 
+        default_generate_configs: Dict,
+        instance_id: str,
         disable_openai_backend: bool = False
     ) -> None:
         super().__init__(
@@ -131,9 +131,9 @@ class ConversationModel(BaseModel):
         self, 
         base_url: str, 
         api_key: str, 
-        client_configs: Dict = {}, 
-        default_generate_configs: Dict = {},
-        instance_id: str = uuid.uuid4().hex,
+        client_configs: Dict, 
+        default_generate_configs: Dict,
+        instance_id: str,
         disable_openai_backend: bool = False
     ) -> None:
         super().__init__(
