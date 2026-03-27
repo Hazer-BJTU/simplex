@@ -199,7 +199,7 @@ class LoopInformation:
         if self.model_input:
             result['model_input'] = asdict(self.model_input)
         if self.model_response:
-            result['model_response'] = asdict(self.model_response)
+            result['model_response'] = self.model_response.to_dict()
         if self.tool_returns:
             result['tool_returns'] = [asdict(ret) for ret in self.tool_returns]
         if self.extras:

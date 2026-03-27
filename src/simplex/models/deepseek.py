@@ -168,8 +168,8 @@ class DeepSeekConversationModel(ConversationModel):
                 'tool_return_integrate', 
                 'response', 
                 'response.tool_call should not be empty',
-                type_hint='ModelResponse',
-                class_name=self.__class__.__name__
+                type_hint = 'ModelResponse',
+                class_name = self.__class__.__name__
             )
         
         if input.messages is None:
@@ -177,14 +177,20 @@ class DeepSeekConversationModel(ConversationModel):
                 'tool_return_integrate',
                 'input',
                 'input.messages should not be None',
-                type_hint='ModelInput',
-                class_name=self.__class__.__name__
+                type_hint = 'ModelInput',
+                class_name = self.__class__.__name__
             )
         
         new_input: ModelInput = copy.deepcopy(input)
         assert new_input.messages is not None
         assert response.extras is not None and 'original_message' in response.extras
-        new_input.messages.append(response.extras['original_message'])
+        original_message = response.extras['original_message']
+        new_input.messages.append({
+            'role': 'assistant',
+            'content': original_message.content,
+            'reasoning_content': original_message.reasoning_content,
+            'tool_calls': original_message.tool_calls
+        })
         for record in tool_return:
             new_input.messages.append({
                 'role': 'tool',
@@ -198,7 +204,12 @@ class DeepSeekConversationModel(ConversationModel):
         new_input: ModelInput = copy.deepcopy(input)
         assert new_input.messages is not None
         assert response.extras is not None and 'original_message' in response.extras
-        new_input.messages.append(response.extras['original_message'])
+        original_message = response.extras['original_message']
+        new_input.messages.append({
+            'role': 'assistant',
+            'content': original_message.content,
+            'reasoning_content': original_message.reasoning_content
+        })
 
         return new_input
 

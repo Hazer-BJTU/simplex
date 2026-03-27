@@ -144,8 +144,8 @@ class QwenConversationModel(ConversationModel):
                 'tool_return_integrate', 
                 'response', 
                 'response.tool_call should not be empty',
-                type_hint='ModelResponse',
-                class_name=self.__class__.__name__
+                type_hint = 'ModelResponse',
+                class_name = self.__class__.__name__
             )
         
         if input.messages is None:
@@ -153,8 +153,8 @@ class QwenConversationModel(ConversationModel):
                 'tool_return_integrate',
                 'input',
                 'input.messages should not be None',
-                type_hint='ModelInput',
-                class_name=self.__class__.__name__
+                type_hint = 'ModelInput',
+                class_name = self.__class__.__name__
             )
         
         assistant_tool_call_template: Dict = {

@@ -1,6 +1,7 @@
 import os
 import json
 import uuid
+import pickle
 import pathlib
 import asyncio
 
@@ -49,7 +50,7 @@ if __name__ == '__main__':
             EditTools('/home/hazer/simplex', WebsocketClient(9002)),
             SubprocessExecutorLocal(),
             SequentialPlan(),
-            RollContextClipper(threshold_ratio = 0.4, keep_fc_msgs = 30),
+            RollContextClipper(threshold_ratio = 0.3, keep_fc_msgs = 30),
             TokenCostCounter()
         )
 
@@ -60,10 +61,10 @@ if __name__ == '__main__':
         with open(target_path, 'w', encoding = 'utf8') as file:
             file.write(loop['log'].human_readable) # type: ignore
 
-        target_path = OUTPUT_PATH / 'test_ineractive.json'
+        target_path = OUTPUT_PATH / 'test_ineractive.pkl'
         target_path.parent.mkdir(parents = True, exist_ok = True)
-        with open(target_path, 'w', encoding = 'utf8') as file:
-            file.write(json.dumps(loop['log'].dictionary, indent = 2)) #type: ignore
+        with open(target_path, 'wb') as file:
+            pickle.dump(loop['log'].dictionary, file) # type: ignore
 
     try:
         asyncio.run(test_body())
