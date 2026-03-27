@@ -1,8 +1,10 @@
 import os
 import copy
 import uuid
+import pathlib
 
 from abc import ABC
+from pathlib import Path
 from typing import Dict, List, Any, Optional
 
 import simplex.basics
@@ -15,6 +17,9 @@ from simplex.basics import (
     LoopInformation
 )
 
+
+MODULE_PATH: Path = Path(__file__).resolve().parent
+SKILL_DIR: Path = MODULE_PATH / 'skill'
 
 class ContextPlugin(ABC):
     """
@@ -369,6 +374,22 @@ class ContextPlugin(ABC):
             Any result (return value is context-dependent)
         """
         pass
+
+def load_tool_skill(file_name: str, replace_mapping: Optional[Dict[str, str]] = None) -> str:
+    try:
+        with open(SKILL_DIR / f"{file_name}.md", 'r', encoding = 'utf8') as skill_file:
+            content = skill_file.read()
+        
+        if replace_mapping:
+            pattern = r'%(\w+)%'
+            def replace_func(match):
+                key = match.group(1)
+                return replace_mapping.get(key, match.group(0))            
+            return re.sub(pattern, replace_func, content) # type: ignore
+        else:
+            return content
+    except Exception:
+        raise
 
 if __name__ == '__main__':
     pass

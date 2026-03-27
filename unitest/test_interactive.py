@@ -1,6 +1,7 @@
 import os
 import json
 import uuid
+import pickle
 import pathlib
 import asyncio
 
@@ -14,8 +15,8 @@ import simplex.tools
 import simplex.io
 
 from simplex.basics import WebsocketClient, ModelResponse, ToolCall
-from simplex.models import QwenConversationModel, MockConversationModel
-from simplex.context import TrajectoryLogContext, TokenCostCounter
+from simplex.models import QwenConversationModel, MockConversationModel, DeepSeekConversationModel
+from simplex.context import TrajectoryLogContext, TokenCostCounter, ActionSelfEvaluation, RollContextClipper
 from simplex.loop import AgentLoop, UserLoop
 from simplex.tools import EditTools, SubprocessExecutorLocal, SequentialPlan
 from simplex.io import RichTerminalInterface
@@ -26,7 +27,8 @@ OUTPUT_PATH: Path = MODULE_PATH / 'output/test_interactive'
 
 if __name__ == '__main__':
     async def test_body() -> None:
-        model = QwenConversationModel('https://dashscope.aliyuncs.com/compatible-mode/v1', os.getenv('API_KEY'), qwen_model = 'glm-5', enable_thinking = False) # type: ignore
+        # model = QwenConversationModel('https://dashscope.aliyuncs.com/compatible-mode/v1', os.getenv('API_KEY'), qwen_model = 'glm-5') # type: ignore
+        model = DeepSeekConversationModel('https://api.deepseek.com/beta', os.getenv('API_KEY'), model = 'deepseek-reasoner') # type: ignore
 
         
         model_mock = MockConversationModel(
@@ -40,7 +42,7 @@ if __name__ == '__main__':
             ]
         )
 
-        interface = RichTerminalInterface(model.qwen_model)
+        interface = RichTerminalInterface(model.model)
         loop = AgentLoop(
             model, 
             interface.get_exception_handler(), 
@@ -48,6 +50,7 @@ if __name__ == '__main__':
             EditTools('/home/hazer/simplex', WebsocketClient(9002)),
             SubprocessExecutorLocal(),
             SequentialPlan(),
+            RollContextClipper(threshold_ratio = 0.3, keep_fc_msgs = 30),
             TokenCostCounter()
         )
 
@@ -58,10 +61,10 @@ if __name__ == '__main__':
         with open(target_path, 'w', encoding = 'utf8') as file:
             file.write(loop['log'].human_readable) # type: ignore
 
-        target_path = OUTPUT_PATH / 'test_ineractive.json'
+        target_path = OUTPUT_PATH / 'test_ineractive.pkl'
         target_path.parent.mkdir(parents = True, exist_ok = True)
-        with open(target_path, 'w', encoding = 'utf8') as file:
-            file.write(json.dumps(loop['log'].dictionary, indent = 2)) #type: ignore
+        with open(target_path, 'wb') as file:
+            pickle.dump(loop['log'].dictionary, file) # type: ignore
 
     try:
         asyncio.run(test_body())

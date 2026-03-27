@@ -120,16 +120,16 @@ class QwenConversationModel(ConversationModel):
                 completion_tokens += record.completion_tokens
 
         tool_call_objects: List[ToolCall] = [
-            ToolCall(id=record['id'], name=record['name'], arguments=json.loads(record['arguments']))
+            ToolCall(id = record['id'], name = record['name'], arguments = json.loads(record['arguments']))
             for record in tool_call
         ]
 
         return ModelResponse(
-            response=response,
-            token_cost=prompt_tokens + completion_tokens,
-            reasoning_content=reasoning_content,
-            tool_call=tool_call_objects,
-            extras={
+            response = response,
+            token_cost = prompt_tokens + completion_tokens,
+            reasoning_content = reasoning_content,
+            tool_call = tool_call_objects,
+            extras = {
                 'prompt_tokens': prompt_tokens, 
                 'completion_tokens': completion_tokens
             }
@@ -144,8 +144,8 @@ class QwenConversationModel(ConversationModel):
                 'tool_return_integrate', 
                 'response', 
                 'response.tool_call should not be empty',
-                type_hint='ModelResponse',
-                class_name=self.__class__.__name__
+                type_hint = 'ModelResponse',
+                class_name = self.__class__.__name__
             )
         
         if input.messages is None:
@@ -153,8 +153,8 @@ class QwenConversationModel(ConversationModel):
                 'tool_return_integrate',
                 'input',
                 'input.messages should not be None',
-                type_hint='ModelInput',
-                class_name=self.__class__.__name__
+                type_hint = 'ModelInput',
+                class_name = self.__class__.__name__
             )
         
         assistant_tool_call_template: Dict = {
