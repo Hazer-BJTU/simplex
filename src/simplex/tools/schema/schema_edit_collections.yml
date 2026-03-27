@@ -33,14 +33,14 @@ view_file_content:
       required: True
 
     - field: line_start
-      type: int
+      type: integer
       description: >-
         Indicates the starting line number, where line numbering begins at 1 in a file.
         If not specified, the default value is 1.
       required: False
     
     - field: line_end
-      type: int
+      type: integer
       description: >-
         Indicates the ending line number (inclusive).
         If not specified, the tool server will browse the file for the first several lines.
@@ -78,7 +78,7 @@ edit_file_content:
       required: True
 
     - field: line_start
-      type: int
+      type: integer
       description: >-
         Indicates the starting line number, where line numbering begins at 1 in a file.
         If not specified, the tool server will directly append 'content' to the end of the file under 'insert' mode,
@@ -86,7 +86,7 @@ edit_file_content:
       required: False
 
     - field: line_end
-      type: int
+      type: integer
       description:
         Indicates the ending line number (inclusive). This parameter is ignored in 'insert' mode.
       required: False

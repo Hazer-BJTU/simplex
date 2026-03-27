@@ -120,16 +120,16 @@ class QwenConversationModel(ConversationModel):
                 completion_tokens += record.completion_tokens
 
         tool_call_objects: List[ToolCall] = [
-            ToolCall(id=record['id'], name=record['name'], arguments=json.loads(record['arguments']))
+            ToolCall(id = record['id'], name = record['name'], arguments = json.loads(record['arguments']))
             for record in tool_call
         ]
 
         return ModelResponse(
-            response=response,
-            token_cost=prompt_tokens + completion_tokens,
-            reasoning_content=reasoning_content,
-            tool_call=tool_call_objects,
-            extras={
+            response = response,
+            token_cost = prompt_tokens + completion_tokens,
+            reasoning_content = reasoning_content,
+            tool_call = tool_call_objects,
+            extras = {
                 'prompt_tokens': prompt_tokens, 
                 'completion_tokens': completion_tokens
             }

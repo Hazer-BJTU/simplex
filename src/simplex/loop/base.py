@@ -614,8 +614,8 @@ class AgentLoop(AgentLoopAdapter):
         system: Optional[PromptTemplate] = None,
         user: Optional[PromptTemplate] = None,
         history: Optional[List[Dict]] = None, # standard openai message list
-        max_iteration: int = 30,
-        timeout: float = 120,
+        max_iteration: int = 50,
+        timeout: float = 600,
         max_retry: int = 5,
         keep_original_system: bool = False,
         **kwargs
