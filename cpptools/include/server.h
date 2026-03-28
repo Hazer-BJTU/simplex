@@ -31,6 +31,7 @@ public:
     using TFGenerator = std::function<TransferFunction(std::shared_ptr<WebsocketServer>, size_t)>;
 
 private:
+    const size_t _max_result;
     const unsigned short _port;
     const size_t _num_workers;
     mutable std::mutex _server_mtx;
@@ -46,7 +47,8 @@ public:
     WebsocketServer(
         const TFGenerator& generator,
         unsigned short port, 
-        size_t num_workers = 1
+        size_t num_workers = 1,
+        size_t max_result = 24576
     );
     WebsocketServer(const WebsocketServer&) = delete;
     WebsocketServer(WebsocketServer&&) = delete;

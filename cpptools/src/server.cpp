@@ -5,8 +5,10 @@ namespace simplex {
 WebsocketServer::WebsocketServer(
     const TFGenerator& generator,
     unsigned short port, 
-    size_t num_workers
-): _generator(generator),
+    size_t num_workers,
+    size_t max_result
+): _max_result(max_result),
+   _generator(generator),
    _port(port),
    _num_workers(std::max<size_t>(num_workers, 1u)),
    _executor(_num_workers),
@@ -30,6 +32,7 @@ asio::awaitable<void> WebsocketServer::_listen() noexcept {
 }
 
 asio::awaitable<void> WebsocketServer::_ws_session(tcp::socket socket) noexcept {
+    const std::string truncate_warning = "[WARNING]: Response content has been truncated. Please try narrowing your search scope or using more precise query terms.\n\n";
     const size_t session_id = _session_num.fetch_add(1, std::memory_order_acq_rel);
     beast::websocket::stream<tcp::socket> ws(std::move(socket));
 
@@ -53,6 +56,11 @@ asio::awaitable<void> WebsocketServer::_ws_session(tcp::socket socket) noexcept 
             co_await ws.async_read(buffer, asio::use_awaitable);
             std::string message = beast::buffers_to_string(buffer.data());
             auto response = transfer_function(message);
+
+            if (response.length() > _max_result) {
+                response = truncate_warning + response.substr(0, _max_result);
+            }
+
             ws.text(true);
             co_await ws.async_write(asio::buffer(response), asio::use_awaitable);
             buffer.consume(buffer.size());

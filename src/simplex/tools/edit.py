@@ -76,15 +76,15 @@ class EditTools(ToolCollection):
         self.initialized: bool = False
 
         self.tool_definitions = load_tool_definitions(self.SCHEMA_FILE)
-        self.view_workspace_schema = load_schema(self.SCHEMA_FILE, 'view_workspace', self.names['view_workspace'])
-        self.show_details_schema = load_schema(self.SCHEMA_FILE, 'show_details', self.names['show_details'])
-        self.view_file_content_schema = load_schema(self.SCHEMA_FILE, 'view_file_content', self.names['view_file_content'])
-        self.edit_file_content_schema = load_schema(self.SCHEMA_FILE, 'edit_file_content', self.names['edit_file_content'])
-        self.undo_schema = load_schema(self.SCHEMA_FILE, 'undo', self.names['undo'])
-        self.search_schema = load_schema(self.SCHEMA_FILE, 'search', self.names['search'])
-        self.create_schema = load_schema(self.SCHEMA_FILE, 'create', self.names['create'])
-        self.remove_schema = load_schema(self.SCHEMA_FILE, 'remove', self.names['remove'])
-        self.rename_schema = load_schema(self.SCHEMA_FILE, 'rename', self.names['rename'])
+        self.view_workspace_schema = load_schema(self.SCHEMA_FILE, 'view_workspace', self.names.get('view_workspace', 'view_workspace'))
+        self.show_details_schema = load_schema(self.SCHEMA_FILE, 'show_details', self.names.get('show_details', 'show_details'))
+        self.view_file_content_schema = load_schema(self.SCHEMA_FILE, 'view_file_content', self.names.get('view_file_content', 'view_file_content'))
+        self.edit_file_content_schema = load_schema(self.SCHEMA_FILE, 'edit_file_content', self.names.get('edit_file_content', 'edit_file_content'))
+        self.undo_schema = load_schema(self.SCHEMA_FILE, 'undo', self.names.get('undo', 'undo'))
+        self.search_schema = load_schema(self.SCHEMA_FILE, 'search', self.names.get('search', 'search'))
+        self.create_schema = load_schema(self.SCHEMA_FILE, 'create', self.names.get('create', 'create'))
+        self.remove_schema = load_schema(self.SCHEMA_FILE, 'remove', self.names.get('remove', 'remove'))
+        self.rename_schema = load_schema(self.SCHEMA_FILE, 'rename', self.names.get('rename', 'rename'))
 
         self.all_schemas: Dict[EditOperation, ToolSchema] = {
             'view_workspace': self.view_workspace_schema,

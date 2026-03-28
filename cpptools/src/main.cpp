@@ -568,7 +568,8 @@ int main(int argc, char** argv) {
     ("jobs,j", boost::program_options::value<size_t>()->default_value(1), "number of workers for asynchronous server (default to 1)")
     ("head-n,n", boost::program_options::value<size_t>()->default_value(200), "number of lines for file preview (default to 200)")
     ("history,s", boost::program_options::value<size_t>()->default_value(15), "number of history entries per file for undo log (default to 15)")
-    ("concurrent,c", boost::program_options::value<size_t>()->default_value(4), "number of threads for concurrent search (default to 4)");
+    ("concurrent,c", boost::program_options::value<size_t>()->default_value(4), "number of threads for concurrent search (default to 4)")
+    ("max-result,m", boost::program_options::value<size_t>()->default_value(24576), "maximum number of bytes return (default to 24576)");
 
     boost::program_options::store(boost::program_options::parse_command_line(argc, argv, arguments), GLOBAL_ARGS);
     if(GLOBAL_ARGS.count("help")) {
@@ -586,7 +587,7 @@ int main(int argc, char** argv) {
 
     auto port = GLOBAL_ARGS["port"].as<unsigned short>();
     auto num_workers = GLOBAL_ARGS["jobs"].as<size_t>();
-    auto server = std::make_shared<simplex::WebsocketServer>(&TFGenerator, port, num_workers);
+    auto server = std::make_shared<simplex::WebsocketServer>(&TFGenerator, port, num_workers, GLOBAL_ARGS["max-result"].as<size_t>());
     boost::asio::signal_set signals(server->get_executor(), SIGINT, SIGTERM);
     signals.async_wait([server](auto, auto) -> void { server->get_executor().stop(); });
     
