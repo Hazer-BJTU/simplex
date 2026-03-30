@@ -257,13 +257,13 @@ SIMPLEX_COMMAND_DEF(edit_file_content) {
 
 SIMPLEX_COMMAND_DEF(search_entity) {
     std::ostringstream output;
-    std::string scope, mode;
+    std::string glob, mode;
     std::unordered_set<std::string> key_words;
     try {
-        scope = command.at("scope");
+        glob = command.at("glob");
         mode = command.at("mode");
     } catch(...) {
-        scope = "global";
+        glob = "**";
         mode = "pattern";
     }
 
@@ -285,6 +285,7 @@ SIMPLEX_COMMAND_DEF(search_entity) {
     
     std::vector<simplex::PathTuple> targets = {};
     try {
+        /*
         if (scope == "global") {
             targets = path_reader->get_qualified_files();
         } else if (scope == "workspace") {
@@ -292,6 +293,8 @@ SIMPLEX_COMMAND_DEF(search_entity) {
         } else {
             throw std::runtime_error(str("\'", scope, "\' is not a valid scope specifier"));
         }
+        */
+        targets = path_reader->get_unique_qualified_files_glob(glob);
     } catch(const std::exception& e) {
         output << "[error occurred: " << e.what() << "; no content retrieved]" << std::endl;
         simplex::safe_output("[Session#", session_id, "]: command got: search entity ", command);

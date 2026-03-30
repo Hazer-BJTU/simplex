@@ -13,6 +13,7 @@
 
 #include "basics.h"
 #include "filter.hpp"
+#include "globmatch.hpp"
 #include "ahocorasick.hpp"
 
 namespace simplex {
@@ -105,8 +106,15 @@ public:
     }
 
     std::vector<PathTuple> get_all_files() const;
+    std::vector<PathTuple> get_unique_qualified_files_glob(const std::string& pattern = "**") const;
+
+    [[deprecated("now use 'get_unique_qualified_files_glob'")]] 
     std::vector<PathTuple> get_workspace_files() const noexcept;
+
+    [[deprecated("now use 'get_unique_qualified_files_glob'")]] 
     std::vector<PathTuple> get_qualified_files() const;
+    
+    [[deprecated("now use 'get_unique_qualified_files_glob'")]] 
     std::vector<PathTuple> get_qualified_workspace_files() const noexcept;
 
     void navigate_target(const boost::filesystem::path& path);

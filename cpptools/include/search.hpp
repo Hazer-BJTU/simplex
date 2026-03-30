@@ -190,6 +190,7 @@ public:
         return result;
     }
 
+    [[deprecated("now use 'get_unique_qualified_files_glob', which returns unique ptuples")]] 
     std::vector<PathTuple> _get_unique_ptuple_list(const std::vector<PathTuple>& ptuple_list) noexcept {
         std::vector<PathTuple> unique_ptuple_list = ptuple_list;
         std::sort(unique_ptuple_list.begin(), unique_ptuple_list.end());
@@ -229,13 +230,11 @@ public:
     }
 
     const EntityTagList& search_entity(const std::unordered_set<std::string>& key_words, const std::vector<PathTuple>& ptuple_list) noexcept {
-        auto unique_ptuple_list = _get_unique_ptuple_list(ptuple_list);
-
         _output_entity_list.clear();
-        const size_t tasks_per_worker = (unique_ptuple_list.size() + _num_workers - 1) / _num_workers;
-        for (size_t i = 0; i < unique_ptuple_list.size(); i += tasks_per_worker) {
-            _workers.emplace_back([this, &key_words, &unique_ptuple_list, start_idx = i, end_idx = i + tasks_per_worker]() -> void { 
-                this->_parallel_search_entity(key_words, unique_ptuple_list, start_idx, end_idx); 
+        const size_t tasks_per_worker = (ptuple_list.size() + _num_workers - 1) / _num_workers;
+        for (size_t i = 0; i < ptuple_list.size(); i += tasks_per_worker) {
+            _workers.emplace_back([this, &key_words, &ptuple_list, start_idx = i, end_idx = i + tasks_per_worker]() -> void { 
+                this->_parallel_search_entity(key_words, ptuple_list, start_idx, end_idx); 
             });
         }
         for (auto& worker: _workers) {
@@ -248,13 +247,11 @@ public:
     }
 
     LineRecords search_snippet(const std::unordered_set<std::string>& key_words, const std::vector<PathTuple>& ptuple_list) noexcept {
-        auto unique_ptuple_list = _get_unique_ptuple_list(ptuple_list);
-
         _output_line_records.clear();
-        const size_t tasks_per_worker = (unique_ptuple_list.size() + _num_workers - 1) / _num_workers;
-        for (size_t i = 0; i < unique_ptuple_list.size(); i += tasks_per_worker) {
-            _workers.emplace_back([this, &key_words, &unique_ptuple_list, start_idx = i, end_idx = i + tasks_per_worker]() -> void { 
-                this->_parallel_search_snippet(key_words, unique_ptuple_list, start_idx, end_idx); 
+        const size_t tasks_per_worker = (ptuple_list.size() + _num_workers - 1) / _num_workers;
+        for (size_t i = 0; i < ptuple_list.size(); i += tasks_per_worker) {
+            _workers.emplace_back([this, &key_words, &ptuple_list, start_idx = i, end_idx = i + tasks_per_worker]() -> void { 
+                this->_parallel_search_snippet(key_words, ptuple_list, start_idx, end_idx); 
             });
         }
         for (auto& worker: _workers) {
@@ -267,13 +264,11 @@ public:
     }
 
     LineRecords search_index(const std::unordered_set<std::string>& key_words, const std::vector<PathTuple>& ptuple_list) noexcept {
-        auto unique_ptuple_list = _get_unique_ptuple_list(ptuple_list);
-
         _output_line_records.clear();
-        const size_t tasks_per_worker = (unique_ptuple_list.size() + _num_workers - 1) / _num_workers;
-        for (size_t i = 0; i < unique_ptuple_list.size(); i += tasks_per_worker) {
-            _workers.emplace_back([this, &key_words, &unique_ptuple_list, start_idx = i, end_idx = i + tasks_per_worker]() -> void {
-                this->_parallel_search_index(key_words, unique_ptuple_list, start_idx, end_idx);
+        const size_t tasks_per_worker = (ptuple_list.size() + _num_workers - 1) / _num_workers;
+        for (size_t i = 0; i < ptuple_list.size(); i += tasks_per_worker) {
+            _workers.emplace_back([this, &key_words, &ptuple_list, start_idx = i, end_idx = i + tasks_per_worker]() -> void {
+                this->_parallel_search_index(key_words, ptuple_list, start_idx, end_idx);
             });
         }
         for (auto& worker: _workers) {

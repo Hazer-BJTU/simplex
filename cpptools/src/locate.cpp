@@ -201,6 +201,28 @@ std::vector<PathTuple> PathReader::get_qualified_workspace_files() const noexcep
     return results;
 }
 
+std::vector<PathTuple> PathReader::get_unique_qualified_files_glob(const std::string& pattern) const {
+    GlobMatcher matcher;
+    try {
+        std::vector<PathTuple> results;
+        auto initial_list = get_all_files();
+        results.reserve(initial_list.size());
+        for (const auto& ptuple: initial_list) {
+            if (_qualified_search(ptuple.full) && matcher.match(pattern, ptuple.view.string())) {
+                results.push_back(ptuple);
+            }
+        }
+        
+        std::sort(results.begin(), results.end());
+        auto it = std::unique(results.begin(), results.end());
+        results.erase(it, results.end());
+
+        return results;
+    } catch(...) {
+        throw;
+    }
+}
+
 void PathReader::navigate_target(const boost::filesystem::path& path) {
     auto normalized_path = path;
     auto [type, full_path] = normalize(normalized_path);
