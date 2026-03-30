@@ -130,11 +130,13 @@ search:
       enum: ['definition', 'identifier', 'pattern']
       required: True
 
-    - field: scope
+    - field: glob
       type: string
-      description:
-        Choose between 'global' or 'workspace'. 'global' is recommended.
-      enum: ['global', 'workspace']
+      description: >-
+        You can use this parameter to provide a simple glob pattern for filtering files. 
+        Supported syntax includes: *, **, ?, [], [!...] or [^...].
+        For example: 'file[!2-4].rs' or 'file[^2-4].txt', '**/test_?.[ch]', '[a-zA-Z0-9].*', 'src/**/*.cpp'.
+        The glob pattern you provide will be applied under the workspace base directory.
       required: True
 
 create:

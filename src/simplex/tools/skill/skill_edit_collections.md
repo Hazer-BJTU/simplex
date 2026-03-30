@@ -22,7 +22,7 @@ However, when you encounter requirements that cannot be solved or are difficult 
 4. Feedback from the %edit_file_content% operation is very important. Use the feedback to self-check whether the modification is correct!
    When errors are found (such as indentation errors, unclosed brackets or comments), promptly fix them using %undo% or %edit_file_content%.
 
-5. If the %search% operation fails when the parameter 'scope' is set to 'workspace', please switch the 'scope' to 'global' and retry.
+5. You can use glob wildcards to narrow down the query scope and avoid too many search results (which will be truncated).
 
 6. If you find that the workspace view has expired — for example, when the workspace files have been modified by another program or edited manually by the user — 
    please use the %view_workspace% method to refresh the workspace view. This method will reset all file caches and refresh the working directory.
