@@ -30,7 +30,6 @@ if __name__ == '__main__':
         # model = QwenConversationModel('https://dashscope.aliyuncs.com/compatible-mode/v1', os.getenv('API_KEY'), qwen_model = 'glm-5') # type: ignore
         model = DeepSeekConversationModel('https://api.deepseek.com/beta', os.getenv('API_KEY'), model = 'deepseek-reasoner') # type: ignore
 
-        
         model_mock = MockConversationModel(
             expected_responses = [
                 ModelResponse(tool_call = [ToolCall('x', 'make_plan', {'content': 'This is my plan A.', 'edit_type': 'append'})]),
