@@ -73,8 +73,8 @@ def test_search_only() -> None:
                 response: ToolReturn = await tools(input)
                 output += response.content + '\n\n'
             await sub_test('#1', 'view_workspace', {})
-            await sub_test('#20', 'search', {'key_words': 'logdocument, MultiScaleCNN, load_data_isruc1', 'scope': 'global', 'mode': 'definition'})
-            await sub_test('#21', 'search', {'key_words': 'weight_decay', 'scope': 'global', 'mode': 'identifier'})
+            await sub_test('#20', 'search', {'key_words': 'logdocument, MultiScaleCNN, load_data_isruc1', 'glob': 'old_version_code/**/*.py', 'mode': 'definition'})
+            await sub_test('#21', 'search', {'key_words': 'weight_decay', 'glob': 'old_version_code/**/*.py', 'mode': 'identifier'})
         target_path = OUTPUT_PATH / 'test_search_only.txt'
         target_path.parent.mkdir(parents = True, exist_ok = True)
         with open(target_path, 'w', encoding = 'utf8') as file:
