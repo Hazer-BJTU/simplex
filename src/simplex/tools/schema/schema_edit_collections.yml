@@ -154,7 +154,7 @@ create:
       required: True
 
 remove:
-  description:
+  description: >-
     Used to remove a file or directory. The files will be gone forever!
     This tool requires user permission before execution to ensure security.
   params:

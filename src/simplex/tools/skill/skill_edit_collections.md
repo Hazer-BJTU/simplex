@@ -9,7 +9,7 @@ However, when you encounter requirements that cannot be solved or are difficult 
 
 ## Basic Principles
 1. Before performing the %edit_file_content% operation, you must ensure that you fully understand the file content, especially the **latest state** of the file. 
-   This is critical. Mistakenly mixing historical/partial file states will inevitably lead to errors! 
+   This is critical. Mistakenly mixing historical / partial file states will inevitably lead to errors! 
    Therefore, use %show_details% combined with %view_file_content% to obtain up-to-date file content when necessary.
 
 2. The %undo% operation is **only valid** for %edit_file_content% operations! It has no effect on other operations. You must specify the filename for the undo operation.
