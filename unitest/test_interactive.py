@@ -46,7 +46,7 @@ if __name__ == '__main__':
             model, 
             interface.get_exception_handler(), 
             TrajectoryLogContext(instance_id = 'log'), 
-            EditTools('/home/hazer/simplex', WebsocketClient(9002)),
+            EditTools('/home/hazer/testbed', WebsocketClient(9002)),
             SubprocessExecutorLocal(),
             SequentialPlan(),
             RollContextClipper(),

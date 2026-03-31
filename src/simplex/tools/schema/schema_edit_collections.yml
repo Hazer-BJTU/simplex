@@ -108,14 +108,11 @@ undo:
 search:
   description: >-
     Used for keyword retrieval. There are three modes: 'definition', 'identifier' or 'pattern'.
-    'definition' performs an exact match on defined code elements such as classes and functions.
-    'identifier' matches identifiers within code or text and can be used to retrieve dependencies.
+    'definition' performs an exact match on defined code elements such as classes and functions (use pure names like 'ContextPipelineManager', 'get_global_function_register', 'CACHE_SIZE').
+    'identifier' matches identifiers within code or text and can be used to retrieve dependencies (use pure names like 'ContextPipelineManager', 'get_global_function_register', 'CACHE_SIZE').
     'pattern' carries out pure string matching, suitable for finding specific invocation or initialization patterns.
     When calling this function, try to avoid using overly broad keywords (e.g., '__init__' for python).
-    Two retrieval scopes are supported: 'workspace' and 'global'.
-    The 'workspace' scope only searches in files explicitly listed in a tree structure within the most recent workspace view from the history.
-    Files not DIRECTLY displayed in the workspace view will be skipped.
-    The 'global' scope searches in all files in the project (entire working directory).
+    The 'glob' pattern you provide will be applied under the workspace base directory.
   params:
     - field: key_words
       type: string
