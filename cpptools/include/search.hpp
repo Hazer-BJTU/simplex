@@ -234,7 +234,7 @@ public:
     LineRecords compare_rewrite_content(const PathTuple& ptuple, Args&&... args) {
         try {
             auto lang_integrate = _get_lang_integrate(ptuple);
-            result = simplex::compare_rewrite_content(ptuple, lang_integrate->source(), std::forward<Args>(args)...);
+            auto result = simplex::compare_rewrite_content(ptuple, lang_integrate->source(), std::forward<Args>(args)...);
             _cache_expire(ptuple);
             return result;
         } catch(const std::exception& e) {
