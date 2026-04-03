@@ -231,7 +231,6 @@ SIMPLEX_COMMAND_DEF(edit_file_content) {
         boost::filesystem::path normalized_path = target_path;
         auto [type, full_path] = path_reader->normalize(normalized_path);
         if (type == simplex::PathReader::Type::REGULAR_FILE) {
-            // updage undo-log
             undo_log->push({full_path, normalized_path});
 
             auto lines_record = searcher->edit_file_content({full_path, normalized_path}, edit_type, content, line_start, line_end);
@@ -354,7 +353,8 @@ SIMPLEX_COMMAND_DEF(touch) {
         simplex::safe_output("[Session#", session_id, "]: response:", '\n', output.str());
         return output.str();
     }
-        
+    
+    searcher->_cache_expire(ptuple);
     path_reader->navigate_target(ptuple.view);
     output << "[updated workspace: " << path_reader->base_dir() << ", [D]: directory, [F]: regular file]: " << std::endl << *path_reader;
 
@@ -396,6 +396,7 @@ SIMPLEX_COMMAND_DEF(remove) {
         return output.str();
     }
 
+    searcher->_cache_expire(ptuple);
     output << "[successfully removed file: " << ptuple.view << "]: " << std::endl;
     output << "[updated workspace: " << path_reader->base_dir() << ", [D]: directory, [F]: regular file]: " << std::endl << *path_reader;
 
@@ -428,6 +429,7 @@ SIMPLEX_COMMAND_DEF(rename) {
         return output.str();
     }
 
+    searcher->_cache_expire(psrc);
     path_reader->navigate_target(pdst.view);
     output << "[successfully renamed " << psrc.view << " to " << pdst.view << "]: " << std::endl;
     output << "[updated workspace: " << path_reader->base_dir() << ", [D]: directory, [F]: regular file]: " << std::endl << *path_reader;
@@ -455,7 +457,6 @@ SIMPLEX_COMMAND_DEF(undo) {
     std::string original_content;
     simplex::PathTuple ptuple = {full_path, normalized_path};
     try {
-        // undo_log->undo(ptuple);
         original_content = undo_log->pop(ptuple);
         auto lines_record = searcher->compare_rewrite_content(ptuple, original_content);
     } catch(const std::exception& e) {
@@ -466,7 +467,6 @@ SIMPLEX_COMMAND_DEF(undo) {
     }
 
     try {
-        // auto lines_record = searcher->view_file_content(ptuple);
         auto lines_record = searcher->compare_rewrite_content(ptuple, original_content);
         output << std::endl << "[successfully undo edition: " << ptuple.view << "]: " << std::endl;
         output << lines_record;
