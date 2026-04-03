@@ -458,7 +458,6 @@ SIMPLEX_COMMAND_DEF(undo) {
     simplex::PathTuple ptuple = {full_path, normalized_path};
     try {
         original_content = undo_log->pop(ptuple);
-        auto lines_record = searcher->compare_rewrite_content(ptuple, original_content);
     } catch(const std::exception& e) {
         output << "[error occurred: " << e.what() << "; failed to undo edition]" << std::endl;
         simplex::safe_output("[Session#", session_id, "]: command got: undo ", command);

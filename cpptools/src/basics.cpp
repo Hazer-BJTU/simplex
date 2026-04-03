@@ -283,12 +283,19 @@ LineRecords compare_rewrite_content(const PathTuple& ptuple, const std::string& 
         new_output.emplace_back(i + 1, new_lines[i], false, mark);
     }
 
-    original_output.emplace_front(0, (boost::format("[file_path: %s, removed_lines: %d]: ") % ptuple.view % cnt_original_deleted).str(), true);
-    new_output.emplace_front(0, (boost::format("[file_path: %s, added_lines: %d]: ") % ptuple.view % cnt_new_added).str(), true);
+    if (!original_output.empty()) {
+        original_output.emplace_front(0, (boost::format("[file_path: %s, removed_lines: %d]: ") % ptuple.view % cnt_original_deleted).str(), true);
+        new_output.emplace_front(0, (boost::format("[file_path: %s, added_lines: %d]: ") % ptuple.view % cnt_new_added).str(), true);
 
-    result = std::move(original_output);
-    result.emplace_back("", "", true);
-    result.splice(result.end(), new_output);
+        result = std::move(original_output);
+        result.emplace_back("", "", true);
+        result.splice(result.end(), new_output);
+    } else if (!new_output.empty()) {
+        new_output.emplace_front(0, (boost::format("[file_path: %s, added_lines: %d]: ") % ptuple.view % cnt_new_added).str(), true);
+        result = std::move(new_output);
+    } else {
+        result.emplace_front(0, (boost::format("[no modifications have been made to file: %s]") % ptuple.view).str(), true);
+    }
 
     return result;
 }
