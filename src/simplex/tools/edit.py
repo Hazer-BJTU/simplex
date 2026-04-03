@@ -292,9 +292,6 @@ class EditTools(ToolCollection):
         if not self.initialized:
             raise UnbuiltError(self.__class__.__name__)
         
-        # if scope not in ['workspace', 'global']:
-        #     return f"[ERROR]: Parameter 'scope' should be one of 'workspace' or 'global'."
-        
         if mode not in ['definition', 'identifier', 'pattern']:
             return f"[ERROR]: Parameter 'mode' should be one of 'definition', 'identifier' or 'pattern'."
         

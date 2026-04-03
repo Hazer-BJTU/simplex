@@ -196,6 +196,100 @@ LineRecords edit_file_content(const PathTuple& ptuple, EditType type, const std:
     return ret_value;
 }
 
+LineRecords compare_rewrite_content(const PathTuple& ptuple, const std::string& original_content, const std::string& new_content) {
+    std::ofstream file_out(ptuple.full, std::ios::out);
+    if (!file_out.is_open()) {
+        throw std::runtime_error((boost::format("unable to write to file: %s; no changes have been made to workspace") % ptuple.view).str());
+    }
+
+    file_out << new_content;
+    file_out.close();
+
+    LineRecords result, original_output, new_output;
+
+    std::vector<std::string> original_lines, new_lines;
+    std::istringstream content_iss(original_content);
+    for (std::string line; std::getline(content_iss, line); ) {
+        original_lines.emplace_back(std::move(line));
+    }
+    content_iss.clear();
+    content_iss.str(new_content);
+    for (std::string line; std::getline(content_iss, line); ) {
+        new_lines.emplace_back(std::move(line));
+    }
+    
+    std::vector<bool> original_deleted, new_added;
+    int ld = levenshtein_distance(
+        [&](int i, int j) -> bool { return original_lines[i] == new_lines[j]; }, 
+        static_cast<int>(original_lines.size()), static_cast<int>(new_lines.size()),
+        original_deleted, new_added
+    );
+
+    int cnt_original_deleted = 0, cnt_new_added = 0;
+    std::vector<bool> original_context, new_context;
+    original_context.assign(original_lines.size(), false);
+    new_context.assign(new_lines.size(), false);
+    for (int i = 0; i < static_cast<int>(original_context.size()); i ++) {
+        if (!original_deleted[i]) {
+            continue;
+        }
+        cnt_original_deleted ++;
+        for (int j = std::max<int>(i - context_window, 0); j <= i + context_window && j < static_cast<int>(original_context.size()); j ++) {
+            original_context[j] = true;
+        }
+    }
+    for (int i = 0; i < static_cast<int>(new_context.size()); i ++) {
+        if (!new_added[i]) {
+            continue;
+        }
+        cnt_new_added ++;
+        for (int j = std::max<int>(i - context_window, 0); j <= i + context_window && j < static_cast<int>(new_context.size()); j ++) {
+            new_context[j] = true;
+        }
+    }
+    
+    bool in_block = false;
+    for (int i = 0; i < static_cast<int>(original_lines.size()); i ++) {
+        if (!original_context[i]) {
+            in_block = false;
+            continue;
+        }
+        if (!in_block) {
+            in_block = true;
+            if (i != 0) {
+                original_output.emplace_back("...", " ... ");
+            }
+        }
+        unsigned char mark = original_deleted[i] ? '-' : ' ';
+        original_output.emplace_back(i + 1, original_lines[i], false, mark);
+    }
+
+    in_block = false;
+    for (int i = 0; i < static_cast<int>(new_lines.size()); i ++) {
+        if (!new_context[i]) {
+            in_block = false;
+            continue;
+        }
+        if (!in_block) {
+            in_block = true;
+            if (i != 0) {
+                new_output.emplace_back("...", " ... ");
+            }
+        }
+        unsigned char mark = new_added[i] ? '+' : ' ';
+        new_output.emplace_back(i + 1, new_lines[i], false, mark);
+    }
+
+    original_output.emplace_front(0, (boost::format("[file_path: %s, removed_lines: %d]: ") % ptuple.view % cnt_original_deleted).str(), true);
+    new_output.emplace_front(0, (boost::format("[file_path: %s, added_lines: %d]: ") % ptuple.view % cnt_new_added).str(), true);
+
+    result = std::move(original_output);
+    result.emplace_back("", "", true);
+    result.splice(result.end(), new_output);
+
+    return result;
+}
+
 std::tuple<LineRecords, bool> extract_code_snippet(const PathTuple& ptuple, AhoCorasick& automaton, const std::string& content) noexcept {
     LineRecords result;
     size_t matched_cnt = 0;
@@ -231,7 +325,7 @@ std::tuple<LineRecords, bool> extract_code_snippet(const PathTuple& ptuple, AhoC
         }
         if (!in_block) {
             in_block = true;
-            if (!result.empty()) {
+            if (line_counter != 0) {
                 result.emplace_back("...", " ... ");
             }
         }
