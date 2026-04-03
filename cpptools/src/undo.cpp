@@ -30,6 +30,26 @@ void HistoryUndoLog::push(const PathTuple& ptuple) noexcept {
     return;
 }
 
+std::string HistoryUndoLog::pop(const PathTuple& ptuple) {
+    if (!boost::filesystem::exists(ptuple.full)) {
+        throw std::runtime_error((boost::format("%s doesn't exist; please check if it has been moved or renamed") % ptuple.view).str());
+    }
+
+    if (_history_map.find(ptuple.full.string()) == _history_map.end()) {
+        throw std::runtime_error((boost::format("%s was not edited; please double-check the file path") % ptuple.view).str());
+    }
+
+    auto& queue = _history_map[ptuple.full.string()];
+    if (queue.empty()) {
+        throw std::runtime_error((boost::format("sorry, the earlier history of file %s has been discarded") % ptuple.view).str());
+    }
+
+    auto content = queue.front();
+    queue.pop_front();
+
+    return content;
+}
+
 void HistoryUndoLog::undo(const PathTuple& ptuple) {
     if (!boost::filesystem::exists(ptuple.full)) {
         throw std::runtime_error((boost::format("%s doesn't exist; please check if it has been moved or renamed") % ptuple.view).str());

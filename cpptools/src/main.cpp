@@ -285,15 +285,6 @@ SIMPLEX_COMMAND_DEF(search_entity) {
     
     std::vector<simplex::PathTuple> targets = {};
     try {
-        /*
-        if (scope == "global") {
-            targets = path_reader->get_qualified_files();
-        } else if (scope == "workspace") {
-            targets = path_reader->get_qualified_workspace_files();
-        } else {
-            throw std::runtime_error(str("\'", scope, "\' is not a valid scope specifier"));
-        }
-        */
         targets = path_reader->get_unique_qualified_files_glob(glob);
     } catch(const std::exception& e) {
         output << "[error occurred: " << e.what() << "; no content retrieved]" << std::endl;
@@ -461,9 +452,12 @@ SIMPLEX_COMMAND_DEF(undo) {
     boost::filesystem::path normalized_path = target_path;
     auto [type, full_path] = path_reader->normalize(normalized_path);
 
+    std::string original_content;
     simplex::PathTuple ptuple = {full_path, normalized_path};
     try {
-        undo_log->undo(ptuple);
+        // undo_log->undo(ptuple);
+        original_content = undo_log->pop(ptuple);
+        auto lines_record = searcher->compare_rewrite_content(ptuple, original_content);
     } catch(const std::exception& e) {
         output << "[error occurred: " << e.what() << "; failed to undo edition]" << std::endl;
         simplex::safe_output("[Session#", session_id, "]: command got: undo ", command);
@@ -472,7 +466,8 @@ SIMPLEX_COMMAND_DEF(undo) {
     }
 
     try {
-        auto lines_record = searcher->view_file_content(ptuple);
+        // auto lines_record = searcher->view_file_content(ptuple);
+        auto lines_record = searcher->compare_rewrite_content(ptuple, original_content);
         output << std::endl << "[successfully undo edition: " << ptuple.view << "]: " << std::endl;
         output << lines_record;
     } catch(const std::exception& e) {

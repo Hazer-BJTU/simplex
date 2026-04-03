@@ -239,6 +239,9 @@ LineRecords compare_rewrite_content(const PathTuple& ptuple, const std::string& 
         }
     }
     for (int i = 0; i < static_cast<int>(new_context.size()); i ++) {
+        if (i < static_cast<int>(original_context.size()) && original_context[i]) {
+            new_context[i] = true;
+        }
         if (!new_added[i]) {
             continue;
         }

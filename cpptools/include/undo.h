@@ -30,6 +30,9 @@ public:
     HistoryUndoLog& operator = (HistoryUndoLog&&) = default;
 
     void push(const PathTuple& ptuple) noexcept;
+    std::string pop(const PathTuple& ptuple);
+
+    [[deprecated("now file undo is handled by 'compare_rewrite_content' of searcher")]]
     void undo(const PathTuple& ptuple);
 };
 
