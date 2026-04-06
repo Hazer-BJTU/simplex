@@ -8,6 +8,7 @@ import os
 import pickle
 import pathlib
 import asyncio
+import argparse
 
 from pathlib import Path
 
@@ -34,11 +35,17 @@ from simplex.io import RichTerminalInterface
 EDIT_TOOL_SERVER_PORT: int = 9002
 OUTPUT_PATH: Path = Path('output')
 
-async def main() -> None:
+async def main(base_dir: Path | None = None) -> None:
     """
     Main asynchronous entry point for the agent application.
     Initializes the AI model, user interface, agent loop, and starts the service.
+
+    Args:
+        base_dir: Optional workspace directory for file operations.
+                  If not provided, the current working directory is used.
     """
+    # Determine workspace directory (defaults to current working directory)
+    workspace_dir = base_dir.absolute() if base_dir is not None else Path.cwd()
     # 1. Initialize the DeepSeek AI conversation model
     model = DeepSeekConversationModel(
         # Model API endpoint
@@ -69,7 +76,7 @@ async def main() -> None:
         TrajectoryLogContext(instance_id = 'log'),
         # Code editing tool with workspace and WebSocket connection
         EditTools(
-            base_dir = Path('workspace').absolute(),  # Agent's working directory for file operations
+            base_dir = workspace_dir,  # Agent's working directory for file operations
             client = WebsocketClient(EDIT_TOOL_SERVER_PORT, 'localhost'),
             permission_required = True,       # Require user approval for unsafe file operations
             add_skill = True                  # Register tool capabilities with the LLM
@@ -109,12 +116,16 @@ async def main() -> None:
         file.write(log.human_readable)
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description = 'Simple Code Agent Loop with configurable workspace')
+    parser.add_argument('--workspace', type = str, default = None, help = 'Workspace base directory for file operations (default: current directory)')
+    args = parser.parse_args()
+    
     try:
         # Start the external code editing tool server as a background process
         # This server handles file system operations for the agent
         with CommandProcess(f"simplex_tool_server -p {EDIT_TOOL_SERVER_PORT} -c 20") as proc:
-            # Run the async main function
-            asyncio.run(main())
+            # Run the async main function with optional workspace directory
+            asyncio.run(main(base_dir = Path(args.workspace)))
     except Exception as startup_err:
         # Propagate any errors during server/agent startup
         raise RuntimeError("Failed to start agent or tool server") from startup_err

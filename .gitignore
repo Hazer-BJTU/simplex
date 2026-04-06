@@ -8,4 +8,5 @@ __pycache__/
 /dev/
 /unitest/output/
 /examples/workspace/
+/examples/output/
 uv.lock
