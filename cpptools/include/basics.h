@@ -19,6 +19,7 @@
 #include <boost/filesystem.hpp>
 
 #include "ahocorasick.hpp"
+#include "levenshtein.hpp"
 
 namespace simplex {
 
@@ -52,6 +53,7 @@ using LineRecords = std::list<LineRecord>;
 std::ostream& operator << (std::ostream& stream, const LineRecords& line_records) noexcept;
 LineRecords view_file_content(const PathTuple& ptuple, const std::string& content, int line_start = 0, int line_end = -1) noexcept;
 LineRecords edit_file_content(const PathTuple& ptuple, EditType type, const std::string& content, int line_start = 0, int line_end = -1);
+LineRecords compare_rewrite_content(const PathTuple& ptuple, const std::string& original_content, const std::string& new_content);
 std::tuple<LineRecords, bool> extract_code_snippet(const PathTuple& ptuple, AhoCorasick& automaton, const std::string& content) noexcept;
 std::tuple<LineRecords, bool> extract_code_snippet_index(const PathTuple& ptuple, std::unordered_set<size_t> index, const std::string& content) noexcept;
 

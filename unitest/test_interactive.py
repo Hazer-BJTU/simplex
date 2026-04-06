@@ -30,7 +30,6 @@ if __name__ == '__main__':
         # model = QwenConversationModel('https://dashscope.aliyuncs.com/compatible-mode/v1', os.getenv('API_KEY'), qwen_model = 'glm-5') # type: ignore
         model = DeepSeekConversationModel('https://api.deepseek.com/beta', os.getenv('API_KEY'), model = 'deepseek-reasoner') # type: ignore
 
-        
         model_mock = MockConversationModel(
             expected_responses = [
                 ModelResponse(tool_call = [ToolCall('x', 'make_plan', {'content': 'This is my plan A.', 'edit_type': 'append'})]),
@@ -47,10 +46,10 @@ if __name__ == '__main__':
             model, 
             interface.get_exception_handler(), 
             TrajectoryLogContext(instance_id = 'log'), 
-            EditTools('/home/hazer/simplex', WebsocketClient(9002)),
+            EditTools('/home/hazer/testbed', WebsocketClient(9002)),
             SubprocessExecutorLocal(),
             SequentialPlan(),
-            RollContextClipper(threshold_ratio = 0.3, keep_fc_msgs = 30),
+            RollContextClipper(),
             TokenCostCounter()
         )
 

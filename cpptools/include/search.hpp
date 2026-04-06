@@ -28,7 +28,7 @@ requires requires(Dispatcher dispatcher, const boost::filesystem::path& file_pat
 }
 class Searcher {
 public:
-    using Cache = std::unordered_map<std::string, std::unique_ptr<LangIntegrate>>;
+    using Cache = std::unordered_map<std::string, std::shared_ptr<LangIntegrate>>;
     using EntityTagList = typename LangIntegrate::EntityTagList;
 
 private:
@@ -50,7 +50,7 @@ private:
     ) noexcept {
         for (size_t i = start_idx; i < end_idx && i < ptuple_list.size(); i ++) {
             auto ptuple = ptuple_list[i];
-            LangIntegrate* lang_integrate = _get_lang_integrate(ptuple);
+            auto lang_integrate = _get_lang_integrate(ptuple);
 
             EntityTagList temp_output;
             const auto& entity_list = lang_integrate->result();
@@ -81,7 +81,7 @@ private:
         AhoCorasick automaton(key_words);
         for (size_t i = start_idx; i < end_idx && i < ptuple_list.size(); i ++) {
             auto ptuple = ptuple_list[i];
-            LangIntegrate* lang_integrate = _get_lang_integrate(ptuple);
+            auto lang_integrate = _get_lang_integrate(ptuple);
 
             auto [temp_output, keep] = simplex::extract_code_snippet(ptuple, automaton, lang_integrate->source());
             if (!keep) {
@@ -101,7 +101,7 @@ private:
     ) noexcept {
         for (size_t i = start_idx; i < end_idx && i < ptuple_list.size(); i ++) {
             auto ptuple = ptuple_list[i];
-            LangIntegrate* lang_integrate = _get_lang_integrate(ptuple);
+            auto lang_integrate = _get_lang_integrate(ptuple);
 
             std::unordered_set<size_t> line_nums = {};
             const auto& index = lang_integrate->index();
@@ -163,16 +163,17 @@ public:
         std::lock_guard<std::mutex> lock(_cache_mtx);
         auto it = _cache.find(ptuple.full.string());
         if (it != _cache.end()) {
+            safe_output("[Searcher]: Expired target ", it->first, " is removed from cache.");
             _cache.erase(it);
         }
         return;
     }
 
-    LangIntegrate* _get_lang_integrate(const PathTuple& ptuple) {
+    std::shared_ptr<LangIntegrate> _get_lang_integrate(const PathTuple& ptuple) {
         std::unique_lock<std::mutex> lock(_cache_mtx);
         auto it = _cache.find(ptuple.full.string());
         if (it != _cache.end()) {
-            return it->second.get();
+            return it->second;
         }
         lock.unlock();
         auto new_lang_integrate = _dispatcher(ptuple.full);
@@ -184,12 +185,13 @@ public:
         } catch(...) {
             throw;
         }
-        LangIntegrate* result = new_lang_integrate.get();
+        std::shared_ptr<LangIntegrate> result = std::move(new_lang_integrate);
         lock.lock();
-        _cache[ptuple.full.string()] = std::move(new_lang_integrate);
+        _cache[ptuple.full.string()] = result;
         return result;
     }
 
+    [[deprecated("now use 'get_unique_qualified_files_glob', which returns unique ptuples")]] 
     std::vector<PathTuple> _get_unique_ptuple_list(const std::vector<PathTuple>& ptuple_list) noexcept {
         std::vector<PathTuple> unique_ptuple_list = ptuple_list;
         std::sort(unique_ptuple_list.begin(), unique_ptuple_list.end());
@@ -200,7 +202,7 @@ public:
 
     const EntityTagList& get_file_entities(const PathTuple& ptuple) {
         try {
-            LangIntegrate* lang_integrate = _get_lang_integrate(ptuple);
+            auto lang_integrate = _get_lang_integrate(ptuple);
             return lang_integrate->result();
         } catch(const std::exception& e) {
             throw std::runtime_error((boost::format("unable to analyze file %s due to exception %s") % ptuple.view % e.what()).str());
@@ -221,21 +223,31 @@ public:
     template<class... Args>
     LineRecords view_file_content(const PathTuple& ptuple, Args&&... args) {
         try {
-            LangIntegrate* lang_integrate = _get_lang_integrate(ptuple);
+            auto lang_integrate = _get_lang_integrate(ptuple);
             return simplex::view_file_content(ptuple, lang_integrate->source(), std::forward<Args>(args)...);
         } catch(const std::exception& e) {
             throw std::runtime_error((boost::format("unable to view file %s due to exception %s") % ptuple.view % e.what()).str());
         }
     }
 
-    const EntityTagList& search_entity(const std::unordered_set<std::string>& key_words, const std::vector<PathTuple>& ptuple_list) noexcept {
-        auto unique_ptuple_list = _get_unique_ptuple_list(ptuple_list);
+    template<class... Args>
+    LineRecords compare_rewrite_content(const PathTuple& ptuple, Args&&... args) {
+        try {
+            auto lang_integrate = _get_lang_integrate(ptuple);
+            auto result = simplex::compare_rewrite_content(ptuple, lang_integrate->source(), std::forward<Args>(args)...);
+            _cache_expire(ptuple);
+            return result;
+        } catch(const std::exception& e) {
+            throw std::runtime_error((boost::format("unable to rewrite file %s due to exception %s") % ptuple.view % e.what()).str());
+        }
+    }
 
+    const EntityTagList& search_entity(const std::unordered_set<std::string>& key_words, const std::vector<PathTuple>& ptuple_list) noexcept {
         _output_entity_list.clear();
-        const size_t tasks_per_worker = (unique_ptuple_list.size() + _num_workers - 1) / _num_workers;
-        for (size_t i = 0; i < unique_ptuple_list.size(); i += tasks_per_worker) {
-            _workers.emplace_back([this, &key_words, &unique_ptuple_list, start_idx = i, end_idx = i + tasks_per_worker]() -> void { 
-                this->_parallel_search_entity(key_words, unique_ptuple_list, start_idx, end_idx); 
+        const size_t tasks_per_worker = (ptuple_list.size() + _num_workers - 1) / _num_workers;
+        for (size_t i = 0; i < ptuple_list.size(); i += tasks_per_worker) {
+            _workers.emplace_back([this, &key_words, &ptuple_list, start_idx = i, end_idx = i + tasks_per_worker]() -> void { 
+                this->_parallel_search_entity(key_words, ptuple_list, start_idx, end_idx); 
             });
         }
         for (auto& worker: _workers) {
@@ -248,13 +260,11 @@ public:
     }
 
     LineRecords search_snippet(const std::unordered_set<std::string>& key_words, const std::vector<PathTuple>& ptuple_list) noexcept {
-        auto unique_ptuple_list = _get_unique_ptuple_list(ptuple_list);
-
         _output_line_records.clear();
-        const size_t tasks_per_worker = (unique_ptuple_list.size() + _num_workers - 1) / _num_workers;
-        for (size_t i = 0; i < unique_ptuple_list.size(); i += tasks_per_worker) {
-            _workers.emplace_back([this, &key_words, &unique_ptuple_list, start_idx = i, end_idx = i + tasks_per_worker]() -> void { 
-                this->_parallel_search_snippet(key_words, unique_ptuple_list, start_idx, end_idx); 
+        const size_t tasks_per_worker = (ptuple_list.size() + _num_workers - 1) / _num_workers;
+        for (size_t i = 0; i < ptuple_list.size(); i += tasks_per_worker) {
+            _workers.emplace_back([this, &key_words, &ptuple_list, start_idx = i, end_idx = i + tasks_per_worker]() -> void { 
+                this->_parallel_search_snippet(key_words, ptuple_list, start_idx, end_idx); 
             });
         }
         for (auto& worker: _workers) {
@@ -267,13 +277,11 @@ public:
     }
 
     LineRecords search_index(const std::unordered_set<std::string>& key_words, const std::vector<PathTuple>& ptuple_list) noexcept {
-        auto unique_ptuple_list = _get_unique_ptuple_list(ptuple_list);
-
         _output_line_records.clear();
-        const size_t tasks_per_worker = (unique_ptuple_list.size() + _num_workers - 1) / _num_workers;
-        for (size_t i = 0; i < unique_ptuple_list.size(); i += tasks_per_worker) {
-            _workers.emplace_back([this, &key_words, &unique_ptuple_list, start_idx = i, end_idx = i + tasks_per_worker]() -> void {
-                this->_parallel_search_index(key_words, unique_ptuple_list, start_idx, end_idx);
+        const size_t tasks_per_worker = (ptuple_list.size() + _num_workers - 1) / _num_workers;
+        for (size_t i = 0; i < ptuple_list.size(); i += tasks_per_worker) {
+            _workers.emplace_back([this, &key_words, &ptuple_list, start_idx = i, end_idx = i + tasks_per_worker]() -> void {
+                this->_parallel_search_index(key_words, ptuple_list, start_idx, end_idx);
             });
         }
         for (auto& worker: _workers) {

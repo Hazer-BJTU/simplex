@@ -47,7 +47,7 @@ def identify_openai_function_calling(messages: List[Dict]) -> Tuple[int, Set[int
     Note:
         The function assumes tool call IDs are consistent across assistant and tool
         messages. It tracks the first occurrence of tool calls to ensure at least
-        one complete function call round is preserved in the clipping process.
+        one complete function call round is removed in the clipping process.
     """
     fc_msg_cnt: int = 0
     tool_call_ids: Set[str] = set()
@@ -95,7 +95,7 @@ class RollContextClipper(ContextPlugin):
     2. At the end of each loop iteration (on_loop_end), checks if token usage exceeds
        threshold_ratio * max_context_tokens
     3. If threshold exceeded, iteratively removes function calling message rounds
-       (assistant tool calls + corresponding tool responses) while preserving at least
+       (assistant tool calls + corresponding tool responses) while preserving at most
        keep_fc_msgs function calling messages
     4. Notifies the user of clipping statistics when the loop exits (on_exit_async)
     
@@ -103,7 +103,7 @@ class RollContextClipper(ContextPlugin):
         max_context_tokens (int): Maximum allowed context tokens (default: 128000)
         threshold_ratio (float): Ratio of max_context_tokens at which clipping triggers
                                  (default: 0.65)
-        keep_fc_msgs (int): Minimum number of function calling messages to preserve
+        keep_fc_msgs (int): Maximum number of function calling messages to preserve
                             (default: 50)
         identify_function (Callable): Function that identifies function call messages
         current_max_tokens (int): Maximum token count observed in current loop
@@ -130,7 +130,7 @@ class RollContextClipper(ContextPlugin):
             threshold_ratio: Ratio (0.0 to 1.0) of max_context_tokens that triggers
                              clipping. For example, 0.65 means clipping occurs when
                              token usage exceeds 65% of max_context_tokens.
-            keep_fc_msgs: Minimum number of function calling messages to preserve
+            keep_fc_msgs: Maximum number of function calling messages to preserve
                           during clipping. This ensures some context is retained.
             identify_function: Function that identifies function call messages in a
                                conversation history. Defaults to 

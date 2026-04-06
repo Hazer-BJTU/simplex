@@ -288,12 +288,9 @@ class EditTools(ToolCollection):
         except Exception:
             raise
     
-    async def _tool_search(self, key_words: str, scope: str, mode: str, **kwargs) -> str:
+    async def _tool_search(self, key_words: str, glob: str, mode: str, **kwargs) -> str:
         if not self.initialized:
             raise UnbuiltError(self.__class__.__name__)
-        
-        if scope not in ['workspace', 'global']:
-            return f"[ERROR]: Parameter 'scope' should be one of 'workspace' or 'global'."
         
         if mode not in ['definition', 'identifier', 'pattern']:
             return f"[ERROR]: Parameter 'mode' should be one of 'definition', 'identifier' or 'pattern'."
@@ -301,7 +298,7 @@ class EditTools(ToolCollection):
         query: Dict = {
             'type': 'search_entity',
             'key_words': [word.strip() for word in key_words.split(',')],
-            'scope': scope,
+            'glob': glob,
             'mode': mode
         }
         

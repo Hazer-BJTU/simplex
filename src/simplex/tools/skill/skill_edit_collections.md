@@ -9,7 +9,7 @@ However, when you encounter requirements that cannot be solved or are difficult 
 
 ## Basic Principles
 1. Before performing the %edit_file_content% operation, you must ensure that you fully understand the file content, especially the **latest state** of the file. 
-   This is critical. Mistakenly mixing historical/partial file states will inevitably lead to errors! 
+   This is critical. Mistakenly mixing historical / partial file states will inevitably lead to errors! 
    Therefore, use %show_details% combined with %view_file_content% to obtain up-to-date file content when necessary.
 
 2. The %undo% operation is **only valid** for %edit_file_content% operations! It has no effect on other operations. You must specify the filename for the undo operation.
@@ -22,9 +22,7 @@ However, when you encounter requirements that cannot be solved or are difficult 
 4. Feedback from the %edit_file_content% operation is very important. Use the feedback to self-check whether the modification is correct!
    When errors are found (such as indentation errors, unclosed brackets or comments), promptly fix them using %undo% or %edit_file_content%.
 
-5. If the %search% operation fails when the parameter 'scope' is set to 'workspace', please switch the 'scope' to 'global' and retry.
-
-6. If you find that the workspace view has expired — for example, when the workspace files have been modified by another program or edited manually by the user — 
+5. If you find that the workspace view has expired — for example, when the workspace files have been modified by another program or edited manually by the user — 
    please use the %view_workspace% method to refresh the workspace view. This method will reset all file caches and refresh the working directory.
 
 ## Supplements
@@ -33,3 +31,7 @@ However, when you encounter requirements that cannot be solved or are difficult 
   
 - When using %search% for retrieval, follow the fallback order:
   `definition` → `identifier` → `pattern` to ensure accuracy.
+
+- You can use glob wildcards to narrow down the query scope and avoid too many search results (which will be truncated).
+  The 'glob' pattern you provide in %search% operation will be applied under the workspace base directory.
+  

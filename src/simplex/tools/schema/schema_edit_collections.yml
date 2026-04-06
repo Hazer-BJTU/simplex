@@ -108,14 +108,11 @@ undo:
 search:
   description: >-
     Used for keyword retrieval. There are three modes: 'definition', 'identifier' or 'pattern'.
-    'definition' performs an exact match on defined code elements such as classes and functions.
-    'identifier' matches identifiers within code or text and can be used to retrieve dependencies.
+    'definition' performs an exact match on defined code elements such as classes and functions (use pure names like 'ContextPipelineManager', 'get_global_function_register', 'CACHE_SIZE').
+    'identifier' matches identifiers within code or text and can be used to retrieve dependencies (use pure names like 'ContextPipelineManager', 'get_global_function_register', 'CACHE_SIZE').
     'pattern' carries out pure string matching, suitable for finding specific invocation or initialization patterns.
     When calling this function, try to avoid using overly broad keywords (e.g., '__init__' for python).
-    Two retrieval scopes are supported: 'workspace' and 'global'.
-    The 'workspace' scope only searches in files explicitly listed in a tree structure within the most recent workspace view from the history.
-    Files not DIRECTLY displayed in the workspace view will be skipped.
-    The 'global' scope searches in all files in the project (entire working directory).
+    The 'glob' pattern you provide will be applied under the workspace base directory.
   params:
     - field: key_words
       type: string
@@ -130,11 +127,13 @@ search:
       enum: ['definition', 'identifier', 'pattern']
       required: True
 
-    - field: scope
+    - field: glob
       type: string
-      description:
-        Choose between 'global' or 'workspace'. 'global' is recommended.
-      enum: ['global', 'workspace']
+      description: >-
+        You can use this parameter to provide a simple glob pattern for filtering files. 
+        Supported syntax includes: *, **, ?, [], [!...] or [^...].
+        For example: 'file[!2-4].rs' or 'file[^2-4].txt', '**/test_?.[ch]', '[a-zA-Z0-9].*', 'src/**/*.cpp'.
+        The glob pattern you provide will be applied under the workspace base directory.
       required: True
 
 create:
@@ -155,7 +154,7 @@ create:
       required: True
 
 remove:
-  description:
+  description: >-
     Used to remove a file or directory. The files will be gone forever!
     This tool requires user permission before execution to ensure security.
   params:
