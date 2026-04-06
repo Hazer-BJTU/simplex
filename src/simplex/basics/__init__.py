@@ -3,6 +3,7 @@ import simplex.basics.container
 import simplex.basics.dataclass
 import simplex.basics.exception
 import simplex.basics.prompt
+import simplex.basics.commandproc
 
 from simplex.basics.client import WebsocketClient, WebsocketClientSync
 from simplex.basics.container import ContainerManager
@@ -33,6 +34,7 @@ from simplex.basics.exception import (
     LogExceptionHandler
 )
 from simplex.basics.prompt import PromptTemplate, SkillRetriever
+from simplex.basics.commandproc import CommandProcess
 
 
 __all__ = [
@@ -62,5 +64,6 @@ __all__ = [
     "SkillRetriever",
     "Notice",
     "ExceptionHandler",
-    "LogExceptionHandler"
+    "LogExceptionHandler",
+    "CommandProcess"
 ]

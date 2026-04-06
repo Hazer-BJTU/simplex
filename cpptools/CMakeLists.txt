@@ -11,7 +11,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 option(BUILD_RELEASE OFF)
-option(BUILD_UNITEST ON)
+option(BUILD_UNITEST OFF)
 option(QUIET_MODE OFF)
 
 set(Boost_USE_STATIC_LIBS ON)
@@ -24,7 +24,20 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin")
 include_directories("${PROJECT_SOURCE_DIR}/include" "${PROJECT_SOURCE_DIR}/third_party/include")
 link_directories(${PROJECT_SOURCE_DIR}/third_party/libs)
 
-message(STATUS "[Options]- build_release: ${BUILD_RELEASE}, build_unitest: ${BUILD_UNITEST}")
+set(THIRD_PARTY_LIB_NAMES "tree-sitter" "tree-sitter-python")
+set(THIRD_PARTY_LIBS "")
+
+foreach(LIB_NAME ${THIRD_PARTY_LIB_NAMES})
+    find_library(${LIB_NAME}_TARGET NAMES ${LIB_NAME} PATHS "${PROJECT_SOURCE_DIR}/third_party/libs")
+    if(NOT ${LIB_NAME}_TARGET)
+        message(STATUS "[Error] - third party library ${LIB_NAME} not found")
+    else()
+        message(STATUS "[Library] - third party library found ${LIB_NAME}: ${${LIB_NAME}_TARGET}")
+    endif()
+    list(APPEND THIRD_PARTY_LIBS ${${LIB_NAME}_TARGET})
+endforeach()
+
+message(STATUS "[Options]- build_release: ${BUILD_RELEASE}, build_unitest: ${BUILD_UNITEST}, server_quiet_mode: ${QUIET_MODE}")
 
 file(GLOB SOURCES "src/*.cpp")
 file(GLOB LANG_SOURCES "src/languages/*.cpp")
@@ -39,7 +52,7 @@ endif()
 message(STATUS "[Options]- compile options: ${COMPLIER_OPTION_FLAGS}")
 
 set(BASE_DEPENDENCIES "Boost::filesystem" "Boost::system")
-set(LANG_DEPENDENCIES ${BASE_DEPENDENCIES} "tree-sitter" "tree-sitter-python")
+set(LANG_DEPENDENCIES ${BASE_DEPENDENCIES} ${THIRD_PARTY_LIBS})
 set(MAIN_DEPENDENCIES ${BASE_DEPENDENCIES} "Boost::program_options")
 
 set(LANG_LIBRARY "_simplex_lang")
@@ -63,6 +76,8 @@ if(LTO_SUPPORT AND BUILD_RELEASE)
     set_property(TARGET ${EXECUTABLE_NAME} PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
     message(STATUS "[Options]- ${EXECUTABLE_NAME} enables interprocedural optimization")
 endif()
+
+install(TARGETS ${EXECUTABLE_NAME} RUNTIME DESTINATION bin)
 
 if(BUILD_UNITEST)
     set(SOURCES_WM ${SOURCES})
