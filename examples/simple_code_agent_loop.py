@@ -69,8 +69,8 @@ async def main() -> None:
         TrajectoryLogContext(instance_id = 'log'),
         # Code editing tool with workspace and WebSocket connection
         EditTools(
-            workspace_path = "~/workspace",  # Agent's working directory for file operations
-            websocket_client = WebsocketClient(EDIT_TOOL_SERVER_PORT, 'localhost'),
+            base_dir = Path('workspace').absolute(),  # Agent's working directory for file operations
+            client = WebsocketClient(EDIT_TOOL_SERVER_PORT, 'localhost'),
             permission_required = True,       # Require user approval for unsafe file operations
             add_skill = True                  # Register tool capabilities with the LLM
         ),
