@@ -54,7 +54,7 @@ edit_file_content:
     Replacing text with empty 'content' is equivalent to deleting the original text.
     You can use 'line_start' that is equal to 'line_end' to represent a single line.
     You can judge whether the edit is correct based on the feedback.
-    Pay attention to indentation alignment.
+    Pay attention to indentation alignment, unclosed brackets or duplicated lines inserted.
   params:
     - field: target_path
       type: string

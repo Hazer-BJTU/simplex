@@ -110,8 +110,7 @@ async def main(base_dir: Path | None = None) -> None:
     ).serve()
 
     log: TrajectoryLogContext = loop['log'] # Get log by 'instance_id'
-    with open(OUTPUT_PATH / 'simple_code_agent_loop.pkl', 'wb') as file:
-        pickle.dump(log.detailed, file)
+    pickle.dump(log.detailed, OUTPUT_PATH / 'simple_code_agent_loop.pkl')
     with open(OUTPUT_PATH / 'simple_code_agent_loop.md', 'w', encoding = 'utf8') as file:
         file.write(log.human_readable)
 
