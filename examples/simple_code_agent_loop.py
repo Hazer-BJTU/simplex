@@ -33,7 +33,7 @@ from simplex.io import RichTerminalInterface
 # --------------------------
 # Port for the simplex_tool_server (code editing service)
 EDIT_TOOL_SERVER_PORT: int = 9002
-OUTPUT_PATH: Path = Path('output')
+MODULE_PATH: Path = Path(__file__).resolve().parent
 
 async def main(base_dir: Path | None = None) -> None:
     """
@@ -110,8 +110,9 @@ async def main(base_dir: Path | None = None) -> None:
     ).serve()
 
     log: TrajectoryLogContext = loop['log'] # Get log by 'instance_id'
-    pickle.dump(log.detailed, OUTPUT_PATH / 'simple_code_agent_loop.pkl')
-    with open(OUTPUT_PATH / 'simple_code_agent_loop.md', 'w', encoding = 'utf8') as file:
+    with open(MODULE_PATH / 'output' / 'simple_code_agent_loop.pkl', 'wb') as file:
+        pickle.dump(log.detailed, file)
+    with open(MODULE_PATH / 'output' / 'simple_code_agent_loop.md', 'w', encoding = 'utf8') as file:
         file.write(log.human_readable)
 
 if __name__ == '__main__':

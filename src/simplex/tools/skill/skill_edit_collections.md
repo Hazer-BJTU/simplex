@@ -2,7 +2,7 @@
 
 ## Available Editing Commands
 
-The available editing commands include %view_workspace%, %show_details%, %view_file_content%, %edit_file_content%, %undo%, %search%, %create%, %remove%, %rename%, totaling 9 types.
+The available editing commands include %view_workspace%, %show_details%, %view_file_content%, %edit_file_content%, %undo%, %search%, %operate_filesystem%, totaling 7 types.
 They only function within the workspace, which serves as your IDE (Integrated Development Environment).
 Under normal circumstances, these commands take precedence over direct bash commands.
 However, when you encounter requirements that cannot be solved or are difficult to solve, you should use bash commands.
@@ -16,7 +16,7 @@ However, when you encounter requirements that cannot be solved or are difficult 
 2. The %undo% operation is **only valid** for %edit_file_content% operations! It has no effect on other operations. You must specify the filename for the undo operation.
    The undo operation maintains file history in a stack structure and supports multiple undos. Please clarify the file state after performing an undo.
 
-3. If you discover that you have made an editing mistake — such as incorrect indentation, unclosed brackets, duplicate lines, or overwriting lines that should not have been modified — you can immediately use %undo% to revert the above operations.
+3. If you discover that you have made an editing mistake — such as incorrect indentation, unclosed brackets, duplicated lines, or overwriting lines that should not have been modified — you can immediately use %undo% to revert the above operations.
 
 4. For all the operations above, the `target_path` parameter **must use a relative path within the workspace**.
    Example: If the base workspace path is `/home/userA/projectX`, omit this base path and directly use the relative path `src/include/header.h`.

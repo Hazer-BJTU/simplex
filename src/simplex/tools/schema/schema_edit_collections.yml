@@ -136,47 +136,36 @@ search:
         The glob pattern you provide will be applied under the workspace base directory.
       required: True
 
-create:
+operate_filesystem:
   description: >-
-    Used to create a new file with initial content.
-    The parent directory will be automatically created (exist is ok).
+    The file system operation supports three modes: 'create', 'remove', and 'rename', specified via the 'operation' parameter.
+    'create': Creates a new file at 'target_path' and writes 'content' to it. Parent directories will be created automatically.
+    'remove': Removes the target at 'target_path', which can be either a file or a directory.
+    'rename': Moves the target at 'source_path' (if it exists) to 'target_path'. Parent directories will be created automatically.
   params:
+    - field: operation
+      type: string
+      description:
+        Choose between 'create', 'remove' or 'rename'.
+      enum: ['create', 'remove', 'rename']
+      required: True
+
     - field: target_path
       type: string
-      description: 
+      description:
         Indicates the target file path. You should use relative paths relative to the workspace base directory, not full paths (i.e., paths that include the base directory).
       required: True
     
+    - field: source_path
+      type: string
+      description: >-
+        Indicates the destination file path. You should use relative paths relative to the workspace base directory, not full paths (i.e., paths that include the base directory).
+        This argument only works when using operation 'rename' and will be ignored under other operations.
+      required: False
+
     - field: content
       type: string
-      description:
+      description: >-
         Initial content will be written into the created file.
-      required: True
-
-remove:
-  description: >-
-    Used to remove a file or directory. The files will be gone forever!
-    This tool requires user permission before execution to ensure security.
-  params:
-    - field: target_path
-      type: string
-      description: 
-        Indicates the target file path. You should use relative paths relative to the workspace base directory, not full paths (i.e., paths that include the base directory).
-      required: True
-
-rename:
-  description:
-    Used to rename a file or directory. Parent directories will be created automatically.
-  params:
-    - field: src_path
-      type: string
-      description:
-        Indicates the source file path. You should use relative paths relative to the workspace base directory, not full paths (i.e., paths that include the base directory).
-      required: True
-
-    - field: dst_path
-      type: string
-      description:
-        Indicates the destination file path. You should use relative paths relative to the workspace base directory, not full paths (i.e., paths that include the base directory).
-      required: True
-      
+        This argument only works when using operation 'create' and will be ignored under other operations.
+      required: False

@@ -37,9 +37,10 @@ EditOperation = Literal[
     'edit_file_content',
     'undo',
     'search',
-    'create',
-    'remove',
-    'rename'
+    'operate_filesystem'
+      # 'create'
+      # 'remove'
+      # 'rename'
 ]
 
 class EditTools(ToolCollection):
@@ -59,9 +60,7 @@ class EditTools(ToolCollection):
             'edit_file_content': 'edit_file_content',
             'undo': 'undo',
             'search': 'search',
-            'create': 'create',
-            'remove': 'remove',
-            'rename': 'rename'
+            'operate_filesystem': 'operate_filesystem'
         },
         add_skill: bool = True
     ) -> None:
@@ -82,9 +81,10 @@ class EditTools(ToolCollection):
         self.edit_file_content_schema = load_schema(self.SCHEMA_FILE, 'edit_file_content', self.names.get('edit_file_content', 'edit_file_content'))
         self.undo_schema = load_schema(self.SCHEMA_FILE, 'undo', self.names.get('undo', 'undo'))
         self.search_schema = load_schema(self.SCHEMA_FILE, 'search', self.names.get('search', 'search'))
-        self.create_schema = load_schema(self.SCHEMA_FILE, 'create', self.names.get('create', 'create'))
-        self.remove_schema = load_schema(self.SCHEMA_FILE, 'remove', self.names.get('remove', 'remove'))
-        self.rename_schema = load_schema(self.SCHEMA_FILE, 'rename', self.names.get('rename', 'rename'))
+        self.operate_filesystem_schema = load_schema(self.SCHEMA_FILE, 'operate_filesystem', self.names.get('operate_filesystem', 'operate_filesystem'))
+          # self.create_schema = load_schema(self.SCHEMA_FILE, 'create', self.names.get('create', 'create'))
+          # self.remove_schema = load_schema(self.SCHEMA_FILE, 'remove', self.names.get('remove', 'remove'))
+          # self.rename_schema = load_schema(self.SCHEMA_FILE, 'rename', self.names.get('rename', 'rename'))
 
         self.all_schemas: Dict[EditOperation, ToolSchema] = {
             'view_workspace': self.view_workspace_schema,
@@ -93,9 +93,7 @@ class EditTools(ToolCollection):
             'edit_file_content': self.edit_file_content_schema,
             'undo': self.undo_schema,
             'search': self.search_schema,
-            'create': self.create_schema,
-            'remove': self.remove_schema,
-            'rename': self.rename_schema
+            'operate_filesystem': self.operate_filesystem_schema
         }
 
         self.schemas: Dict[EditOperation, ToolSchema] = { key: value for key, value in self.all_schemas.items() if key in self.names }
@@ -309,66 +307,58 @@ class EditTools(ToolCollection):
             return response.strip()
         except Exception:
             raise
-    
-    async def _tool_create(self, target_path: str, content: str, **kwargs) -> str:
+
+    async def _tool_operate_filesystem(self, operation: str, target_path: str, **kwargs) -> str:
         if not self.initialized:
             raise UnbuiltError(self.__class__.__name__)
         
-        if self.input_interface and self.permission_required:
-            user_response = await self.input_interface.notify_user(UserNotify('permission', f"Do you allow agent to create file: {target_path}?"))
-            if not user_response.permitted:
-                return f"[ERROR]: Permission error! {user_response.reason}"
+        if operation not in ['create', 'remove', 'rename']:
+            return f"[ERROR]: Parameter 'operation' should be one of 'create', 'remove' or 'rename'."
         
-        query: Dict = {
-            'type': 'touch',
-            'target_path': target_path,
-            'content': content
-        }
+        if operation == 'create':
+            if self.input_interface and self.permission_required:
+                user_response = await self.input_interface.notify_user(UserNotify('permission', f"Do you allow agent to create file: {target_path}?"))
+                if not user_response.permitted:
+                    return f"[ERROR]: Permission error! {user_response.reason}"
+                
+            if 'content' in kwargs:
+                content: str = kwargs.get('content')
+            else:
+                return f"[ERROR]: Missing argument 'content' for 'create' operation to initialize file content."
         
-        try:
-            response: str = await self.client.exchange(json.dumps(query))
-            if response is None:
-                raise RequestError(content = f'unable to access {self.client.url}')
-            return response.strip()
-        except Exception:
-            raise
-    
-    async def _tool_remove(self, target_path: str, **kwargs) -> str:
-        if not self.initialized:
-            raise UnbuiltError(self.__class__.__name__)
-        
-        if self.input_interface and self.permission_required:
-            user_response = await self.input_interface.notify_user(UserNotify('permission', f"Do you allow agent to remove file or directories: {target_path}?"))
-            if not user_response.permitted:
-                return f"[ERROR]: Permission error! {user_response.reason}"
-        
-        query: Dict = {
-            'type': 'remove',
-            'target_path': target_path
-        }
-
-        try:
-            response: str = await self.client.exchange(json.dumps(query))
-            if response is None:
-                raise RequestError(content = f'unable to access {self.client.url}')
-            return response.strip()
-        except Exception:
-            raise
-
-    async def _tool_rename(self, src_path: str, dst_path: str, **kwargs) -> str:
-        if not self.initialized:
-            raise UnbuiltError(self.__class__.__name__)
-
-        if self.input_interface and self.permission_required:
-            user_response = await self.input_interface.notify_user(UserNotify('permission', f"Do you allow agent to move {src_path} to {dst_path}?"))
-            if not user_response.permitted:
-                return f"[ERROR]: Permission error! {user_response.reason}"
-        
-        query: Dict = {
-            'type': 'rename',
-            'src_path': src_path,
-            'dst_path': dst_path
-        }
+            query: Dict = {
+                'type': 'touch',
+                'target_path': target_path,
+                'content': content
+            }
+        elif operation == 'remove':
+            if self.input_interface and self.permission_required:
+                user_response = await self.input_interface.notify_user(UserNotify('permission', f"Do you allow agent to remove files or directories: {target_path}?"))
+                if not user_response.permitted:
+                    return f"[ERROR]: Permission error! {user_response.reason}"
+                
+            query: Dict = {
+                'type': 'remove',
+                'target_path': target_path
+            }
+        elif operation == 'rename':
+            if self.input_interface and self.permission_required:
+                user_response = await self.input_interface.notify_user(UserNotify('permission', f"Do you allow agent to move {source_path} to {target_path}?"))
+                if not user_response.permitted:
+                    return f"[ERROR]: Permission error! {user_response.reason}"
+                
+            if 'source_path' in kwargs:
+                source_path = kwargs.get('source_path')
+            else:
+                return f"[ERROR]: Missing argument 'source_path' for 'rename' operation."
+            
+            query: Dict = {
+                'type': 'rename',
+                'src_path': source_path,
+                'dst_path': target_path
+            }
+        else:
+            return f"[ERROR]: Unsupported operation specified: '{operation}'."
 
         try:
             response: str = await self.client.exchange(json.dumps(query))
