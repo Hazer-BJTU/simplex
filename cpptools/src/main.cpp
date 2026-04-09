@@ -150,7 +150,7 @@ SIMPLEX_COMMAND_DEF(view_file_content) {
     } catch(const std::exception& e) {
         output << "[updated workspace: " << path_reader->base_dir() << ", [D]: directory, [F]: regular file]: " << std::endl << *path_reader;
         output << std::endl << "[target: " << target_path << " not found!]" << std::endl;
-        simplex::safe_output("[Session#", session_id, "]: command got: show target details ", target_path);
+        simplex::safe_output("[Session#", session_id, "]: command got: view file content ", target_path);
         simplex::safe_output("[Session#", session_id, "]: response:", '\n', output.str());
         return output.str();
     }
@@ -220,7 +220,7 @@ SIMPLEX_COMMAND_DEF(edit_file_content) {
     } catch(const std::exception& e) {
         output << "[updated workspace: " << path_reader->base_dir() << ", [D]: directory, [F]: regular file]: " << std::endl << *path_reader;
         output << std::endl << "[target: " << target_path << " not found!]" << std::endl;
-        simplex::safe_output("[Session#", session_id, "]: command got: show target details ", target_path);
+        simplex::safe_output("[Session#", session_id, "]: command got: edit file content ", target_path);
         simplex::safe_output("[Session#", session_id, "]: response:", '\n', output.str());
         return output.str();
     }
@@ -288,7 +288,7 @@ SIMPLEX_COMMAND_DEF(str_replace_edit) {
     } catch(const std::exception& e) {
         output << "[updated workspace: " << path_reader->base_dir() << ", [D]: directory, [F]: regular file]: " << std::endl << *path_reader;
         output << std::endl << "[target: " << target_path << " not found!]" << std::endl;
-        simplex::safe_output("[Session#", session_id, "]: command got: show target details ", target_path);
+        simplex::safe_output("[Session#", session_id, "]: command got: string replace edit ", target_path);
         simplex::safe_output("[Session#", session_id, "]: response:", '\n', output.str());
         return output.str();
     }

@@ -238,16 +238,18 @@ class UserMessage:
 
 @dataclass
 class UserNotify:
-    notify_type: Literal['unknown', 'permission', 'notify'] = 'permission'
+    notify_type: Literal['unknown', 'permission', 'notify', 'conversation'] = 'permission'
+    object_display_type: Literal['table'] = 'table'
     content: str = ''
     title: str = ''
     objects: Optional[List[Dict[str, Any]]] = None
+    extras: Optional[Dict] = None
 
 @dataclass
 class UserResponse:
     permitted: bool
     reason: str = ''
-    # more in the future
+    content: str = ''
 
 if __name__ == '__main__':
     pass
