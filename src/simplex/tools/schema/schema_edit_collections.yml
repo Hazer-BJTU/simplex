@@ -91,6 +91,40 @@ edit_file_content:
         Indicates the ending line number (inclusive). This parameter is ignored in 'insert' mode.
       required: False
 
+str_replace_edit:
+  description: >-
+    Used for editing text content. Two different scopes are supported: 'once_only' and 'all'.
+    When 'once_only' is specified, the occurrence of 'original_content' in the target text file will be replaced with 'new_content'.
+    An exception will be thrown when 'original_content' occurs multiple times in the target text under 'once_only' mode.
+    When 'all' is specified, **all occurrences** of 'original_content' in the target text file will be replaced with 'new_content'.
+    Note that this method performs an exact match on 'original_content', so you should pay close attention to invisible characters such as indentation and spaces in the text. 
+    A good practice is to provide more context to achieve precise matching.
+  params:
+    - field: target_path
+      type: string
+      description:
+        Indicates the target file path. You should use relative paths relative to the workspace base directory, not full paths (i.e., paths that include the base directory).
+      required: True
+
+    - field: original_content
+      type: string
+      description:
+        The original text snippet to be replaced.
+      required: True
+
+    - field: new_content
+      type: string
+      description:
+        The new text snippet to substitute the original content.
+      required: True
+
+    - field: scope
+      type: string
+      description:
+        Choose between 'once_only' and 'all'.
+      enum: ['once_only', 'all']
+      required: True
+
 undo:
   description: >-
     This tool is used to undo your last edit operation. 
