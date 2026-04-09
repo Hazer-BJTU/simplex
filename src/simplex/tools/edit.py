@@ -342,15 +342,15 @@ class EditTools(ToolCollection):
                 'target_path': target_path
             }
         elif operation == 'rename':
-            if self.input_interface and self.permission_required:
-                user_response = await self.input_interface.notify_user(UserNotify('permission', f"Do you allow agent to move {source_path} to {target_path}?"))
-                if not user_response.permitted:
-                    return f"[ERROR]: Permission error! {user_response.reason}"
-                
             if 'source_path' in kwargs:
                 source_path = kwargs.get('source_path')
             else:
                 return f"[ERROR]: Missing argument 'source_path' for 'rename' operation."
+
+            if self.input_interface and self.permission_required:
+                user_response = await self.input_interface.notify_user(UserNotify('permission', f"Do you allow agent to move {source_path} to {target_path}?"))
+                if not user_response.permitted:
+                    return f"[ERROR]: Permission error! {user_response.reason}"
             
             query: Dict = {
                 'type': 'rename',

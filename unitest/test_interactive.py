@@ -14,9 +14,9 @@ import simplex.loop
 import simplex.tools
 import simplex.io
 
-from simplex.basics import WebsocketClient, ModelResponse, ToolCall
-from simplex.models import QwenConversationModel, MockConversationModel, DeepSeekConversationModel
-from simplex.context import TrajectoryLogContext, TokenCostCounter, ActionSelfEvaluation, RollContextClipper
+from simplex.basics import WebsocketClient, ToolCall, CommandProcess, ModelResponse
+from simplex.models import MockConversationModel
+from simplex.context import TrajectoryLogContext, TokenCostCounter, RollContextClipper
 from simplex.loop import AgentLoop, UserLoop
 from simplex.tools import EditTools, SubprocessExecutorLocal, SequentialPlan
 from simplex.io import RichTerminalInterface
@@ -27,26 +27,21 @@ OUTPUT_PATH: Path = MODULE_PATH / 'output/test_interactive'
 
 if __name__ == '__main__':
     async def test_body() -> None:
-        # model = QwenConversationModel('https://dashscope.aliyuncs.com/compatible-mode/v1', os.getenv('API_KEY'), qwen_model = 'glm-5') # type: ignore
-        model = DeepSeekConversationModel('https://api.deepseek.com/beta', os.getenv('API_KEY'), model = 'deepseek-reasoner') # type: ignore
-
         model_mock = MockConversationModel(
             expected_responses = [
-                ModelResponse(tool_call = [ToolCall('x', 'make_plan', {'content': 'This is my plan A.', 'edit_type': 'append'})]),
-                ModelResponse(response = 'Hello!'),
-                ModelResponse(tool_call = [ToolCall('x', 'make_plan', {'content': 'This is my plan B.', 'edit_type': 'append'})]),
-                ModelResponse(tool_call = [ToolCall('x', 'make_plan', {'content': 'This is my plan B.', 'edit_type': 'replace'})]),
-                ModelResponse(tool_call = [ToolCall('x', 'make_plan', {'content': '', 'edit_type': 'check_only'})]),
-                ModelResponse(response = 'Hello!')
+                ModelResponse(tool_call = [ToolCall('#1', 'operate_filesystem', {'operation': 'create', 'target_path': 'hello.txt', 'content': 'Hello world!'})]),
+                ModelResponse(tool_call = [ToolCall('#2', 'operate_filesystem', {'operation': 'rename', 'target_path': 'fold1/fold2/hello.txt', 'source_path': 'hello.txt'})]),
+                ModelResponse(tool_call = [ToolCall('#3', 'operate_filesystem', {'operation': 'remove', 'target_path': 'fold1/fold2'})]),
+                ModelResponse(response = 'The answer is 42.')
             ]
         )
 
-        interface = RichTerminalInterface(model.model)
+        interface = RichTerminalInterface('cool agent')
         loop = AgentLoop(
-            model, 
+            model_mock, 
             interface.get_exception_handler(), 
             TrajectoryLogContext(instance_id = 'log'), 
-            EditTools('/home/hazer/testbed', WebsocketClient(9002)),
+            EditTools('/home/hazer/simplex/examples/workspace', WebsocketClient(9002)),
             SubprocessExecutorLocal(),
             SequentialPlan(),
             RollContextClipper(),
@@ -66,6 +61,7 @@ if __name__ == '__main__':
             pickle.dump(loop['log'].dictionary, file) # type: ignore
 
     try:
-        asyncio.run(test_body())
+        with CommandProcess("simplex_tool_server -p 9002") as proc:
+            asyncio.run(test_body())
     except Exception:
         raise
