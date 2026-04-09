@@ -193,7 +193,7 @@ operate_filesystem:
     - field: source_path
       type: string
       description: >-
-        Indicates the destination file path. You should use relative paths relative to the workspace base directory, not full paths (i.e., paths that include the base directory).
+        Indicates the source file path. You should use relative paths relative to the workspace base directory, not full paths (i.e., paths that include the base directory).
         This argument only works when using operation 'rename' and will be ignored under other operations.
       required: False
 

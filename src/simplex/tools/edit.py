@@ -35,6 +35,7 @@ EditOperation = Literal[
     'show_details',
     'view_file_content',
     'edit_file_content',
+    'str_replace_edit',
     'undo',
     'search',
     'operate_filesystem'
@@ -58,6 +59,7 @@ class EditTools(ToolCollection):
             'show_details': 'show_details',
             'view_file_content': 'view_file_content',
             'edit_file_content': 'edit_file_content',
+            'str_replace_edit': 'str_replace_edit',
             'undo': 'undo',
             'search': 'search',
             'operate_filesystem': 'operate_filesystem'
@@ -79,6 +81,7 @@ class EditTools(ToolCollection):
         self.show_details_schema = load_schema(self.SCHEMA_FILE, 'show_details', self.names.get('show_details', 'show_details'))
         self.view_file_content_schema = load_schema(self.SCHEMA_FILE, 'view_file_content', self.names.get('view_file_content', 'view_file_content'))
         self.edit_file_content_schema = load_schema(self.SCHEMA_FILE, 'edit_file_content', self.names.get('edit_file_content', 'edit_file_content'))
+        self.str_replace_edit_schema = load_schema(self.SCHEMA_FILE, 'str_replace_edit', self.names.get('str_replace_edit', 'str_replace_edit'))
         self.undo_schema = load_schema(self.SCHEMA_FILE, 'undo', self.names.get('undo', 'undo'))
         self.search_schema = load_schema(self.SCHEMA_FILE, 'search', self.names.get('search', 'search'))
         self.operate_filesystem_schema = load_schema(self.SCHEMA_FILE, 'operate_filesystem', self.names.get('operate_filesystem', 'operate_filesystem'))
@@ -91,6 +94,7 @@ class EditTools(ToolCollection):
             'show_details': self.show_details_schema,
             'view_file_content': self.view_file_content_schema,
             'edit_file_content': self.edit_file_content_schema,
+            'str_replace_edit': self.str_replace_edit_schema,
             'undo': self.undo_schema,
             'search': self.search_schema,
             'operate_filesystem': self.operate_filesystem_schema
@@ -256,6 +260,36 @@ class EditTools(ToolCollection):
             query['line_start'] = line_start
         if line_end is not None:
             query['line_end'] = line_end
+
+        try:
+            response: str = await self.client.exchange(json.dumps(query))
+            if response is None:
+                raise RequestError(content = f'unable to access {self.client.url}')
+            return response.strip()
+        except Exception:
+            raise
+
+    async def _tool_str_replace_edit(
+        self,
+        target_path: str,
+        original_content: str,
+        new_content: str,
+        scope: str,
+        **kwargs
+    ) -> str:
+        if not self.initialized:
+            raise UnbuiltError(self.__class__.__name__)
+        
+        if scope not in ['once_only', 'all']:
+            return f"[ERROR]: Parameter 'scope' should be one of 'once_only' or 'all'."
+        
+        query: Dict = {
+            'type': 'str_replace_edit',
+            'target_path': target_path,
+            'original_content': original_content,
+            'new_content': new_content,
+            'replace_all': True if scope == 'all' else False
+        }
 
         try:
             response: str = await self.client.exchange(json.dumps(query))

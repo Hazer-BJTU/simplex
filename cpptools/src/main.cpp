@@ -254,6 +254,74 @@ SIMPLEX_COMMAND_DEF(edit_file_content) {
     return output.str();
 }
 
+SIMPLEX_COMMAND_DEF(str_replace_edit) {
+    std::ostringstream output;
+    std::string target_path;
+    try {
+        target_path = command.at("target_path");
+    } catch(const std::exception& e) {
+        output << "[json error: " << e.what() << "]" << std::endl;
+        simplex::safe_output("[Session#", session_id, "]: invalid command: ", command);
+        simplex::safe_output("[Session#", session_id, "]: response:", '\n', output.str());
+        return output.str();
+    }
+
+    std::string original_content, new_content;
+    try {
+        original_content = command.at("original_content");
+        new_content = command.at("new_content");
+    } catch(const std::exception& e) {
+        output << "[json error: " << e.what() << "; no changes have been made to workspace]" << std::endl;
+        simplex::safe_output("[Session#", session_id, "]: invalid command: ", command);
+        simplex::safe_output("[Session#", session_id, "]: response:", '\n', output.str());
+    }
+
+    bool replace_all;
+    try {
+        replace_all = command.at("replace_all");
+    } catch(...) {
+        replace_all = false;
+    }
+
+    try {
+        path_reader->navigate_target(target_path);
+    } catch(const std::exception& e) {
+        output << "[updated workspace: " << path_reader->base_dir() << ", [D]: directory, [F]: regular file]: " << std::endl << *path_reader;
+        output << std::endl << "[target: " << target_path << " not found!]" << std::endl;
+        simplex::safe_output("[Session#", session_id, "]: command got: show target details ", target_path);
+        simplex::safe_output("[Session#", session_id, "]: response:", '\n', output.str());
+        return output.str();
+    }
+
+    output << "[updated workspace: " << path_reader->base_dir() << ", [D]: directory, [F]: regular file]: " << std::endl << *path_reader << std::endl;
+
+    try {
+        boost::filesystem::path normalized_path = target_path;
+        auto [type, full_path] = path_reader->normalize(normalized_path);
+        if (type == simplex::PathReader::Type::REGULAR_FILE) {
+            undo_log->push({full_path, normalized_path});
+
+            auto lines_record = searcher->str_replace_edit({full_path, normalized_path}, original_content, new_content, replace_all);
+            output << "[changes have been written to: " << normalized_path << "]: " << std::endl << lines_record;
+        } else if (type == simplex::PathReader::Type::DIRECTORY) {
+            output << "[failed to edit file content! target: " << target_path << " is a directory]" << std::endl;
+        } else if (type == simplex::PathReader::Type::UNKNOWN) {
+            output << "[failed to edit file content! target: " << target_path << " may not be a regular file]" << std::endl;
+        } else {
+            output << "[target: " << normalized_path << " not found!]" << std::endl;
+        }
+    } catch(const std::exception& e) {
+        output << "[error occurred: " << e.what() << "; no changes have been made to workspace]" << std::endl;
+        simplex::safe_output("[Session#", session_id, "]: command got: string replace edit ", command);
+        simplex::safe_output("[Session#", session_id, "]: response:", '\n', output.str());
+        return output.str();
+    }
+
+    simplex::safe_output("[Session#", session_id, "]: command got: string replace edit ", command);
+    simplex::safe_output("[Session#", session_id, "]: response:", '\n', output.str());
+    return output.str();
+}
+
 SIMPLEX_COMMAND_DEF(search_entity) {
     std::ostringstream output;
     std::string glob, mode;
@@ -535,6 +603,8 @@ simplex::WebsocketServer::TransferFunction TFGenerator(std::shared_ptr<simplex::
             return REDIRECT_TO(view_file_content);
         } else if (command_type == "edit_file_content") {
             return REDIRECT_TO(edit_file_content);
+        } else if (command_type == "str_replace_edit") {
+            return REDIRECT_TO(str_replace_edit);
         } else if (command_type == "search_entity") {
             return REDIRECT_TO(search_entity);
         } else if (command_type == "touch") {
