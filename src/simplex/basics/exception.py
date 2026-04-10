@@ -69,13 +69,13 @@ class ConflictError(CustomException):
     def __init__(self, content: str) -> None:
         super().__init__(content)
 
-class RuntimeError(CustomException):
-    def __init__(self, original: Optional[Exception] = None, content: str = '') -> None:
-        self.original = original
-        if original is not None:
-            super().__init__(f"runtime error due to exception: {self.original}")
-        else:
-            super().__init__(content)
+# class RuntimeError(CustomException):
+#     def __init__(self, original: Optional[Exception] = None, content: str = '') -> None:
+#         self.original = original
+#         if original is not None:
+#             super().__init__(f"runtime error due to exception: {self.original}")
+#         else:
+#             super().__init__(content)
 
 class Notice(CustomException):
     def __init__(self, content: str = '') -> None:

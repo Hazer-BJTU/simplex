@@ -131,6 +131,9 @@ class EditTools(ToolCollection):
     async def reset(self) -> None:
         pass
 
+    def clone(self) -> "EditTools":
+        raise RuntimeError(f"{self.__class__.__name__} is not safeply copyable")
+
     async def bind_io(self, input_interface: UserInputInterface, **kwargs) -> None:
         self.input_interface = input_interface
 

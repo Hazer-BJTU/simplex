@@ -13,10 +13,8 @@ import simplex.models.base
 from simplex.basics import (
     ModelInput, 
     ModelResponse, 
-    ToolCall, 
     ToolReturn, 
-    ParameterError,
-    RuntimeError
+    ParameterError
 )
 from simplex.models.base import EmbeddingModel, ConversationModel
 
@@ -55,7 +53,7 @@ class MockConversationModel(ConversationModel):
                 if self.cyclic:
                     self.iterator = 0
                 else:
-                    raise RuntimeError(content = f"{self.__class__.__name__} has run out of expected responses")
+                    raise RuntimeError(f"{self.__class__.__name__} has run out of expected responses")
             response = copy.deepcopy(self.expected_responses[self.iterator])
             # response.extras = {'translated_input': self.translator(model_input)}
             self.iterator += 1
@@ -75,7 +73,7 @@ class MockConversationModel(ConversationModel):
                     if self.cyclic:
                         self.iterator = 0
                     else:
-                        raise RuntimeError(content = f"{self.__class__.__name__} has run out of expected responses")
+                        raise RuntimeError(f"{self.__class__.__name__} has run out of expected responses")
                 response = self.expected_responses[self.iterator]
                 self.iterator += 1
                 responses.append(response)

@@ -29,11 +29,8 @@ if __name__ == '__main__':
     async def test_body() -> None:
         model_mock = MockConversationModel(
             expected_responses = [
-                ModelResponse(tool_call = [
-                    ToolCall('#1', 'str_replace_edit', {'target_path': 'test.py', 'original_content': 'return celsius * 9 / 5 + 32', 'new_content': 'return celsius * 1.8 + 32', 'scope': 'all'}),
-                    ToolCall('#1', 'str_replace_edit', {'target_path': 'test.py', 'original_content': 'temp', 'new_content': 'temp_ok_', 'scope': 'once_only'}),
-                    ToolCall('#1', 'str_replace_edit', {'target_path': 'test.py', 'original_content': 'temp', 'new_content': 'temp_ok_', 'scope': 'all'})
-                ]),
+                ModelResponse(tool_call = [ToolCall('#1', 'operate_filesystem', {'operation': 'create', 'target_path': 'test.txt', 'content': 'Hello world!'})]),
+                ModelResponse(tool_call = [ToolCall('#2', 'operate_filesystem', {'operation': 'remove', 'target_path': 'test.txt'})]),
                 ModelResponse(response = 'The answer is 42.')
             ]
         )

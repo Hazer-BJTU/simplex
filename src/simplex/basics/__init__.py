@@ -28,7 +28,6 @@ from simplex.basics.exception import (
     EnvironmentError,
     UnbuiltError,
     ConflictError,
-    RuntimeError,
     Notice,
     ExceptionHandler,
     LogExceptionHandler
@@ -59,7 +58,6 @@ __all__ = [
     "EnvironmentError",
     "UnbuiltError",
     "ConflictError",
-    "RuntimeError",
     "PromptTemplate",
     "SkillRetriever",
     "Notice",
