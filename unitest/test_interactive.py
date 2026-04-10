@@ -18,7 +18,7 @@ from simplex.basics import WebsocketClient, ToolCall, CommandProcess, ModelRespo
 from simplex.models import MockConversationModel
 from simplex.context import TrajectoryLogContext, TokenCostCounter, RollContextClipper
 from simplex.loop import AgentLoop, UserLoop
-from simplex.tools import EditTools, SubprocessExecutorLocal, SequentialPlan
+from simplex.tools import EditTools, SubprocessExecutorLocal, SequentialPlan, InLoopConversation
 from simplex.io import RichTerminalInterface
 
 
@@ -31,6 +31,7 @@ if __name__ == '__main__':
             expected_responses = [
                 ModelResponse(tool_call = [ToolCall('#1', 'operate_filesystem', {'operation': 'create', 'target_path': 'test.txt', 'content': 'Hello world!'})]),
                 ModelResponse(tool_call = [ToolCall('#2', 'operate_filesystem', {'operation': 'remove', 'target_path': 'test.txt'})]),
+                ModelResponse(tool_call = [ToolCall('#3', 'propose', {'content': 'Do you think the answer is 42?'})]),
                 ModelResponse(response = 'The answer is 42.')
             ]
         )
@@ -44,7 +45,8 @@ if __name__ == '__main__':
             SubprocessExecutorLocal(),
             SequentialPlan(),
             RollContextClipper(),
-            TokenCostCounter()
+            TokenCostCounter(),
+            InLoopConversation()
         )
 
         await UserLoop(interface, interface, loop, complete_configs = {'max_iteration': 100}).serve()

@@ -541,7 +541,7 @@ class RichTerminalInterface(UserInputInterface, UserOutputInterface):
                 panel = Panel(
                     Text(notify.content, style = self._get_style('text')),
                     border_style = self._get_style('box_line_explicit'),
-                    title = Text(title, style = self._get_style('box_title_explicit')),
+                    title = title,
                     title_align = 'left'
                 )
                 self.console.print(panel)
@@ -599,7 +599,7 @@ class RichTerminalInterface(UserInputInterface, UserOutputInterface):
                 panel = Panel(
                     Markdown(notify.content),
                     border_style = self._get_style('box_line_explicit'),
-                    title = Text(title, style = self._get_style('box_title_explicit')),
+                    title = title,
                     title_align = 'left'
                 )
                 self.console.print(panel)

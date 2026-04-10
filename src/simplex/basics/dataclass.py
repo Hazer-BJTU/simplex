@@ -247,7 +247,7 @@ class UserNotify:
 
 @dataclass
 class UserResponse:
-    permitted: bool
+    permitted: bool = False
     reason: str = ''
     content: str = ''
 
