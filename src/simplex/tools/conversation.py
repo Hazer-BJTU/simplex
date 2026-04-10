@@ -11,17 +11,20 @@ import simplex.tools.base
 from simplex.io import UserInputInterface
 from simplex.basics import (
     UserNotify,
-    UserResponse
+    PromptTemplate,
+    AgentLoopStateEdit
 )
 from simplex.tools.base import (
     ToolSchema,
     ToolCollection,
     load_schema,
-    load_tool_definitions
+    load_tool_definitions,
+    load_tool_skill
 )
 
 class InLoopConversation(ToolCollection):
     SCHEMA_FILE: str = 'schema_propose'
+    SKILL_FILE: str = 'skill_propose'
 
     def __init__(
         self,
@@ -37,6 +40,9 @@ class InLoopConversation(ToolCollection):
         self.schema = load_schema(self.SCHEMA_FILE, 'propose', self.name)
         self.tool_definitions = load_tool_definitions(self.SCHEMA_FILE)
 
+        # Load the skill instructions
+        self.skill: str = load_tool_skill(self.SKILL_FILE, {'propose': f"`{self.name}`"})
+        self.skill_added: bool = False
         self.input_interface: Optional[UserInputInterface] = None
 
     async def build(self) -> None:
@@ -63,6 +69,12 @@ class InLoopConversation(ToolCollection):
     
     def tools_descriptions(self) -> str:
         return self.tool_definitions
+    
+    def process_prompt(self, user_prompt: PromptTemplate, **kwargs) -> Optional[AgentLoopStateEdit]:
+        if not self.skill_added and self.add_skill:
+            self.skill_added = True
+            new_user_prompt = user_prompt + self.skill
+            return AgentLoopStateEdit(user_prompt = new_user_prompt)
     
     async def _tool_propose(self, content: str, **kwargs) -> str:
         if self.input_interface:
