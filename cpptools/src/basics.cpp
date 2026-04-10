@@ -397,4 +397,20 @@ std::tuple<LineRecords, bool> extract_code_snippet_index(const PathTuple& ptuple
     return {result, matched_cnt != 0};
 }
 
+int pattern_replace(const std::string& original_content, const std::string& pattern, const std::string& new_content, std::string& replaced_content) noexcept {
+    static const std::regex specialChars{R"([\.\\\^\$\|\-\*\+\?\(\)\[\]\{\}])"};
+    std::regex pattern_regex(std::regex_replace(pattern, specialChars, R"(\$&)"));
+    int cnt = std::distance(
+        std::sregex_iterator(
+            original_content.begin(), 
+            original_content.end(), 
+            pattern_regex
+        ),
+        std::sregex_iterator()
+    );
+
+    replaced_content = std::regex_replace(original_content, pattern_regex, new_content);
+    return cnt;
+}
+
 }

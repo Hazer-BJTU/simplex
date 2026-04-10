@@ -28,7 +28,6 @@ from simplex.basics import (
     RequestError,
     Notice,
     UnbuiltError,
-    RuntimeError,
     AgentLoopStateEdit,
     UserMessage,
     ExceptionHandler,
@@ -285,7 +284,7 @@ class AgentLoop(AgentLoopAdapter):
         """
 
         if self.__initialized:
-            raise RuntimeError(content = f"{self.__class__.__name__}: unable to add instances after \'build\' is called")
+            raise RuntimeError(f"{self.__class__.__name__}: unable to add instances after \'build\' is called")
         
         # Register all provided tool/context instances
         for instance in args:
@@ -515,7 +514,7 @@ class AgentLoop(AgentLoopAdapter):
         """
 
         if self.__initialized:
-            raise RuntimeError(content = f"{self.__class__.__name__}: unable to add instances after \'build\' is called")
+            raise RuntimeError(f"{self.__class__.__name__}: unable to add instances after \'build\' is called")
 
         await self._call_async('bind_io', params = {
             'input_interface': input_interface,
@@ -626,7 +625,7 @@ class AgentLoop(AgentLoopAdapter):
                     self.__exception_handler(e, Notice(f"model endpoint retry attempt [{attempt}/{max_retry}]"))
                     if attempt == max_retry:
                         # Raise error after final failed attempt
-                        raise RuntimeError(content = f"failed to receive from model endpoint after {max_retry} attempts")
+                        raise RuntimeError(f"failed to receive from model endpoint after {max_retry} attempts")
                     await asyncio.sleep(0.5)
                     continue
                 except Exception as e:

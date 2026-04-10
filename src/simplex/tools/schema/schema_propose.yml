@@ -1,0 +1,11 @@
+propose:
+  description: >-
+    This is a tool for conversing with users within the Agent loop. 
+    You may ask users to provide additional information or present them with various options to choose from. 
+    Simply write in natural language using standard Markdown format, and the user's reply will be returned.
+  params:
+    - field: content
+      type: string
+      description:
+        Content to be presented to the users.
+      required: True

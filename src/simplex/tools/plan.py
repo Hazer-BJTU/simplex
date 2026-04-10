@@ -63,7 +63,9 @@ class SequentialPlan(ToolCollection):
     def clone(self) -> "SequentialPlan":
         return SequentialPlan(
             self.name,
-            self.empty_on_reset
+            self.empty_on_reset,
+            uuid.uuid4().hex,
+            self.add_skill
         )
 
     def get_tool_schemas(self) -> List[ToolSchema]:

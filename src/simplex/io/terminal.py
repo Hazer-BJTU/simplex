@@ -505,16 +505,17 @@ class RichTerminalInterface(UserInputInterface, UserOutputInterface):
                 self.console.print(panel)
 
             if notify.objects:
-                table = Table(title = title, border_style = self._get_style('box_line_explicit'), expand = True, box = box.HORIZONTALS)
-                first_item = notify.objects[0]
-                for k, _ in first_item.items():
-                    table.add_column(Text(str(k), style = self._get_style('text_explicit')), justify = 'left')
-                for item in notify.objects:
-                    entries = []
-                    for v in item.values():
-                        entries.append(Text(str(v), style = self._get_style('text')))
-                    table.add_row(*entries)
-                self.console.print(table)
+                if notify.object_display_type == 'table':
+                    table = Table(title = title, border_style = self._get_style('box_line_explicit'), expand = True, box = box.HORIZONTALS)
+                    first_item = notify.objects[0]
+                    for k, _ in first_item.items():
+                        table.add_column(Text(str(k), style = self._get_style('text_explicit')), justify = 'left')
+                    for item in notify.objects:
+                        entries = []
+                        for v in item.values():
+                            entries.append(Text(str(v), style = self._get_style('text')))
+                        table.add_row(*entries)
+                    self.console.print(table)
 
     async def notify_user(self, notify: UserNotify) -> UserResponse:
         """
@@ -529,13 +530,18 @@ class RichTerminalInterface(UserInputInterface, UserOutputInterface):
         Returns:
             UserResponse indicating the user's decision/approval
         """
+        if notify.title:
+            title = Text(notify.title, style = self._get_style('box_title_explicit'))
+        else:
+            title = Text('Request', style = self._get_style('box_title_explicit'))
+
         if notify.notify_type == 'permission':
             if notify.content:
                 # Display the permission request content in a styled panel
                 panel = Panel(
                     Text(notify.content, style = self._get_style('text')),
                     border_style = self._get_style('box_line_explicit'),
-                    title = Text('Request', style=self._get_style('box_title_explicit')),
+                    title = title,
                     title_align = 'left'
                 )
                 self.console.print(panel)
@@ -558,19 +564,18 @@ class RichTerminalInterface(UserInputInterface, UserOutputInterface):
 
             # Keep prompting until valid response received
             while True:
-                response = self.console.input(prompt_text)
-                response = response.strip().lower()
+                response = self.console.input(prompt_text).strip()
                 
                 # Handle empty response (defaults to denial)
                 if not response:
                     return UserResponse(permitted = False, reason = 'User denied the request without any explanations.')
                 
                 # Handle positive response
-                if response == 'yes':
+                if response.lower().startswith('yes'):
                     return UserResponse(permitted = True)
                 
                 # Handle negative response with optional reason
-                if response.startswith('no'):
+                if response.lower().startswith('no'):
                     if ':' in response:
                         _, reason = response.split(':', 1)
                         reason = reason.strip()
@@ -587,9 +592,34 @@ class RichTerminalInterface(UserInputInterface, UserOutputInterface):
                 text.append("no: reason", style = self._get_style('text_explicit'))
                 text.append("'.", style = self._get_style('text_weak'))
                 self.console.print(text)
-        
-        # For non-permission notifications, assume permission granted
-        return UserResponse(permitted = True)
+
+        elif notify.notify_type == 'conversation':
+            if notify.content:
+                # Display the conversational content in a styled panel
+                panel = Panel(
+                    Markdown(notify.content),
+                    border_style = self._get_style('box_line_explicit'),
+                    title = title,
+                    title_align = 'left'
+                )
+                self.console.print(panel)
+
+            # Create styled prompt asking for advises
+            prompt_text = Text("Enter your ", style = self._get_style('text_weak'))
+            prompt_text.append("opinion ", style = self._get_style('text_explicit'))
+            prompt_text.append("or ", style = self._get_style('text_weak'))
+            prompt_text.append("choice ", style = self._get_style('text_explicit'))
+            prompt_text.append("❯❯ ", style = self._get_style('$'))
+
+            # Display conversation header
+            self.console.rule(
+                Text("Feedback Required", style = self._get_style('rule_title')), 
+                style = self._get_style('rule_line')
+            )
+
+            response = self.console.input(prompt_text).strip()
+
+            return UserResponse(content = response)
 
     def get_exception_handler(self) -> RichTerminalExceptionHandler:
         """

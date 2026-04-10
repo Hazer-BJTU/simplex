@@ -54,7 +54,7 @@ edit_file_content:
     Replacing text with empty 'content' is equivalent to deleting the original text.
     You can use 'line_start' that is equal to 'line_end' to represent a single line.
     You can judge whether the edit is correct based on the feedback.
-    Pay attention to indentation alignment.
+    Pay attention to indentation alignment, unclosed brackets or duplicated lines inserted.
   params:
     - field: target_path
       type: string
@@ -90,6 +90,40 @@ edit_file_content:
       description:
         Indicates the ending line number (inclusive). This parameter is ignored in 'insert' mode.
       required: False
+
+str_replace_edit:
+  description: >-
+    Used for editing text content. Two different scopes are supported: 'once_only' and 'all'.
+    When 'once_only' is specified, the occurrence of 'original_content' in the target text file will be replaced with 'new_content'.
+    An exception will be thrown when 'original_content' occurs multiple times in the target text under 'once_only' mode.
+    When 'all' is specified, **all occurrences** of 'original_content' in the target text file will be replaced with 'new_content'.
+    Note that this method performs an exact match on 'original_content', so you should pay close attention to invisible characters such as indentation and spaces in the text. 
+    A good practice is to provide more context to achieve precise matching.
+  params:
+    - field: target_path
+      type: string
+      description:
+        Indicates the target file path. You should use relative paths relative to the workspace base directory, not full paths (i.e., paths that include the base directory).
+      required: True
+
+    - field: original_content
+      type: string
+      description:
+        The original text snippet to be replaced.
+      required: True
+
+    - field: new_content
+      type: string
+      description:
+        The new text snippet to substitute the original content.
+      required: True
+
+    - field: scope
+      type: string
+      description:
+        Choose between 'once_only' and 'all'.
+      enum: ['once_only', 'all']
+      required: True
 
 undo:
   description: >-
@@ -136,47 +170,36 @@ search:
         The glob pattern you provide will be applied under the workspace base directory.
       required: True
 
-create:
+operate_filesystem:
   description: >-
-    Used to create a new file with initial content.
-    The parent directory will be automatically created (exist is ok).
+    The file system operation supports three modes: 'create', 'remove', and 'rename', specified via the 'operation' parameter.
+    'create': Creates a new file at 'target_path' and writes 'content' to it. Parent directories will be created automatically.
+    'remove': Removes the target at 'target_path', which can be either a file or a directory.
+    'rename': Moves the target at 'source_path' (if it exists) to 'target_path'. Parent directories will be created automatically.
   params:
+    - field: operation
+      type: string
+      description:
+        Choose between 'create', 'remove' or 'rename'.
+      enum: ['create', 'remove', 'rename']
+      required: True
+
     - field: target_path
       type: string
-      description: 
+      description:
         Indicates the target file path. You should use relative paths relative to the workspace base directory, not full paths (i.e., paths that include the base directory).
       required: True
     
+    - field: source_path
+      type: string
+      description: >-
+        Indicates the source file path. You should use relative paths relative to the workspace base directory, not full paths (i.e., paths that include the base directory).
+        This argument only works when using operation 'rename' and will be ignored under other operations.
+      required: False
+
     - field: content
       type: string
-      description:
+      description: >-
         Initial content will be written into the created file.
-      required: True
-
-remove:
-  description: >-
-    Used to remove a file or directory. The files will be gone forever!
-    This tool requires user permission before execution to ensure security.
-  params:
-    - field: target_path
-      type: string
-      description: 
-        Indicates the target file path. You should use relative paths relative to the workspace base directory, not full paths (i.e., paths that include the base directory).
-      required: True
-
-rename:
-  description:
-    Used to rename a file or directory. Parent directories will be created automatically.
-  params:
-    - field: src_path
-      type: string
-      description:
-        Indicates the source file path. You should use relative paths relative to the workspace base directory, not full paths (i.e., paths that include the base directory).
-      required: True
-
-    - field: dst_path
-      type: string
-      description:
-        Indicates the destination file path. You should use relative paths relative to the workspace base directory, not full paths (i.e., paths that include the base directory).
-      required: True
-      
+        This argument only works when using operation 'create' and will be ignored under other operations.
+      required: False

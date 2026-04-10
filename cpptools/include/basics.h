@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdio>
+#include <regex>
 #include <cstring>
 #include <iostream>
 #include <list>
@@ -12,6 +13,7 @@
 #include <thread>
 #include <mutex>
 #include <fstream>
+#include <algorithm>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -56,6 +58,7 @@ LineRecords edit_file_content(const PathTuple& ptuple, EditType type, const std:
 LineRecords compare_rewrite_content(const PathTuple& ptuple, const std::string& original_content, const std::string& new_content);
 std::tuple<LineRecords, bool> extract_code_snippet(const PathTuple& ptuple, AhoCorasick& automaton, const std::string& content) noexcept;
 std::tuple<LineRecords, bool> extract_code_snippet_index(const PathTuple& ptuple, std::unordered_set<size_t> index, const std::string& content) noexcept;
+int pattern_replace(const std::string& original_content, const std::string& pattern, const std::string& new_content, std::string& replaced_content) noexcept;
 
 #ifdef QUIET_MODE
 

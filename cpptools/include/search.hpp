@@ -242,6 +242,25 @@ public:
         }
     }
 
+    LineRecords str_replace_edit(const PathTuple& ptuple, const std::string& original_content, const std::string& new_content, bool replace_all = false) {
+        try {
+            auto lang_integrate = _get_lang_integrate(ptuple);
+            std::string source = lang_integrate->source(), replaced_content;
+            int matched_cnt = simplex::pattern_replace(source, original_content, new_content, replaced_content);
+            if (matched_cnt == 0) {
+                throw std::runtime_error((boost::format("pattern '%s' not found in target file: %s") % original_content % ptuple.view).str());
+            }
+            if (matched_cnt > 1 && !replace_all) {
+                throw std::runtime_error("the given pattern appears multiple times in the original text; please provide more context or use replace all (not recommended)");
+            }
+            auto result = simplex::compare_rewrite_content(ptuple, source, replaced_content);
+            _cache_expire(ptuple);
+            return result;
+        } catch(...) {
+            throw;
+        }
+    }
+
     const EntityTagList& search_entity(const std::unordered_set<std::string>& key_words, const std::vector<PathTuple>& ptuple_list) noexcept {
         _output_entity_list.clear();
         const size_t tasks_per_worker = (ptuple_list.size() + _num_workers - 1) / _num_workers;
