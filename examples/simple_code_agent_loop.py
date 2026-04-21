@@ -25,7 +25,12 @@ from simplex.basics import WebsocketClient, CommandProcess
 from simplex.models import DeepSeekConversationModel
 from simplex.context import TrajectoryLogContext, TokenCostCounter, RollContextClipper
 from simplex.loop import AgentLoop, UserLoop
-from simplex.tools import EditTools, SubprocessExecutorLocal, SequentialPlan
+from simplex.tools import (
+    EditTools, 
+    SubprocessExecutorLocal, 
+    SequentialPlan,
+    InLoopConversation
+)
 from simplex.io import RichTerminalInterface
 
 # --------------------------
@@ -92,7 +97,8 @@ async def main(base_dir: Path | None = None) -> None:
             keep_fc_msgs = 60               # Preserve up to 60 function call messages after clipping
         ),
         # Tracks token consumption and notifies the user
-        TokenCostCounter()
+        TokenCostCounter(),
+        InLoopConversation()
     )
 
     # 4. Start the user-agent interaction loop
