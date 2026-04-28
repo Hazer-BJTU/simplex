@@ -153,6 +153,20 @@ class RichTerminalOutputPlugin(ContextPlugin):
             The style definition string, or empty string if key not found
         """
         return self.style_set.get(key, '')
+    
+    async def release(self) -> None:
+        """
+        Close live animations.
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
+        if self.live_display:
+            self.live_display.stop()
+            self.live_display = None
 
     async def before_response_async(self, *args, **kwargs) -> None:
         """

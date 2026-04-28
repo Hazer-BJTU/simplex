@@ -4,6 +4,7 @@ import simplex.basics.dataclass
 import simplex.basics.exception
 import simplex.basics.prompt
 import simplex.basics.commandproc
+import simplex.basics.utils
 
 from simplex.basics.client import WebsocketClient, WebsocketClientSync
 from simplex.basics.container import ContainerManager
@@ -35,6 +36,7 @@ from simplex.basics.exception import (
 )
 from simplex.basics.prompt import PromptTemplate, SkillRetriever
 from simplex.basics.commandproc import CommandProcess
+from simplex.basics.utils import async_retry_timeout
 
 
 __all__ = [
@@ -65,5 +67,6 @@ __all__ = [
     "Notice",
     "ExceptionHandler",
     "LogExceptionHandler",
-    "CommandProcess"
+    "CommandProcess",
+    "async_retry_timeout"
 ]
