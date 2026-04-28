@@ -18,7 +18,7 @@ class CommandProcess:
     def _capture_output(self):
         while not self._stop_event.is_set() and self.proc:
             try:
-                line = self.proc.stdout.readline()
+                line = self.proc.stdout.readline() # type: ignore
                 if not line:
                     break
                 self.output.append(line.strip())

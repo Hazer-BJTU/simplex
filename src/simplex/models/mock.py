@@ -24,22 +24,28 @@ class MockConversationModel(ConversationModel):
         self, 
         instance_id: Optional[str] = None,
         generator: Optional[Callable[[ModelInput], ModelResponse]] = None,
-        expected_responses: List[ModelResponse] = [],
+        expected_responses: Optional[List[ModelResponse]] = None,
         cyclic: bool = True,
         delay: float = 3.0
     ) -> None:
         super().__init__('', '', {}, {}, instance_id if instance_id is not None else uuid.uuid4().hex, True)
         
         self.generator = generator
-        self.expected_responses = expected_responses
         self.cyclic = cyclic
         self.delay = delay
         
-        self.length: int = len(expected_responses)
+        self.expected_responses: List[ModelResponse] = expected_responses if expected_responses is not None else []
+        self.length: int = len(self.expected_responses)
         self.iterator: int = 0
 
     def clone(self) -> "MockConversationModel":
-        return copy.deepcopy(self)
+        return MockConversationModel(
+            uuid.uuid4().hex,
+            self.generator,
+            self.expected_responses,
+            self.cyclic,
+            self.delay
+        )
 
     async def generate(self, model_input: ModelInput) -> ModelResponse:
         await asyncio.sleep(self.delay)
@@ -55,7 +61,6 @@ class MockConversationModel(ConversationModel):
                 else:
                     raise RuntimeError(f"{self.__class__.__name__} has run out of expected responses")
             response = copy.deepcopy(self.expected_responses[self.iterator])
-            # response.extras = {'translated_input': self.translator(model_input)}
             self.iterator += 1
             return response
     

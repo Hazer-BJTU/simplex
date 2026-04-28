@@ -47,7 +47,7 @@ def async_retry_timeout(
     timeout: float,
     retry_delay: float = 0.5,
     retry_exceptions: Tuple[Type[Exception], ...] = (asyncio.TimeoutError,),
-    on_retry: Callable[[Exception, int, int], None] = lambda e, attempt, max_retry: print(f"retry attempt [{attempt + 1}/{max_retry}]: {e}")
+    on_retry: Callable[[Exception, int], None] = lambda e, attempt: print(f"retry attempt [{attempt + 1}] {type(e).__name__}: {e}")
 ) -> Callable:
     """
     Async retry & timeout control decorator.
@@ -88,7 +88,7 @@ def async_retry_timeout(
                     # Enforce single execution timeout with asyncio.wait_for
                     return await asyncio.wait_for(
                         func(*args, **kwargs),
-                        timeout=timeout
+                        timeout = timeout
                     )
 
                 # Catch designated exceptions for retry processing
@@ -98,14 +98,15 @@ def async_retry_timeout(
                         raise MaxRetriesExceeded(f"maximum retry limit {max_retry} reached, task failed permanently") from e
                     
                     # Trigger custom retry callback
-                    on_retry(e, attempt, max_retry)
+                    on_retry(e, attempt)
                     # Pause before next retry attempt
                     await asyncio.sleep(retry_delay)
 
                 # Re-raise unexpected exceptions without retry
                 except Exception:
                     raise
-
+        
+        inner_function.retry_already_handled = True # type: ignore
         return inner_function
     return decorator
 
@@ -688,6 +689,7 @@ class AgentLoop(AgentLoopAdapter):
             self._call_sequential('before_response')
             
             # Model generation with retry logic
+            '''
             for attempt in range(max_retry + 1):
                 try:
                     self.__model_response = await asyncio.wait_for(self.__model.generate(model_input = self.__model_input), timeout = timeout)
@@ -703,6 +705,22 @@ class AgentLoop(AgentLoopAdapter):
                     raise e  # Fatal error, re-raise to terminate loop
                 # Exit retry loop on successful generation
                 break
+            '''
+            try:
+                if hasattr(self.__model.generate, 'retry_already_handled'):
+                    self.__model_response = await self.__model.generate(model_input = self.__model_input)
+                else:
+                    self.__model_response = await async_retry_timeout(
+                        max_retry, 
+                        timeout, 
+                        retry_exceptions = (asyncio.TimeoutError, RequestError),
+                        on_retry = lambda e, attempt: self.__exception_handler(e, Notice(f"model endpoint retry attempt [{attempt + 1}/{max_retry}]"))
+                    )(self.__model.generate)(model_input = self.__model_input)
+            except MaxRetriesExceeded:
+                raise RuntimeError(f"failed to receive from model endpoint after {max_retry} attempts")
+            except Exception as e:
+                self.__exception_handler(e, Notice(f"loop quit due to unexpected error"))
+                raise e
             
             # Post-response lifecycle hooks
             await self._call_async('after_response_async')
