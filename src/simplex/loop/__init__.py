@@ -1,6 +1,7 @@
 import simplex.loop.base
 
 from simplex.loop.base import (
+    async_retry_timeout,
     AgentLoop, 
     AgentLoopAdapter,
     AgentLoopAction, 
@@ -9,6 +10,7 @@ from simplex.loop.base import (
 
 
 __all__ = [
+    "async_retry_timeout",
     "AgentLoop",
     "AgentLoopAdapter",
     "AgentLoopAction",

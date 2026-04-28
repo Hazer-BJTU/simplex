@@ -28,6 +28,7 @@ from simplex.basics.exception import (
     EnvironmentError,
     UnbuiltError,
     ConflictError,
+    MaxRetriesExceeded,
     Notice,
     ExceptionHandler,
     LogExceptionHandler
@@ -58,6 +59,7 @@ __all__ = [
     "EnvironmentError",
     "UnbuiltError",
     "ConflictError",
+    "MaxRetriesExceeded",
     "PromptTemplate",
     "SkillRetriever",
     "Notice",

@@ -66,16 +66,12 @@ class UnbuiltError(CustomException):
         super().__init__(f"{class_name}: method 'build' is never called") 
 
 class ConflictError(CustomException):
-    def __init__(self, content: str) -> None:
+    def __init__(self, content: str = '') -> None:
         super().__init__(content)
 
-# class RuntimeError(CustomException):
-#     def __init__(self, original: Optional[Exception] = None, content: str = '') -> None:
-#         self.original = original
-#         if original is not None:
-#             super().__init__(f"runtime error due to exception: {self.original}")
-#         else:
-#             super().__init__(content)
+class MaxRetriesExceeded(CustomException):
+    def __init__(self, content: str = '') -> None:
+        super().__init__(content)
 
 class Notice(CustomException):
     def __init__(self, content: str = '') -> None:
