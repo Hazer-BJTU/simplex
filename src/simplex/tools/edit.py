@@ -332,7 +332,7 @@ class EditTools(ToolCollection):
         
         query: Dict = {
             'type': 'search_entity',
-            'key_words': [word.strip() for word in key_words.split(',')],
+            'key_words': [word.strip() for word in key_words.split(',')] if mode != 'pattern' else key_words.strip(),
             'glob': glob,
             'mode': mode
         }

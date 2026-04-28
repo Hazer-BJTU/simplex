@@ -34,3 +34,6 @@ dev = [
     "pylint>=4.0.5",
     "pytest>=9.0.2",
 ]
+vis = [
+    "matplotlib>=3.10.9",
+]
