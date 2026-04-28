@@ -18,7 +18,7 @@ from simplex.basics import WebsocketClient, ToolCall, CommandProcess, ModelRespo
 from simplex.models import MockConversationModel
 from simplex.context import TrajectoryLogContext, TokenCostCounter, RollContextClipper
 from simplex.loop import AgentLoop, UserLoop
-from simplex.tools import EditTools, SubprocessExecutorLocal, SequentialPlan, InLoopConversation
+from simplex.tools import MockCalculator
 from simplex.io import RichTerminalInterface
 
 
@@ -29,11 +29,11 @@ if __name__ == '__main__':
     async def test_body() -> None:
         model_mock = MockConversationModel(
             expected_responses = [
-                ModelResponse(tool_call = [ToolCall('#1', 'operate_filesystem', {'operation': 'create', 'target_path': 'test.txt', 'content': 'Hello world!'})]),
-                ModelResponse(tool_call = [ToolCall('#2', 'operate_filesystem', {'operation': 'remove', 'target_path': 'test.txt'})]),
-                ModelResponse(tool_call = [ToolCall('#3', 'propose', {'content': 'Do you think the answer is 42?'})]),
-                ModelResponse(response = 'The answer is 42.')
-            ]
+                ModelResponse(response = 'This is the first response.'),
+                ModelResponse(response = 'This is the second response.'),
+                ModelResponse(response = 'This is the third response.')
+            ],
+            delay = 3.0
         )
 
         interface = RichTerminalInterface('cool agent')
@@ -41,15 +41,12 @@ if __name__ == '__main__':
             model_mock, 
             interface.get_exception_handler(), 
             TrajectoryLogContext(instance_id = 'log'), 
-            EditTools('/home/hazer/simplex/examples/workspace', WebsocketClient(9002)),
-            SubprocessExecutorLocal(),
-            SequentialPlan(),
+            MockCalculator(),
             RollContextClipper(),
             TokenCostCounter(),
-            InLoopConversation()
         )
 
-        await UserLoop(interface, interface, loop, complete_configs = {'max_iteration': 100}).serve()
+        await UserLoop(interface, interface, loop, complete_configs = {'max_iteration': 100, 'timeout': 1.5}).serve()
 
         target_path = OUTPUT_PATH / 'test_interactive.md'
         target_path.parent.mkdir(parents = True, exist_ok = True)
@@ -62,7 +59,7 @@ if __name__ == '__main__':
             pickle.dump(loop['log'].dictionary, file) # type: ignore
 
     try:
-        with CommandProcess("simplex_tool_server -p 9002") as proc:
-            asyncio.run(test_body())
+        # with CommandProcess("simplex_tool_server -p 9002") as proc:
+        asyncio.run(test_body())
     except Exception:
         raise

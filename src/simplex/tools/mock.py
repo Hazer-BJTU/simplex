@@ -72,7 +72,7 @@ class MockCalculator(ToolCollection):
 
     async def _tool_calculator(self, operation: str, operand1: float, operand2: float, **kwargs) -> str:
         if self.ask_for_permission and self.input_interface:
-            response = await self.input_interface.notify_user(UserNotify('permission', f"Do you allow model to use calculator to perform '{operation}'?"))
+            response = await self.input_interface.notify_user(UserNotify('permission', content = f"Do you allow model to use calculator to perform '{operation}'?"))
             if not response.permitted:
                 return f"[ERROR]: Permission error! {response.reason}"
 

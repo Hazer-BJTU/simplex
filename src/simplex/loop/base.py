@@ -30,6 +30,7 @@ from simplex.basics import (
     RequestError,
     MaxRetriesExceeded,
     Notice,
+    UserNotify,
     UnbuiltError,
     AgentLoopStateEdit,
     UserMessage,
@@ -225,12 +226,16 @@ class UserLoop:
                 break
             
             # Do complete
-            finalized_input: ModelInput = await loop.complete(
-                system = user_message.system_prompt,
-                user = user_message.user_prompt,
-                history = history,
-                **self.__complete_configs
-            )
+            try:
+                finalized_input: ModelInput = await loop.complete(
+                    system = user_message.system_prompt,
+                    user = user_message.user_prompt,
+                    history = history,
+                    **self.__complete_configs
+                )
+            except Exception as e:
+                await self.__output_interface.push_message(UserNotify('notify', content = f"User loop quit due to exception: {e}"))
+                break
 
             # Assign message list to history if 'keep_history'
             if self.__keep_history and finalized_input.messages:
@@ -714,10 +719,12 @@ class AgentLoop(AgentLoopAdapter):
                         max_retry, 
                         timeout, 
                         retry_exceptions = (asyncio.TimeoutError, RequestError),
-                        on_retry = lambda e, attempt: self.__exception_handler(e, Notice(f"model endpoint retry attempt [{attempt + 1}/{max_retry}]"))
+                        on_retry = lambda e, attempt: self.__exception_handler(Notice(f"model endpoint retry attempt [{attempt + 1}/{max_retry}]: {e}"))
                     )(self.__model.generate)(model_input = self.__model_input)
             except MaxRetriesExceeded:
-                raise RuntimeError(f"failed to receive from model endpoint after {max_retry} attempts")
+                e = RuntimeError(f"failed to receive from model endpoint after {max_retry} attempts")
+                self.__exception_handler(e, Notice(f"loop quit due to maximum retry exceeded"))
+                raise e
             except Exception as e:
                 self.__exception_handler(e, Notice(f"loop quit due to unexpected error"))
                 raise e
