@@ -1,1315 +1,1012 @@
-# SimpleX - A Modular Python AI Agent SDK
+# Simplex — Python LLM-Based Code Agent SDK
 
-SimpleX is a flexible and extensible Python SDK for building AI agent systems. It provides a modular architecture that allows developers to easily customize and extend every component of an agent system, including models, tools, context plugins, and I/O interfaces.
+**Simplex** is a lightweight, extensible Python framework for building AI-powered code agents. It provides a modular architecture where you compose AI models, tools, context plugins, and I/O interfaces into a cohesive agent loop — all driven by a structured lifecycle with synchronous and asynchronous hooks.
 
-## Features
+## Table of Contents
 
-- **Modular Architecture**: Clean separation of concerns with pluggable components
-- **Tool Collections**: Easily define and manage sets of tools for your agents
-- **Context Plugins**: Inject custom behavior and state management into agent loops
-- **Model Abstraction**: Support for multiple LLM backends with a unified interface
-- **Rich I/O Interfaces**: Built-in terminal interface with rich formatting
-- **Lifecycle Hooks**: Comprehensive hooks for customizing agent behavior at every stage
-- **Async-First**: Full async support for efficient concurrent operations
+- [Overview](#overview)
+- [Architecture](#architecture)
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [Core Concepts](#core-concepts)
+  - [The Agent Loop Lifecycle](#the-agent-loop-lifecycle)
+  - [Models](#models)
+  - [Tools](#tools)
+  - [Context Plugins](#context-plugins)
+  - [I/O Interfaces](#io-interfaces)
+  - [Data Classes](#data-classes)
+- [API Reference](#api-reference)
+  - [simplex.models](#simplexmodels)
+  - [simplex.loop](#simplexloop)
+  - [simplex.tools](#simplextools)
+  - [simplex.context](#simplexcontext)
+  - [simplex.io](#simplexio)
+  - [simplex.basics](#simplexbasics)
+  - [simplex.agents](#simplexagents)
+- [The `simplex_tool_server`](#the-simplex_tool_server)
+- [Error Handling](#error-handling)
+- [Advanced Usage](#advanced-usage)
+  - [Parallel Trajectory Sampling](#parallel-trajectory-sampling)
+  - [Rehearsal Mode](#rehearsal-mode)
+  - [Building Custom Tools](#building-custom-tools)
+  - [Building Custom Context Plugins](#building-custom-context-plugins)
+- [Logging & Trajectory Output](#logging--trajectory-output)
+- [Configuration Reference](#configuration-reference)
+
+---
+
+## Overview
+
+Simplex is designed around a simple but powerful idea: an AI agent is just a **loop** that calls an LLM, executes tools, and manages context. The framework formalizes this loop with:
+
+- **Pluggable AI models** — DeepSeek, Qwen, or any OpenAI-compatible API
+- **8 built-in file editing tools** — view, search, edit, undo via WebSocket
+- **Context management** — token counting, context window clipping, trajectory logging
+- **Rich terminal UI** — spinners, syntax-highlighted blocks, permission prompts
+- **Lifecycle hooks** — 22 hook points for plugins to intercept every phase of the loop
+
+### Design Philosophy
+
+- **Composition over inheritance**: Build agents by combining `ToolCollection` and `ContextPlugin` instances with an `AgentLoop`.
+- **Explicit lifecycle**: Every component participates in a well-defined lifecycle (`build` → `start_loop` → `before_response` → … → `release`).
+- **Async-first**: All I/O and model calls are asynchronous, with thread-pool support for parallel sampling.
+- **User-in-the-loop**: Tools can request user permission before executing potentially dangerous operations.
+
+---
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────┐
+│                     UserLoop                         │
+│  Orchestrates multi-turn conversation with history   │
+├─────────────────────────────────────────────────────┤
+│                AgentLoopAdapter                      │
+│  (AgentLoop itself, or ParallelSampleAdapter)        │
+├─────────────────────────────────────────────────────┤
+│                    AgentLoop                         │
+│  ┌──────────┐  ┌──────────┐  ┌──────────────────┐   │
+│  │  Model   │  │  Tools   │  │ Context Plugins  │   │
+│  │(generate)│  │(execute) │  │(lifecycle hooks) │   │
+│  └──────────┘  └──────────┘  └──────────────────┘   │
+├─────────────────────────────────────────────────────┤
+│                  I/O Interfaces                      │
+│  UserInputInterface  │  UserOutputInterface           │
+│  (RichTerminalInterface combines both)               │
+└─────────────────────────────────────────────────────┘
+```
+
+**Data flow**: User message → `UserLoop` → `AgentLoop.complete()` → model generates → tool calls executed → response integrated → loop continues until final answer.
+
+---
 
 ## Installation
 
 ### Prerequisites
 
-- Python 3.10 or higher
-- `uv` package manager (recommended) or `pip`
+- Python ≥ 3.11
+- `uv` (recommended) or `pip`
 
-### Install from Source
+### Install from source
 
 ```bash
-# Clone the repository
 git clone <repository-url>
 cd simplex
-
-# Install dependencies using uv
 uv sync
-
-# Or using pip
-pip install -e .
 ```
 
 ### Dependencies
 
-The project uses the following key dependencies:
-- `openai` - OpenAI API client for LLM interactions
-- `rich` - Rich text and beautiful formatting in the terminal
-- `pyyaml` - YAML parsing for configuration files
+Core dependencies include `openai`, `rich`, `websockets`, `pyyaml`, `numpy`, and `rank-bm25`. See `pyproject.toml` for the full list.
+
+### The `simplex_tool_server`
+
+The file-editing tools (`EditTools`) require an external WebSocket server process. Build it from the `cpptools` directory (C++ code) and ensure the `simplex_tool_server` binary is on your `PATH`.
+
+```bash
+simplex_tool_server -p 9002 -c 20
+```
+
+Options:
+
+| Flag | Description | Default |
+|------|-------------|---------|
+| `-p, --port` | Port number (required) | — |
+| `-j, --jobs` | Async worker processes | 1 |
+| `-n, --head-n` | Lines for file preview | 200 |
+| `-s, --history` | Undo history entries per file | 15 |
+| `-c, --concurrent` | Threads for concurrent search | 4 |
+| `-m, --max-result` | Max response bytes | 24576 |
+
+---
 
 ## Quick Start
 
-Here's a minimal example to get you started with SimpleX:
+Below is a complete working example adapted from `examples/simple_code_agent_loop.py`:
 
 ```python
 import os
 import asyncio
-
-from simplex.models import QwenConversationModel
-from simplex.context import TrajectoryLogContext
+from pathlib import Path
+from simplex.basics import WebsocketClient, CommandProcess
+from simplex.models import DeepSeekConversationModel
+from simplex.context import TrajectoryLogContext, TokenCostCounter, RollContextClipper
 from simplex.loop import AgentLoop, UserLoop
-from simplex.tools import SubprocessExecutorLocal
+from simplex.tools import EditTools, SubprocessExecutorLocal, SequentialPlan, InLoopConversation
 from simplex.io import RichTerminalInterface
 
-async def main():
-    # Initialize the conversation model
-    model = QwenConversationModel(
-        base_url='https://dashscope.aliyuncs.com/compatible-mode/v1',
+EDIT_TOOL_SERVER_PORT = 9002
+
+async def main(workspace_dir: Path):
+    # 1. Create the AI model
+    model = DeepSeekConversationModel(
+        base_url='https://api.deepseek.com/beta',
         api_key=os.getenv('API_KEY'),
-        qwen_model='qwen-plus',
-        enable_thinking=False
+        model='deepseek-v4-pro',
+        default_generate_configs={'temperature': 0.4},
+        enable_thinking=True
     )
-    
-    # Create the terminal interface
-    interface = RichTerminalInterface(model.qwen_model)
-    
-    # Set up the agent loop with tools and context plugins
+
+    # 2. Create a rich terminal interface
+    interface = RichTerminalInterface(model.model)
+
+    # 3. Build the agent loop with tools & contexts
     loop = AgentLoop(
         model,
         interface.get_exception_handler(),
         TrajectoryLogContext(instance_id='log'),
-        SubprocessExecutorLocal()
+        EditTools(
+            base_dir=workspace_dir,
+            client=WebsocketClient(EDIT_TOOL_SERVER_PORT, 'localhost'),
+            permission_required=True,
+            add_skill=True
+        ),
+        SubprocessExecutorLocal(permission_required=True),
+        SequentialPlan(add_skill=True),
+        RollContextClipper(
+            max_context_tokens=256000,
+            threshold_ratio=0.65,
+            keep_fc_msgs=120
+        ),
+        TokenCostCounter(),
+        InLoopConversation()
     )
-    
-    # Run the user loop
+
+    # 4. Start the user interaction loop
     await UserLoop(
-        interface, 
-        interface, 
-        loop, 
-        complete_configs={'max_iteration': 30}
+        input_interface=interface,
+        output_interface=interface,
+        agent_loop=loop,
+        complete_configs={
+            'max_iteration': 100,
+            'timeout': 600,
+            'max_retry': 5
+        }
     ).serve()
 
 if __name__ == '__main__':
-    asyncio.run(main())
+    with CommandProcess(f"simplex_tool_server -p {EDIT_TOOL_SERVER_PORT} -c 20") as proc:
+        asyncio.run(main(Path.cwd()))
 ```
 
-## Project Structure
+Run it:
 
+```bash
+export API_KEY="your-deepseek-api-key"
+python examples/simple_code_agent_loop.py --workspace /path/to/your/project
 ```
-simplex/
-├── src/
-│   └── simplex/
-│       ├── basics/          # Core data structures and utilities
-│       │   ├── dataclass.py # Basic data classes (ToolCall, ToolReturn, etc.)
-│       │   ├── prompt.py    # Prompt template utilities
-│       │   ├── client.py    # WebSocket client for external communication
-│       │   └── exception.py # Custom exception classes
-│       ├── models/          # Model implementations
-│       │   ├── base.py      # Abstract base classes for models
-│       │   ├── qwen.py      # Qwen model implementation
-│       │   └── mock.py      # Mock model for testing
-│       ├── tools/           # Tool collections
-│       │   ├── base.py      # ToolCollection base class
-│       │   ├── edit.py      # File editing tools
-│       │   ├── plan.py      # Planning tools
-│       │   ├── pyinterpreter.py  # Python interpreter tool
-│       │   └── pysublocal.py     # Subprocess execution tool
-│       ├── context/         # Context plugins
-│       │   ├── base.py      # ContextPlugin base class
-│       │   └── tokenc.py    # Token cost counter
-│       ├── loop/            # Loop implementations
-│       │   ├── base.py      # AgentLoop and UserLoop
-│       │   └── adapter.py   # AgentLoopAdapter implementations
-│       └── io/              # I/O interfaces
-│           ├── base.py      # Abstract I/O interfaces
-│           └── terminal.py  # Rich terminal interface
-├── unitest/                 # Test files
-└── pyproject.toml          # Project configuration
-```
+
+---
 
 ## Core Concepts
 
-### Architecture Overview
+### The Agent Loop Lifecycle
 
-SimpleX follows a layered architecture where each component has a specific responsibility:
+Every `AgentLoop` execution follows a precise sequence of lifecycle hooks. Both `ToolCollection` and `ContextPlugin` instances can implement any of these hooks to intercept and modify the loop's behavior.
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                        UserLoop                              │
-│  (Manages user interaction and conversation history)         │
-└─────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────┐
-│                      AgentLoop                               │
-│  (Core agent logic with lifecycle management)                │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐  │
-│  │   Model     │  │ToolCollection│  │   ContextPlugin    │  │
-│  │(LLM Backend)│  │  (Tools)    │  │ (State/Behavior)   │  │
-│  └─────────────┘  └─────────────┘  └─────────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────┐
-│                    I/O Interfaces                            │
-│  UserInputInterface  │  UserOutputInterface                  │
-│  (Receive input)     │  (Send responses)                     │
-└─────────────────────────────────────────────────────────────┘
+build()                            — Initialize resources (called once)
+  └─ bind_io()                     — Bind user I/O interfaces
+       └─ complete()               — One full task execution
+            ├─ process_prompt()    — Modify prompts before loop
+            ├─ start_loop_async()  — Async pre-loop setup
+            ├─ start_loop()        — Sync pre-loop setup
+            └─ For each iteration:
+                 ├─ before_response_async()
+                 ├─ before_response()
+                 ├─ model.generate()        ← LLM call
+                 ├─ after_response_async()
+                 ├─ after_response()
+                 ├─ [if tool calls]
+                 │    ├─ tool execution      ← Concurrent tool dispatch
+                 │    ├─ after_tool_call_async()
+                 │    └─ after_tool_call()
+                 ├─ [if final response]
+                 │    ├─ after_final_response_async()
+                 │    └─ after_final_response()
+                 ├─ on_loop_end_async()
+                 └─ on_loop_end()
+            ├─ on_exit_async()
+            └─ on_exit()
+release()                            — Clean up resources
 ```
 
-### AgentLoop
+Hooks return `AgentLoopStateEdit` to modify loop state (prompts, model input, response, tool returns, exit flag).
 
-The `AgentLoop` is the core component that manages the agent's execution lifecycle. It handles:
+### Models
 
-- **Model Interaction**: Communicating with the LLM backend
-- **Tool Execution**: Dispatching tool calls and collecting results
-- **State Management**: Maintaining loop state across iterations
-- **Lifecycle Hooks**: Providing extensibility points for custom behavior
+Models are the "brain" of the agent. All models extend `BaseModel` → `ConversationModel` and implement:
 
-#### AgentLoop Lifecycle
+| Method | Description |
+|--------|-------------|
+| `generate(model_input)` | Send input to LLM, return `ModelResponse` |
+| `tool_return_integrate(input, response, returns)` | Merge tool results into message history |
+| `final_response_integrate(input, response)` | Merge final text response into message history |
+| `build()` / `release()` / `reset()` / `clone()` | Lifecycle management |
 
-The agent loop follows a structured execution flow:
+**Built-in models:**
 
-1. **build**: Initialize resources (called once when entering async context)
-2. **process_prompt**: Preprocess system and user prompts
-3. **start_loop**: Execute before main loop begins
-4. **Loop iterations**:
-   - **before_response**: Prepare for model generation
-   - **Model Generation**: Call the LLM backend
-   - **after_response**: Process model response
-   - **Tool Execution** (if tool calls present):
-     - Execute tools concurrently
-     - **after_tool_call**: Process tool results
-   - **after_final_response**: Handle final response (if no tool calls)
-   - **on_loop_end**: End of iteration cleanup
-5. **on_exit**: Final cleanup before loop terminates
-6. **release**: Release resources (called when exiting async context)
+- `DeepSeekConversationModel` — DeepSeek API with chain-of-thought reasoning support
+- `QwenConversationModel` — Qwen (Alibaba Cloud) API with streaming + thinking mode
+- `MockConversationModel` — For testing; returns canned responses
 
-#### Example: Basic AgentLoop Usage
+### Tools
 
-```python
-from simplex.loop import AgentLoop
-from simplex.models import QwenConversationModel
-from simplex.tools import SubprocessExecutorLocal
-from simplex.context import TrajectoryLogContext
-from simplex.basics import LogExceptionHandler
+Tools are callable capabilities exposed to the LLM via function-calling schemas. Each tool collection extends `ToolCollection` and provides:
 
-async def run_agent():
-    model = QwenConversationModel(
-        base_url='https://api.example.com/v1',
-        api_key='your-api-key',
-        qwen_model='model-name'
-    )
-    
-    # Create agent loop with tools and context plugins
-    agent = AgentLoop(
-        model,
-        LogExceptionHandler(instance_id='errors'),
-        TrajectoryLogContext(instance_id='trajectory'),
-        SubprocessExecutorLocal()
-    )
-    
-    # Use as async context manager
-    async with agent:
-        result = await agent.complete(
-            system="You are a helpful assistant.",
-            user="What is the capital of France?",
-            max_iteration=10,
-            timeout=60
-        )
-    
-    return result
-```
+- `get_tool_schemas()` — Returns `List[ToolSchema]` describing available functions
+- `_tool_<name>()` — Internal method that implements the tool logic (dispatched by name)
+- Optional lifecycle hooks (e.g., `process_prompt()` to inject skill instructions)
 
-### UserLoop
+**Tool execution flow:** LLM response contains `ToolCall` objects → `AgentLoop` dispatches each call to the matching `ToolCollection` → returns `ToolReturn` → results integrated back into conversation.
 
-The `UserLoop` wraps the `AgentLoop` to handle user interaction:
+### Context Plugins
 
-- Receives user messages through `UserInputInterface`
-- Passes messages to `AgentLoop` for processing
-- Maintains conversation history across turns
-- Sends responses through `UserOutputInterface`
-
-#### Example: UserLoop with Custom Configurations
-
-```python
-from simplex.loop import UserLoop, AgentLoop
-from simplex.io import RichTerminalInterface
-
-async def interactive_session():
-    interface = RichTerminalInterface('model-name')
-    
-    agent = AgentLoop(
-        model,
-        interface.get_exception_handler(),
-        # ... tools and context plugins
-    )
-    
-    # Configure UserLoop with custom settings
-    user_loop = UserLoop(
-        input_interface=interface,
-        output_interface=interface,
-        agent_loop=agent,
-        keep_history=True,  # Maintain conversation history
-        complete_configs={
-            'max_iteration': 50,
-            'timeout': 120,
-            'max_retry': 3
-        }
-    )
-    
-    await user_loop.serve()
-```
+Context plugins observe and modify the agent loop. They extend `ContextPlugin` and implement lifecycle hooks. Unlike tools, they are not exposed to the LLM — they work behind the scenes.
 
 ### I/O Interfaces
 
-SimpleX provides abstract interfaces for user interaction:
+- **`UserInputInterface`** — Gets user messages (`next_message()`) and handles permission requests (`notify_user()`)
+- **`UserOutputInterface`** — Pushes agent responses and notifications to the user (`push_message()`)
 
-#### UserInputInterface
+`RichTerminalInterface` implements both, providing a rich terminal UI with spinners, syntax highlighting, and formatted panels.
 
-```python
-from simplex.io import UserInputInterface
-from simplex.basics import UserMessage, UserNotify, UserResponse
+### Data Classes
 
-class CustomInputInterface(UserInputInterface):
-    async def next_message(self) -> UserMessage:
-        """Receive the next message from the user."""
-        # Implement custom input logic
-        content = await get_user_input()
-        return UserMessage(
-            user_prompt=content,
-            system_prompt=None,
-            quit=False
-        )
-    
-    async def notify_user(self, notify: UserNotify) -> UserResponse:
-        """Send a notification to the user and get response."""
-        # Handle user notifications (e.g., permission requests)
-        return UserResponse(response=True)
-    
-    def get_input_plugin(self):
-        """Return an optional ContextPlugin for input handling."""
-        return None
-```
+| Class | Purpose |
+|-------|---------|
+| `ModelInput` | Carries `messages`, `tools`, `model` name to the LLM |
+| `ModelResponse` | Holds `response` text, `tool_call` list, `reasoning_content`, `token_cost` |
+| `ToolCall` | A single function call: `id`, `name`, `arguments` |
+| `ToolReturn` | Result of a tool execution: `content`, references original `ToolCall` |
+| `ToolSchema` | Describes a tool: `name`, `description`, list of `Parameter` objects |
+| `PromptTemplate` | Buildable markdown prompt with title/block/simple helpers |
+| `LoopInformation` | Snapshot of one loop iteration: input, response, tool returns |
 
-#### UserOutputInterface
+---
+
+## API Reference
+
+### `simplex.models`
+
+#### `BaseModel`
+
+Abstract base for all models. Not used directly.
 
 ```python
-from simplex.io import UserOutputInterface
-from simplex.basics import UserNotify
-
-class CustomOutputInterface(UserOutputInterface):
-    async def push_message(self, notify: UserNotify):
-        """Send output to the user."""
-        # Implement custom output logic
-        await send_to_user(notify.content)
-    
-    def get_output_plugin(self):
-        """Return an optional ContextPlugin for output handling."""
-        return None
+class BaseModel(ABC):
+    def __init__(
+        self,
+        base_url: str,
+        api_key: str,
+        client_configs: Dict,
+        default_generate_configs: Dict,
+        instance_id: str,
+        disable_openai_backend: bool = False
+    )
 ```
 
-### AgentLoopAdapter
+| Property | Type | Description |
+|----------|------|-------------|
+| `key` | `str` | Unique instance identifier |
+| `client` | `AsyncOpenAI \| None` | OpenAI async client |
 
-The `AgentLoopAdapter` abstract class allows you to wrap `AgentLoop` with additional functionality. This is useful for:
+#### `ConversationModel(BaseModel)`
 
-- **Parallel Sampling**: Running multiple trajectories simultaneously
-- **Custom Execution Patterns**: Implementing specialized loop behaviors
-- **Monitoring and Logging**: Adding observability layers
+Adds conversation-specific methods. Subclassed by all chat models.
 
-#### Built-in Adapter: ParallelSampleAdapter
+```python
+@abstractmethod
+async def generate(self, model_input: ModelInput) -> ModelResponse
+
+@abstractmethod
+def tool_return_integrate(
+    self, input: ModelInput, response: ModelResponse,
+    tool_return: List[ToolReturn], **kwargs
+) -> ModelInput
+
+@abstractmethod
+def final_response_integrate(
+    self, input: ModelInput, response: ModelResponse, **kwargs
+) -> ModelInput
+```
+
+#### `DeepSeekConversationModel`
+
+```python
+DeepSeekConversationModel(
+    base_url: str,              # e.g. 'https://api.deepseek.com/beta'
+    api_key: str,               # API key (load from env)
+    client_configs: Optional[Dict] = None,
+    default_generate_configs: Optional[Dict] = None,  # e.g. {'temperature': 0.4}
+    instance_id: Optional[str] = None,
+    model: str = 'deepseek-reasoner',
+    enable_thinking: bool = True   # Enable chain-of-thought reasoning
+)
+```
+
+#### `QwenConversationModel`
+
+```python
+QwenConversationModel(
+    base_url: str,
+    api_key: str,
+    client_configs: Optional[Dict] = None,
+    default_generate_configs: Optional[Dict] = None,
+    instance_id: Optional[str] = None,
+    qwen_model: str = 'qwen-coder-plus',
+    enable_thinking: bool = True,
+    thinking_budget: int = 1024
+)
+```
+
+Uses streaming responses and reconstructs tool calls from streamed chunks.
+
+---
+
+### `simplex.loop`
+
+#### `AgentLoop(AgentLoopAdapter)`
+
+The core agent execution engine.
+
+```python
+AgentLoop(
+    model: ConversationModel,
+    exception_handler: ExceptionHandler,
+    *args: ToolCollection | ContextPlugin   # Tools and context plugins
+)
+```
+
+| Method | Description |
+|--------|-------------|
+| `add_instance(*args)` | Register additional tools/contexts (before `build()`) |
+| `__getitem__(key)` | Access registered instance by `instance_id` (e.g. `loop['log']`) |
+| `complete(system, user, history, ...)` | Execute one full task completion cycle |
+| `build()` / `release()` / `reset()` / `clone()` | Lifecycle management |
+| `bind_io(input_interface, output_interface)` | Bind user I/O and register I/O plugins |
+
+**`complete()` parameters:**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `system` | `Optional[PromptTemplate]` | `None` | System prompt |
+| `user` | `Optional[PromptTemplate]` | `None` | User prompt for this task |
+| `history` | `Optional[List[Dict]]` | `None` | OpenAI-format message history |
+| `max_iteration` | `int` | `50` | Max tool-calling rounds |
+| `timeout` | `float` | `600` | Seconds timeout per model request |
+| `max_retry` | `int` | `5` | Max retries for failed model requests |
+| `keep_original_system` | `bool` | `False` | Preserve system prompt from history |
+| `rehearsal_mode` | `bool` | `False` | Replay a previous trajectory |
+| `rehearsal_list` | `Optional[List[LoopInformation]]` | `None` | Trajectory to replay |
+
+#### `UserLoop`
+
+Orchestrates multi-turn conversations between user and agent.
+
+```python
+UserLoop(
+    input_interface: UserInputInterface,
+    output_interface: UserOutputInterface,
+    agent_loop: AgentLoopAdapter,
+    keep_history: bool = True,
+    complete_configs: Optional[Dict] = None
+)
+```
+
+| Method | Description |
+|--------|-------------|
+| `serve()` | Start the interactive conversation loop |
+
+`complete_configs` is forwarded to `AgentLoop.complete()` as keyword arguments.
+
+#### `AgentLoopAdapter(ABC)`
+
+Abstract base for wrapping `AgentLoop` with additional logic. `AgentLoop` itself is an `AgentLoopAdapter`. The `ParallelSampleAdapter` (in `simplex.loop.adapter`) wraps an `AgentLoop` for parallel trajectory sampling.
+
+#### `ParallelSampleAdapter`
+
+```python
+ParallelSampleAdapter(agent_loop: AgentLoop)
+
+async def sample_trajectories(
+    prompts: Union[PromptTemplate, List[PromptTemplate]],
+    num_trajectories: int,
+    system: Optional[PromptTemplate] = None,
+    history: Optional[List[dict]] = None,
+    max_iteration: int = 30,
+    timeout: float = 120,
+    max_retry: int = 5,
+    keep_original_system: bool = False
+) -> List[List[ModelResponse]]
+```
+
+Runs multiple `AgentLoop` clones in parallel using a `ThreadPoolExecutor`. Returns one list of responses per prompt.
+
+---
+
+### `simplex.tools`
+
+#### `ToolCollection(ABC)`
+
+Base class for all tool collections.
+
+```python
+ToolCollection(instance_id: str, name_mapping: Dict)
+```
+
+`name_mapping` maps external tool names (exposed to LLM) to internal method names (e.g. `{"view_file_content": "_tool_view_file_content"}`).
+
+| Method | Description |
+|--------|-------------|
+| `get_tool_schemas() -> List[ToolSchema]` | Return tool definitions for the LLM |
+| `tools_descriptions() -> str` | Human-readable tool descriptions |
+| `__call__(tool_call: ToolCall) -> ToolReturn` | Dispatch a tool call internally |
+
+Also supports all lifecycle hooks: `build`, `release`, `reset`, `clone`, `bind_io`, `process_prompt`, `start_loop`, `start_loop_async`, etc.
+
+#### `EditTools(ToolCollection)`
+
+Provides 8 file-editing operations via WebSocket to `simplex_tool_server`:
+
+| Operation | Description |
+|-----------|-------------|
+| `view_workspace` | Get current workspace file tree |
+| `show_details` | Show directory/file details |
+| `view_file_content` | Read file content with line range |
+| `edit_file_content` | Replace or insert text in files |
+| `str_replace_edit` | String-based find-and-replace |
+| `undo` | Undo previous edit |
+| `search` | Search by identifier, definition, or pattern |
+| `operate_filesystem` | Create, remove, or rename files |
+
+```python
+EditTools(
+    base_dir: str | Path,             # Agent's working directory
+    client: WebsocketClient,          # Connection to simplex_tool_server
+    permission_required: bool = True, # Require user approval for operations
+    instance_id: Optional[str] = None,
+    rename_mapping: Dict[EditOperation, str] = {...},  # Customize tool names
+    add_skill: bool = True            # Auto-inject skill instructions into prompt
+)
+```
+
+#### `SubprocessExecutorLocal(ToolCollection)`
+
+Executes bash commands locally with optional user permission.
+
+```python
+SubprocessExecutorLocal(
+    rename: str = 'bash',
+    permission_required: bool = True,
+    instance_id: Optional[str] = None
+)
+```
+
+#### `SequentialPlan(ToolCollection)`
+
+Provides the `make_plan` tool for the LLM to create, update, and review structured task plans.
+
+```python
+SequentialPlan(
+    rename: str = 'make_plan',
+    empty_on_reset: bool = True,
+    instance_id: Optional[str] = None,
+    add_skill: bool = True
+)
+```
+
+The plan tool supports three `edit_type` modes: `replace`, `append`, and `check_only`.
+
+#### `InLoopConversation(ToolCollection)`
+
+Provides the `propose` tool — lets the agent pause and ask the user a question mid-execution.
+
+```python
+InLoopConversation(
+    rename: str = 'propose',
+    instance_id: Optional[str] = None,
+    add_skill: bool = True
+)
+```
+
+#### `PythonInterpreter(ToolCollection)`
+
+Executes Python code snippets, locally or in a Docker container.
+
+```python
+PythonInterpreter(
+    instance_id: Optional[str] = None,
+    rename: str = 'python_interpreter',
+    use_container: bool = False,
+    container_manager: Optional[ContainerManager] = None,
+    exec_command: Callable[[str], List[str]] = lambda script: ['python', '-c', script],
+    timeout: float = 10
+)
+```
+
+#### `MockCalculator(ToolCollection)`
+
+A simple mock tool for testing. Provides basic arithmetic operations without external dependencies.
+
+---
+
+### `simplex.context`
+
+#### `ContextPlugin(ABC)`
+
+Base class for all context plugins. Implements the same lifecycle hooks as `ToolCollection` but is not exposed to the LLM.
+
+```python
+ContextPlugin(instance_id: str)
+```
+
+#### `TrajectoryLogContext(ContextPlugin)`
+
+Logs the complete agent trajectory — system prompt, user prompt, each iteration's model response, tool calls, and tool returns.
+
+```python
+TrajectoryLogContext(
+    instance_id: Optional[str] = None,
+    empty_on_reset: bool = True,
+    line_width: int = 150,
+    delta: bool = True
+)
+```
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `log` | `List[LoopInformation]` | Raw structured log of all iterations |
+| `markdown` | `PromptTemplate` | Human-readable markdown representation |
+| `detailed` | `List[LoopInformation]` | Alias for `log` (used in example for pickle) |
+| `human_readable` | `str` | String form of `markdown` |
+
+#### `TokenCostCounter(ContextPlugin)`
+
+Tracks token consumption across all model interactions.
+
+```python
+TokenCostCounter(
+    instance_id: Optional[str] = None,
+    empty_on_reset: bool = True
+)
+```
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `token_total` | `int` | Cumulative tokens consumed |
+| `token_max` | `int` | Peak tokens in a single response |
+| `input_token_total` | `int` | Cumulative prompt tokens |
+| `output_token_total` | `int` | Cumulative completion tokens |
+| `iterations` | `int` | Number of completed model calls |
+| `token_cost` | `List[Dict]` | Formatted token statistics |
+| `token_cost_formatted` | `List[Dict]` | Human-readable (e.g. `1.2k`, `3.5m`) |
+
+#### `RollContextClipper(ContextPlugin)`
+
+Prevents context window overflow by clipping old function-calling messages when token usage exceeds a threshold.
+
+```python
+RollContextClipper(
+    instance_id: Optional[str] = None,
+    max_context_tokens: int = 128000,
+    threshold_ratio: float = 0.65,
+    keep_fc_msgs: int = 50,
+    identify_function: Callable = identify_openai_function_calling
+)
+```
+
+**How it works:** After each iteration (`on_loop_end`), if `current_max_tokens > threshold_ratio * max_context_tokens`, it iteratively removes function-calling rounds (assistant tool_call + corresponding tool responses) while preserving at most `keep_fc_msgs` messages.
+
+#### `ActionSelfEvaluation(ContextPlugin)`
+
+Injects self-evaluation parameters (`task_status` and `action_quality`) into every tool schema, encouraging the LLM to reflect on its actions.
+
+```python
+ActionSelfEvaluation(
+    instance_id: Optional[str] = None,
+    add_skill: bool = True
+)
+```
+
+---
+
+### `simplex.io`
+
+#### `UserInputInterface(ABC)`
+
+```python
+@abstractmethod
+async def next_message(self) -> UserMessage
+
+@abstractmethod
+async def notify_user(self, notify: UserNotify) -> UserResponse
+
+@abstractmethod
+def get_input_plugin(self) -> Optional[ContextPlugin]
+```
+
+#### `UserOutputInterface(ABC)`
+
+```python
+@abstractmethod
+async def push_message(self, notify: UserNotify) -> Any
+
+@abstractmethod
+def get_output_plugin(self) -> Optional[ContextPlugin]
+```
+
+#### `RichTerminalInterface`
+
+Implements both `UserInputInterface` and `UserOutputInterface` with a rich terminal UI.
+
+```python
+RichTerminalInterface(
+    model_name: str = 'unknown',
+    style: str = 'default',
+    base_system_prompt: Optional[PromptTemplate] = None,
+    skill_retriever: Optional[SkillRetriever] = None
+)
+```
+
+| Method | Description |
+|--------|-------------|
+| `get_exception_handler()` | Returns `RichTerminalExceptionHandler` for styled error display |
+| `get_input_plugin()` | Returns `RichTerminalInputPlugin` (handles `/skills` command) |
+| `get_output_plugin()` | Returns `RichTerminalOutputPlugin` (spinners, formatted output) |
+
+---
+
+### `simplex.basics`
+
+#### `PromptTemplate`
+
+A builder for structured markdown prompts.
+
+```python
+PromptTemplate(content: str = '')
+
+# Methods (all return self for chaining):
+.add_main_title(title)         # "# Title"
+.add_sub_title(title)          # "## Title"
+.add_simple(text, title)       # Plain text with optional heading
+.add_block(text, title, block) # Fenced code block (e.g. block='yaml')
+```
+
+Supports `+`, `+=`, `str()`, and `repr()`.
+
+#### `SkillRetriever`
+
+BM25-based skill search for injecting relevant skill instructions into prompts.
+
+```python
+SkillRetriever(top_k: int = 5, path: Path = SKILLS_PATH)
+
+search(query: str, top_k: Optional[int] = None) -> List[Dict]
+get_more(top_k: int) -> List[Dict]
+get_system_prompt(path: Optional[Path] = None) -> PromptTemplate
+```
+
+#### `WebsocketClient`
+
+Async WebSocket client for communicating with `simplex_tool_server`.
+
+```python
+WebsocketClient(
+    port: int,
+    host: str = 'localhost',
+    max_queue_size: int = 0,
+    max_retry: int = 5,
+    await_timeout: float = 1
+)
+```
+
+| Method | Description |
+|--------|-------------|
+| `build()` | Start the WebSocket connection task |
+| `release()` | Stop the connection |
+| `exchange(data)` | Send JSON, wait for response (correlates by UUID) |
+
+Supports `async with` context manager.
+
+#### `WebsocketClientSync`
+
+Synchronous variant using threading. Same API but blocking.
+
+#### `CommandProcess`
+
+Context manager for launching and managing a subprocess.
+
+```python
+CommandProcess(cmd: List[str] | str, shell: bool = True)
+
+with CommandProcess("simplex_tool_server -p 9002") as proc:
+    ...  # Server runs in background, terminated on exit
+```
+
+Automatically kills the process group on context exit (SIGTERM → SIGKILL escalation).
+
+#### `ContainerManager`
+
+Docker container management utility (used by `PythonInterpreter` when `use_container=True`).
+
+#### Exception Types
+
+All in `simplex.basics.exception`:
+
+| Exception | Purpose |
+|-----------|---------|
+| `EntityInitializationError` | Model/tool/context init failure |
+| `RequestError` | LLM API request failure |
+| `ParameterError` | Invalid parameter (with function name, param, type hint) |
+| `ImplementationError` | Method implementation error |
+| `EnvironmentError` | Environment setup/teardown failure |
+| `UnbuiltError` | Method called before `build()` |
+| `ConflictError` | Duplicate instance key or tool name |
+| `MaxRetriesExceeded` | All retry attempts exhausted |
+| `Notice` | Non-fatal notification (logged but not raised) |
+
+#### `ExceptionHandler` / `LogExceptionHandler`
+
+```python
+LogExceptionHandler(
+    instance_id: Optional[str] = None,
+    content: str = '',
+    file: Any = sys.stderr
+)
+```
+
+Logs exceptions with timestamps. `RichTerminalExceptionHandler` extends this for styled terminal output.
+
+#### `async_retry_timeout`
+
+Utility decorator for retry-with-timeout logic.
+
+```python
+async_retry_timeout(
+    max_retry: int,
+    timeout: float,
+    retry_exceptions: tuple = (asyncio.TimeoutError, RequestError),
+    on_retry: Callable = None
+)
+```
+
+Used internally by `AgentLoop.complete()` for resilient model generation.
+
+---
+
+### `simplex.agents`
+
+Convenience functions for creating common agent configurations.
+
+#### `get_standard_coder_agent()`
+
+```python
+get_standard_coder_agent(
+    model: ConversationModel,
+    work_dir: str | Path,
+    exception_handler: Optional[ExceptionHandler] = None,
+    edit_tools_port: int = 9002,
+    edit_tools_host: str = 'localhost',
+    log: str = 'log',
+    token_counter: str = 'token_counter'
+) -> AgentLoopAdapter
+```
+
+Returns a pre-configured `AgentLoop` with `EditTools`, `TrajectoryLogContext`, and `TokenCostCounter`. A minimal starting point that you can extend.
+
+---
+
+## The `simplex_tool_server`
+
+The `EditTools` module communicates with an external C++ WebSocket server that performs all file system operations. This separation ensures that file operations are sandboxed and auditable.
+
+**Starting the server** (from the example):
+
+```python
+from simplex.basics import CommandProcess
+
+with CommandProcess(f"simplex_tool_server -p 9002 -c 20") as proc:
+    asyncio.run(main(...))
+```
+
+The server manages:
+- Working directory scoping (set via `set_working_dir` message)
+- File content viewing with line range
+- Directory structure enumeration
+- Text editing (replace, insert)
+- String-based find-and-replace
+- Undo history per file
+- Pattern/identifier/definition search
+- File system operations (create, remove, rename)
+- Workspace refresh
+
+---
+
+## Error Handling
+
+The framework uses a hierarchical exception system:
+
+```
+Exception
+ └─ CustomException
+      ├─ EntityInitializationError
+      ├─ RequestError
+      ├─ ParameterError
+      ├─ ImplementationError
+      ├─ EnvironmentError
+      ├─ UnbuiltError
+      ├─ ConflictError
+      ├─ MaxRetriesExceeded
+      └─ Notice
+```
+
+**In the AgentLoop:** The `ExceptionHandler` receives results from lifecycle hooks and tool executions. Non-fatal issues (like a plugin missing a hook) produce `Notice` exceptions. Fatal errors (like model failures after max retries) raise `RuntimeError`.
+
+**In tools:** `UnbuiltError` is raised if a tool method is called before `build()`. `RequestError` wraps external service failures.
+
+---
+
+## Advanced Usage
+
+### Parallel Trajectory Sampling
+
+Sample multiple response trajectories for the same prompt:
 
 ```python
 from simplex.loop.adapter import ParallelSampleAdapter
-from simplex.basics import PromptTemplate
 
-async def parallel_sampling_example():
-    # Create base agent loop
-    agent = AgentLoop(model, exception_handler, tools...)
-    
-    # Wrap with parallel sampling adapter
-    adapter = ParallelSampleAdapter(agent)
-    
-    async with adapter:
-        # Sample 3 trajectories for each prompt
-        results = await adapter.sample_trajectories(
-            prompts=[
-                PromptTemplate("Explain quantum computing"),
-                PromptTemplate("Explain machine learning")
-            ],
-            num_trajectories=3,
-            max_iteration=20
+adapter = ParallelSampleAdapter(agent_loop)
+results = await adapter.sample_trajectories(
+    prompts=PromptTemplate("Write a Python function to..."),
+    num_trajectories=5,
+    system=system_prompt,
+    max_iteration=50,
+    timeout=300
+)
+# results: [[ModelResponse, ...]] — 5 trajectories
+```
+
+Each trajectory runs in its own thread with a cloned `AgentLoop`.
+
+### Rehearsal Mode
+
+Replay a previously logged trajectory exactly:
+
+```python
+log: TrajectoryLogContext = loop['log']
+# ... first run ...
+
+# Replay the same trajectory
+await loop.complete(
+    system=...,
+    user=...,
+    rehearsal_mode=True,
+    rehearsal_list=log.log  # List[LoopInformation] from previous run
+)
+```
+
+In rehearsal mode, model responses are taken from the recorded trajectory instead of calling the LLM. Tool calls are still executed.
+
+### Building Custom Tools
+
+```python
+from simplex.tools import ToolCollection, load_schema, load_tool_definitions
+
+class MyCustomTool(ToolCollection):
+    SCHEMA_FILE = 'schema_my_tool'  # YAML file in simplex/tools/schema/
+
+    def __init__(self, instance_id=None):
+        super().__init__(
+            instance_id or uuid.uuid4().hex,
+            {'my_tool': '_tool_my_tool'}
         )
-    
-    # results is List[List[ModelInput]]
-    # Each prompt gets num_trajectories results
-    for prompt_idx, trajectory_results in enumerate(results):
-        print(f"Prompt {prompt_idx}: {len(trajectory_results)} trajectories")
+        self.schema = load_schema(self.SCHEMA_FILE, 'my_tool', 'my_tool')
+
+    def get_tool_schemas(self):
+        return [self.schema]
+
+    async def _tool_my_tool(self, param1: str, param2: int, **kwargs) -> str:
+        # Your tool logic here
+        return f"Result: {param1} x {param2}"
+
+# Register with AgentLoop
+loop = AgentLoop(model, handler, MyCustomTool(), ...)
 ```
-## Customization Guide
 
-### Creating Custom ToolCollections
+Tool schemas are defined as YAML files in `src/simplex/tools/schema/`.
 
-`ToolCollection` is the base class for defining groups of tools that your agent can use. Each tool collection manages a set of related tools and handles their execution.
-
-#### ToolCollection Base Class
+### Building Custom Context Plugins
 
 ```python
-from simplex.tools import ToolCollection
-from simplex.basics import ToolCall, ToolReturn, ToolSchema
-
-class MyCustomTools(ToolCollection):
-    def __init__(self, instance_id: str = 'my_tools'):
-        # Define name mapping: external tool name -> internal method name
-        name_mapping = {
-            'calculate': '_tool_calculate',
-            'lookup': '_tool_lookup'
-        }
-        super().__init__(instance_id, name_mapping)
-        
-        # Define tool schemas
-        self.schemas = [
-            ToolSchema(
-                name='calculate',
-                description='Perform mathematical calculations',
-                params=[
-                    ToolSchema.Parameter(
-                        field='expression',
-                        type='string',
-                        description='Mathematical expression to evaluate',
-                        required=True
-                    )
-                ]
-            ),
-            ToolSchema(
-                name='lookup',
-                description='Look up information in a database',
-                params=[
-                    ToolSchema.Parameter(
-                        field='query',
-                        type='string',
-                        description='Search query',
-                        required=True
-                    )
-                ]
-            )
-        ]
-    
-    def get_tool_schemas(self) -> list:
-        """Return list of tool schemas for this collection."""
-        return self.schemas
-    
-    def tools_descriptions(self) -> str:
-        """Return human-readable description of all tools."""
-        return "Calculate: Evaluate math expressions.\nLookup: Search database."
-    
-    # Tool implementation methods (must be async)
-    async def _tool_calculate(self, expression: str) -> str:
-        """Execute the calculate tool."""
-        try:
-            result = eval(expression)  # Note: Use safe eval in production!
-            return f"Result: {result}"
-        except Exception as e:
-            return f"Error calculating: {str(e)}"
-    
-    async def _tool_lookup(self, query: str) -> str:
-        """Execute the lookup tool."""
-        # Implement your lookup logic here
-        return f"Results for: {query}"
-```
-
-#### Using Schemas from YAML Files
-
-You can define tool schemas in YAML files for better organization:
-
-```yaml
-# src/simplex/tools/schema/my_tools.yml
-calculate:
-  name: calculate
-  description: Perform mathematical calculations
-  params:
-    - field: expression
-      type: string
-      description: Mathematical expression to evaluate
-      required: true
-
-lookup:
-  name: lookup
-  description: Look up information in a database
-  params:
-    - field: query
-      type: string
-      description: Search query
-      required: true
-```
-
-Then load them in your ToolCollection:
-
-```python
-from simplex.tools.base import load_schema, load_tool_definitions
-
-class MyCustomTools(ToolCollection):
-    SCHEMA_FILE = 'my_tools'
-    
-    def __init__(self, instance_id: str = 'my_tools'):
-        name_mapping = {
-            'calculate': '_tool_calculate',
-            'lookup': '_tool_lookup'
-        }
-        super().__init__(instance_id, name_mapping)
-        
-        # Load schemas from YAML
-        self.calculate_schema = load_schema(self.SCHEMA_FILE, 'calculate')
-        self.lookup_schema = load_schema(self.SCHEMA_FILE, 'lookup')
-        
-    def get_tool_schemas(self) -> list:
-        return [self.calculate_schema, self.lookup_schema]
-    
-    def tools_descriptions(self) -> str:
-        return load_tool_definitions(self.SCHEMA_FILE)
-```
-
-#### Lifecycle Hooks in ToolCollections
-
-ToolCollections can implement lifecycle hooks to manage resources:
-
-```python
-class DatabaseTools(ToolCollection):
-    def __init__(self, db_config: dict, instance_id: str = 'db_tools'):
-        super().__init__(instance_id, {...})
-        self.db_config = db_config
-        self.connection = None
-    
-    async def build(self) -> None:
-        """Initialize database connection."""
-        self.connection = await create_connection(self.db_config)
-    
-    async def release(self) -> None:
-        """Close database connection."""
-        if self.connection:
-            await self.connection.close()
-    
-    async def reset(self) -> None:
-        """Reset state for new conversation."""
-        # Clear any cached data
-        pass
-    
-    def after_tool_call(self, tool_returns, **kwargs):
-        """Process tool results after execution."""
-        # Log tool usage, update metrics, etc.
-        pass
-```
-
-#### Example: Weather Tool Collection
-
-```python
-import aiohttp
-from simplex.tools import ToolCollection
-from simplex.basics import ToolSchema
-
-class WeatherTools(ToolCollection):
-    def __init__(self, api_key: str, instance_id: str = 'weather'):
-        name_mapping = {
-            'get_weather': '_tool_get_weather',
-            'get_forecast': '_tool_get_forecast'
-        }
-        super().__init__(instance_id, name_mapping)
-        
-        self.api_key = api_key
-        self.base_url = "https://api.weatherapi.com/v1"
-        
-        self.schemas = [
-            ToolSchema(
-                name='get_weather',
-                description='Get current weather for a location',
-                params=[
-                    ToolSchema.Parameter('location', 'string', 'City name', True)
-                ]
-            )
-        ]
-    
-    def get_tool_schemas(self) -> list:
-        return self.schemas
-    
-    def tools_descriptions(self) -> str:
-        return "Weather tools for current conditions and forecasts."
-    
-    async def _tool_get_weather(self, location: str) -> str:
-        """Fetch current weather data."""
-        async with aiohttp.ClientSession() as session:
-            url = f"{self.base_url}/current.json"
-            params = {'key': self.api_key, 'q': location}
-            async with session.get(url, params=params) as resp:
-                data = await resp.json()
-                return f"Weather in {location}: {data['current']['temp_c']}°C"
-```
-
-### Creating Custom ContextPlugins
-
-`ContextPlugin` allows you to inject custom behavior and state management into the agent loop. Unlike tools, context plugins don't define callable tools but can modify loop state and behavior.
-
-#### ContextPlugin Base Class
-
-```python
-from simplex.context import ContextPlugin
-from simplex.basics import AgentLoopStateEdit, PromptTemplate
-
-class MyContextPlugin(ContextPlugin):
-    def __init__(self, instance_id: str = 'my_context'):
-        super().__init__(instance_id)
-        self.call_count = 0
-    
-    def process_prompt(
-        self, 
-        system_prompt: PromptTemplate, 
-        user_prompt: PromptTemplate,
-        **kwargs
-    ) -> AgentLoopStateEdit:
-        """Modify prompts before the loop starts."""
-        # Add custom instructions to the system prompt
-        enhanced_system = system_prompt + "\n\nAdditional instructions here."
-        
-        return AgentLoopStateEdit(system_prompt=enhanced_system)
-    
-    def before_response(self, iter: int, **kwargs):
-        """Called before each model response."""
-        self.call_count += 1
-        print(f"Starting iteration {iter}")
-    
-    async def after_response_async(self, model_response, **kwargs):
-        """Process model response asynchronously."""
-        # Log, analyze, or modify the response
-        pass
-    
-    def after_final_response(self, model_input, **kwargs):
-        """Called when the agent produces a final answer."""
-        print(f"Agent completed after {self.call_count} iterations")
-```
-
-#### Built-in Context Plugins
-
-##### TrajectoryLogContext
-
-Records the complete agent trajectory:
-
-```python
-from simplex.context import TrajectoryLogContext
-
-log_context = TrajectoryLogContext(
-    instance_id='trajectory',
-    empty_on_reset=True,  # Clear logs on reset
-    line_width=150,       # Formatting width
-    delta=True            # Only show changes
-)
-
-# After agent execution, access the logs
-print(log_context.human_readable)  # Markdown formatted log
-print(log_context.dictionary)       # Structured data
-```
-
-##### TokenCostCounter
-
-Tracks token usage and costs:
-
-```python
-from simplex.context import TokenCostCounter
-
-cost_counter = TokenCostCounter(
-    instance_id='costs',
-    price_input=0.001,    # $ per 1K input tokens
-    price_output=0.002    # $ per 1K output tokens
-)
-
-# After execution
-print(f"Total cost: ${cost_counter.total_cost}")
-print(f"Input tokens: {cost_counter.total_input_tokens}")
-```
-
-#### Example: Custom Metrics Plugin
-
-```python
-import time
 from simplex.context import ContextPlugin
 from simplex.basics import AgentLoopStateEdit
 
-class MetricsPlugin(ContextPlugin):
-    """Track performance metrics during agent execution."""
-    
-    def __init__(self, instance_id: str = 'metrics'):
-        super().__init__(instance_id)
-        self.start_time = None
-        self.iteration_times = []
-        self.tool_usage = {}
-    
-    async def start_loop_async(self, **kwargs):
-        """Record loop start time."""
-        self.start_time = time.time()
-        self.iteration_times = []
-        self.tool_usage = {}
-    
-    def before_response(self, iter: int, **kwargs):
-        """Record iteration start."""
-        self.iteration_times.append({'start': time.time()})
-    
-    def after_response(self, iter: int, **kwargs):
-        """Record iteration end."""
-        if iter < len(self.iteration_times):
-            self.iteration_times[iter]['end'] = time.time()
-    
-    def after_tool_call(self, tool_returns, **kwargs):
-        """Track tool usage."""
-        for ret in tool_returns:
-            tool_name = ret.original_call.name
-            self.tool_usage[tool_name] = self.tool_usage.get(tool_name, 0) + 1
-    
-    def on_exit(self, **kwargs):
-        """Calculate final metrics."""
-        total_time = time.time() - self.start_time if self.start_time else 0
-        
-        print(f"\n=== Metrics ===")
-        print(f"Total time: {total_time:.2f}s")
-        print(f"Iterations: {len(self.iteration_times)}")
-        print(f"Tool usage: {self.tool_usage}")
-        
-        if self.iteration_times:
-            avg_iter = sum(
-                t['end'] - t['start'] 
-                for t in self.iteration_times 
-                if 'end' in t and 'start' in t
-            ) / len(self.iteration_times)
-            print(f"Avg iteration time: {avg_iter:.2f}s")
+class MyPlugin(ContextPlugin):
+    def __init__(self, instance_id=None):
+        super().__init__(instance_id or uuid.uuid4().hex)
+
+    async def before_response_async(self, model_input, **kwargs):
+        # Modify model input before each LLM call
+        print(f"About to call LLM with {len(model_input.messages)} messages")
+
+    def on_loop_end(self, **kwargs):
+        # Potentially modify loop state
+        return AgentLoopStateEdit(exit_flag=should_stop_early())
 ```
 
-#### Example: Dynamic Prompt Enhancement
+---
+
+## Logging & Trajectory Output
+
+After a session, you can export the trajectory in multiple formats:
 
 ```python
-from simplex.context import ContextPlugin
-from simplex.basics import AgentLoopStateEdit, PromptTemplate
+log: TrajectoryLogContext = loop['log']
 
-class SkillInjectorPlugin(ContextPlugin):
-    """Dynamically inject skills based on user query."""
-    
-    def __init__(
-        self, 
-        skill_library: dict, 
-        instance_id: str = 'skill_injector'
-    ):
-        super().__init__(instance_id)
-        self.skill_library = skill_library
-        self.injected_skills = set()
-    
-    def process_prompt(
-        self, 
-        user_prompt: PromptTemplate, 
-        **kwargs
-    ) -> AgentLoopStateEdit:
-        """Inject relevant skills into the prompt."""
-        user_text = str(user_prompt).lower()
-        
-        # Check which skills are relevant
-        relevant_skills = []
-        for skill_name, skill_content in self.skill_library.items():
-            if skill_name in user_text and skill_name not in self.injected_skills:
-                relevant_skills.append(skill_content)
-                self.injected_skills.add(skill_name)
-        
-        if relevant_skills:
-            enhanced_prompt = user_prompt + "\n\n" + "\n\n".join(relevant_skills)
-            return AgentLoopStateEdit(user_prompt=enhanced_prompt)
-        
-        return None
-    
-    async def reset(self):
-        """Clear injected skills for new conversation."""
-        self.injected_skills.clear()
-```
-### Creating Custom Models
+# Structured data (pickle)
+with open('trajectory.pkl', 'wb') as f:
+    pickle.dump(log.detailed, f)
 
-SimpleX provides a model abstraction layer that allows you to integrate different LLM backends. The `ConversationModel` base class defines the interface for chat-based models.
-
-#### ConversationModel Base Class
-
-```python
-from simplex.models import ConversationModel
-from simplex.basics import ModelInput, ModelResponse, ToolReturn
-
-class CustomConversationModel(ConversationModel):
-    def __init__(
-        self,
-        base_url: str,
-        api_key: str,
-        model_name: str,
-        client_configs: dict = None,
-        generate_configs: dict = None
-    ):
-        super().__init__(
-            base_url=base_url,
-            api_key=api_key,
-            client_configs=client_configs or {},
-            default_generate_configs=generate_configs or {}
-        )
-        self.model_name = model_name
-    
-    def clone(self) -> "CustomConversationModel":
-        """Create a copy of this model instance."""
-        return CustomConversationModel(
-            base_url=self._base_url,
-            api_key=self._api_key,
-            model_name=self.model_name,
-            client_configs=self._client_configs,
-            generate_configs=self._default_generate_configs
-        )
-    
-    async def generate(self, model_input: ModelInput) -> ModelResponse:
-        """
-        Generate a response from the model.
-        
-        This method must be implemented to call the LLM backend.
-        """
-        # Implement your model API call here
-        # Use self.client (OpenAI async client) or implement custom HTTP calls
-        
-        response = await self.client.chat.completions.create(
-            model=self.model_name,
-            messages=model_input.messages,
-            tools=model_input.tools if model_input.tools else None,
-            **self._default_generate_configs
-        )
-        
-        # Parse and return the response
-        return self._parse_response(response)
-    
-    async def batch_response(
-        self, 
-        inputs: List[ModelInput]
-    ) -> List[ModelResponse]:
-        """Generate responses for multiple inputs concurrently."""
-        import asyncio
-        return await asyncio.gather(*[self.generate(inp) for inp in inputs])
-    
-    def tool_return_integrate(
-        self,
-        input: ModelInput,
-        response: ModelResponse,
-        tool_return: List[ToolReturn],
-        **kwargs
-    ) -> ModelInput:
-        """
-        Integrate tool execution results into the message history.
-        
-        Called after tools are executed to prepare the next model input.
-        """
-        messages = list(input.messages)
-        
-        # Add the assistant's tool call message
-        messages.append({
-            'role': 'assistant',
-            'tool_calls': [
-                {
-                    'id': call.id,
-                    'type': 'function',
-                    'function': {
-                        'name': call.name,
-                        'arguments': call.arguments
-                    }
-                }
-                for call in response.tool_call
-            ]
-        })
-        
-        # Add tool results
-        for ret in tool_return:
-            messages.append({
-                'role': 'tool',
-                'tool_call_id': ret.original_call.id,
-                'content': ret.content
-            })
-        
-        return ModelInput(messages=messages, tools=input.tools)
-    
-    def final_response_integrate(
-        self,
-        input: ModelInput,
-        response: ModelResponse,
-        **kwargs
-    ) -> ModelInput:
-        """
-        Integrate the final response into message history.
-        
-        Called when the agent produces a final answer (no tool calls).
-        """
-        messages = list(input.messages)
-        messages.append({
-            'role': 'assistant',
-            'content': response.response
-        })
-        return ModelInput(messages=messages)
+# Human-readable markdown
+with open('trajectory.md', 'w') as f:
+    f.write(log.human_readable)
 ```
 
-#### Example: OpenAI-Compatible Model
+The markdown includes:
+- Initial system and user prompts
+- Per-iteration reasoning content, tool calls (with arguments), model responses
+- Tool return values
+- Token cost summary (via `TokenCostCounter`)
 
-```python
-from simplex.models.base import ConversationModel, openai_compatiable_translate
-from simplex.basics import ModelInput, ModelResponse, ToolCall
+---
 
-class OpenAICompatibleModel(ConversationModel):
-    """Model implementation for OpenAI-compatible APIs."""
-    
-    def __init__(
-        self,
-        base_url: str,
-        api_key: str,
-        model_name: str,
-        temperature: float = 0.7,
-        max_tokens: int = 4096
-    ):
-        super().__init__(
-            base_url=base_url,
-            api_key=api_key,
-            generate_configs={
-                'temperature': temperature,
-                'max_tokens': max_tokens
-            }
-        )
-        self.model_name = model_name
-    
-    def clone(self) -> "OpenAICompatibleModel":
-        return OpenAICompatibleModel(
-            base_url=self._base_url,
-            api_key=self._api_key,
-            model_name=self.model_name,
-            temperature=self._default_generate_configs.get('temperature', 0.7),
-            max_tokens=self._default_generate_configs.get('max_tokens', 4096)
-        )
-    
-    async def generate(self, model_input: ModelInput) -> ModelResponse:
-        # Convert ModelInput to OpenAI format
-        request_dict = openai_compatiable_translate(model_input)
-        request_dict['model'] = self.model_name
-        
-        # Add generate configs
-        request_dict.update(self._default_generate_configs)
-        
-        # Make the API call
-        response = await self.client.chat.completions.create(**request_dict)
-        
-        # Parse response
-        choice = response.choices[0]
-        
-        tool_calls = None
-        if choice.message.tool_calls:
-            tool_calls = [
-                ToolCall(
-                    id=tc.id,
-                    name=tc.function.name,
-                    arguments=tc.function.arguments
-                )
-                for tc in choice.message.tool_calls
-            ]
-        
-        return ModelResponse(
-            response=choice.message.content,
-            tool_call=tool_calls
-        )
-    
-    async def batch_response(
-        self, 
-        inputs: List[ModelInput]
-    ) -> List[ModelResponse]:
-        import asyncio
-        return await asyncio.gather(*[self.generate(inp) for inp in inputs])
-    
-    def tool_return_integrate(
-        self, 
-        input: ModelInput, 
-        response: ModelResponse, 
-        tool_return: List[ToolReturn],
-        **kwargs
-    ) -> ModelInput:
-        messages = list(input.messages)
-        
-        # Add assistant message with tool calls
-        if response.tool_call:
-            messages.append({
-                'role': 'assistant',
-                'content': None,
-                'tool_calls': [
-                    {
-                        'id': tc.id,
-                        'type': 'function',
-                        'function': {
-                            'name': tc.name,
-                            'arguments': tc.arguments
-                        }
-                    }
-                    for tc in response.tool_call
-                ]
-            })
-        
-        # Add tool results
-        for ret in tool_return:
-            messages.append({
-                'role': 'tool',
-                'tool_call_id': ret.original_call.id,
-                'content': ret.content
-            })
-        
-        return ModelInput(messages=messages, tools=input.tools)
-    
-    def final_response_integrate(
-        self, 
-        input: ModelInput, 
-        response: ModelResponse,
-        **kwargs
-    ) -> ModelInput:
-        messages = list(input.messages)
-        messages.append({
-            'role': 'assistant',
-            'content': response.response
-        })
-        return ModelInput(messages=messages)
-```
+## Configuration Reference
 
-#### Using the Mock Model for Testing
+### AgentLoop Constructor Parameters
 
-```python
-from simplex.models import MockConversationModel
-from simplex.basics import ModelResponse, ToolCall
+| Component | Key Parameters |
+|-----------|---------------|
+| `DeepSeekConversationModel` | `base_url`, `api_key`, `model`, `temperature`, `enable_thinking` |
+| `EditTools` | `base_dir`, `client` (WebsocketClient), `permission_required`, `add_skill` |
+| `SubprocessExecutorLocal` | `permission_required` |
+| `SequentialPlan` | `add_skill` |
+| `RollContextClipper` | `max_context_tokens` (256000), `threshold_ratio` (0.65), `keep_fc_msgs` (120) |
+| `TokenCostCounter` | (no required params) |
+| `InLoopConversation` | `add_skill` |
+| `TrajectoryLogContext` | `instance_id`, `line_width` |
 
-# Create mock model with predefined responses
-mock_model = MockConversationModel(
-    expected_responses=[
-        ModelResponse(tool_call=[
-            ToolCall('call_1', 'search', {'query': 'python asyncio'})
-        ]),
-        ModelResponse(response="Based on the search results, asyncio is..."),
-        ModelResponse(tool_call=[
-            ToolCall('call_2', 'make_plan', {'content': 'Plan: ...'})
-        ]),
-        ModelResponse(response="Here's the final answer.")
-    ]
-)
+### UserLoop / complete() Parameters
 
-# Use in tests
-async def test_agent():
-    agent = AgentLoop(mock_model, exception_handler, tools...)
-    async with agent:
-        result = await agent.complete(user="Explain asyncio")
-```
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `max_iteration` | 100 | Max tool-calling rounds per task |
+| `timeout` | 600 | Seconds per model request |
+| `max_retry` | 5 | Retries for failed requests |
+| `keep_history` | `True` | Maintain conversation history across turns |
 
-## Advanced Topics
-
-### Accessing AgentLoop Instances
-
-You can access registered tools and context plugins using dictionary-style access:
-
-```python
-# Create agent loop with named instances
-agent = AgentLoop(
-    model,
-    exception_handler,
-    TrajectoryLogContext(instance_id='trajectory'),
-    SubprocessExecutorLocal(),
-    MetricsPlugin(instance_id='metrics')
-)
-
-# Access instances by their key
-trajectory_log = agent['trajectory']
-metrics = agent['metrics']
-
-# Use instance data after execution
-async with agent:
-    await agent.complete(user="...")
-
-print(agent['trajectory'].human_readable)
-print(agent['metrics'].iteration_times)
-```
-
-### Modifying Loop State with AgentLoopStateEdit
-
-Context plugins and tools can modify the loop state by returning `AgentLoopStateEdit`:
-
-```python
-from simplex.basics import AgentLoopStateEdit
-
-class StateModifierPlugin(ContextPlugin):
-    def after_response(
-        self,
-        model_response,
-        exit_flag,
-        **kwargs
-    ) -> AgentLoopStateEdit:
-        """Modify loop state based on response."""
-        
-        # Force exit after certain condition
-        if len(model_response.response or '') > 1000:
-            return AgentLoopStateEdit(exit_flag=True)
-        
-        return None
-```
-
-Available state modifications:
-- `system_prompt`: Modify the system prompt
-- `user_prompt`: Modify the user prompt
-- `model_input`: Replace the model input entirely
-- `model_response`: Modify the model response
-- `tool_returns`: Modify tool execution results
-- `exit_flag`: Set to `True` to exit the loop early
-
-### Creating Custom AgentLoopAdapter
-
-Implement your own adapter for specialized execution patterns:
-
-```python
-from simplex.loop.base import AgentLoopAdapter
-from simplex.basics import PromptTemplate, ModelInput
-
-class RetryAdapter(AgentLoopAdapter):
-    """Adapter that retries on failed responses."""
-    
-    def __init__(self, agent_loop: AgentLoop, max_retries: int = 3):
-        self.agent_loop = agent_loop
-        self.max_retries = max_retries
-    
-    async def build(self) -> None:
-        await self.agent_loop.build()
-    
-    async def release(self) -> None:
-        await self.agent_loop.release()
-    
-    async def reset(self) -> None:
-        await self.agent_loop.reset()
-    
-    def clone(self) -> "RetryAdapter":
-        return RetryAdapter(self.agent_loop.clone(), self.max_retries)
-    
-    async def bind_io(self, input_interface, output_interface) -> None:
-        await self.agent_loop.bind_io(input_interface, output_interface)
-    
-    async def complete(
-        self,
-        system: PromptTemplate = None,
-        user: PromptTemplate = None,
-        history: list = None,
-        **kwargs
-    ) -> ModelInput:
-        """Execute with retry logic."""
-        last_error = None
-        
-        for attempt in range(self.max_retries):
-            try:
-                result = await self.agent_loop.complete(
-                    system=system,
-                    user=user,
-                    history=history,
-                    **kwargs
-                )
-                # Check if result is valid
-                if result.messages and result.messages[-1].get('content'):
-                    return result
-            except Exception as e:
-                last_error = e
-            
-            # Reset for retry
-            await self.agent_loop.reset()
-        
-        raise RuntimeError(f"Failed after {self.max_retries} attempts: {last_error}")
-```
-
-## Future Features and Roadmap
-
-### AgentLoopAdapter Extensions
-
-The `AgentLoopAdapter` pattern is designed to support advanced multi-agent scenarios:
-
-```python
-# Planned: Hierarchical Agent Architecture
-class HierarchicalAdapter(AgentLoopAdapter):
-    """
-    Adapter for hierarchical agent systems.
-    
-    A supervisor agent delegates tasks to specialized worker agents.
-    """
-    
-    def __init__(
-        self, 
-        supervisor: AgentLoop,
-        workers: Dict[str, AgentLoop]
-    ):
-        self.supervisor = supervisor
-        self.workers = workers
-    
-    async def complete(self, user, **kwargs) -> ModelInput:
-        # Supervisor analyzes and delegates
-        supervisor_result = await self.supervisor.complete(user=user, **kwargs)
-        
-        # Extract delegation decisions
-        delegations = self._parse_delegations(supervisor_result)
-        
-        # Execute worker agents
-        worker_results = await asyncio.gather(*[
-            self.workers[w].complete(user=task)
-            for w, task in delegations
-        ])
-        
-        # Aggregate results
-        return await self.supervisor.complete(
-            user=self._aggregate_results(worker_results)
-        )
-```
-
-### Pipe-like I/O Interface for Multi-Agent Systems
-
-A planned feature for composing agents in a pipeline fashion:
-
-```python
-# Planned: Pipe Interface
-class PipeInterface:
-    """
-    Enables connecting multiple agents in a pipeline.
-    
-    Output from one agent becomes input to the next.
-    """
-    
-    def __init__(self):
-        self.input_queue = asyncio.Queue()
-        self.output_queue = asyncio.Queue()
-    
-    async def send(self, message):
-        await self.output_queue.put(message)
-    
-    async def receive(self):
-        return await self.input_queue.get()
-
-# Usage: Agent composition
-agent1 = AgentLoop(model1, ...)
-agent2 = AgentLoop(model2, ...)
-
-# Connect agents
-pipe1 = PipeInterface()
-pipe2 = PipeInterface()
-
-# Agent1 writes to pipe1, reads from input
-# Agent2 reads from pipe1, writes to pipe2
-```
-
-### Better Skill Management
-
-Planned improvements for skill definition and injection:
-
-```python
-# Planned: SkillRegistry
-class SkillRegistry:
-    """
-    Centralized management of agent skills.
-    
-    Skills are modular capabilities that can be:
-    - Dynamically loaded based on context
-    - Shared across agents
-    - Versioned and updated
-    """
-    
-    def __init__(self):
-        self.skills: Dict[str, Skill] = {}
-    
-    def register(self, name: str, skill: Skill):
-        """Register a new skill."""
-        self.skills[name] = skill
-    
-    def get_relevant_skills(self, context: str) -> List[Skill]:
-        """Retrieve skills relevant to the current context."""
-        return [
-            skill for name, skill in self.skills.items()
-            if skill.is_relevant(context)
-        ]
-    
-    def to_prompt_section(self, skills: List[Skill]) -> str:
-        """Convert skills to a prompt section."""
-        return "\n\n".join(skill.to_prompt() for skill in skills)
-
-# Usage
-registry = SkillRegistry()
-registry.register("web_search", WebSearchSkill())
-registry.register("code_interpreter", CodeInterpreterSkill())
-
-# Auto-inject relevant skills
-class SkillInjectionPlugin(ContextPlugin):
-    def __init__(self, registry: SkillRegistry):
-        self.registry = registry
-    
-    def process_prompt(self, user_prompt, **kwargs):
-        skills = self.registry.get_relevant_skills(str(user_prompt))
-        if skills:
-            skill_prompt = self.registry.to_prompt_section(skills)
-            return AgentLoopStateEdit(
-                user_prompt=user_prompt + f"\n\n{skill_prompt}"
-            )
-```
-
-### Planned: Streaming Response Support
-
-```python
-# Planned: Streaming support
-class StreamingModel(ConversationModel):
-    async def generate_stream(
-        self, 
-        model_input: ModelInput
-    ) -> AsyncIterator[str]:
-        """Stream response chunks instead of returning complete response."""
-        async for chunk in self.client.chat.completions.create(
-            model=self.model_name,
-            messages=model_input.messages,
-            stream=True
-        ):
-            if chunk.choices[0].delta.content:
-                yield chunk.choices[0].delta.content
-```
-
-### Planned: Memory and State Management
-
-```python
-# Planned: Memory systems
-class ConversationMemory:
-    """
-    Persistent memory across conversations.
-    
-    Supports:
-    - Short-term: Recent messages
-    - Long-term: Important facts
-    - Semantic: Vector-based retrieval
-    """
-    
-    def __init__(self, embedding_model: EmbeddingModel):
-        self.embedding_model = embedding_model
-        self.short_term: List[Dict] = []
-        self.long_term: List[Dict] = []
-    
-    async def add_message(self, message: Dict):
-        """Add message to memory."""
-        self.short_term.append(message)
-        await self._maybe_consolidate()
-    
-    async def get_relevant(self, query: str) -> List[Dict]:
-        """Retrieve relevant memories."""
-        # Semantic search through stored memories
-        pass
-```
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit issues and pull requests.
-
-### Development Setup
-
-```bash
-# Clone the repository
-git clone <repository-url>
-cd simplex
-
-# Install development dependencies
-uv sync
-
-# Run tests
-uv run pytest
-
-# Format code
-uv run ruff format .
-uv run ruff check .
-```
+---
 
 ## License
 
-This project is licensed under the terms specified in the [LICENSE](LICENSE) file.
+See [LICENSE](LICENSE) file for details.
