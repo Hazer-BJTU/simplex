@@ -204,7 +204,7 @@ class TokenCostCounter(ContextPlugin):
         """
         if self.output_interface:
             # Push a notification containing the formatted token cost statistics
-            await self.output_interface.push_message(UserNotify('notify', title='Token Cost', objects=self.token_cost_formatted))
+            await self.output_interface.push_message(UserNotify('notify', title = 'Token Cost', objects = self.token_cost_formatted, object_display_type = 'table'))
 
 if __name__ == '__main__':
     pass

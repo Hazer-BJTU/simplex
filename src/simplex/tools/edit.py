@@ -1,4 +1,5 @@
 import os
+import re
 import json
 import uuid
 import pathlib
@@ -330,6 +331,24 @@ class EditTools(ToolCollection):
         if mode not in ['definition', 'identifier', 'pattern']:
             return f"[ERROR]: Parameter 'mode' should be one of 'definition', 'identifier' or 'pattern'."
         
+        notice: str = ""
+        if mode in ['definition', 'identifier']:
+            keyword_list = [word.strip() for word in key_words.split(',')]
+            valid_id_regex = re.compile(r'^[a-zA-Z_][a-zA-Z0-9_]*$')
+            invalid_keywords = []
+            
+            for keyword in keyword_list:
+                if not keyword or not valid_id_regex.match(keyword):
+                    invalid_keywords.append(keyword)
+            
+            if invalid_keywords:
+                invalid_str = ", ".join(invalid_keywords)
+                notice = (
+                    f"[NOTICE] The input keywords '{invalid_str}' do not conform to standard identifier rules "
+                    f"(letters, digits, underscores only, cannot start with a digit). "
+                    f"The search may miss results in {mode} mode.\n"
+                )
+
         query: Dict = {
             'type': 'search_entity',
             'key_words': [word.strip() for word in key_words.split(',')] if mode != 'pattern' else key_words.strip(),
@@ -341,7 +360,7 @@ class EditTools(ToolCollection):
             response: str = await self.client.exchange(json.dumps(query))
             if response is None:
                 raise RequestError(content = f'unable to access {self.client.url}')
-            return response.strip()
+            return notice + response.strip()
         except Exception:
             raise
 
@@ -359,7 +378,7 @@ class EditTools(ToolCollection):
                     return f"[ERROR]: Permission error! {user_response.reason}"
                 
             if 'content' in kwargs:
-                content: str = kwargs.get('content')
+                content: str = kwargs.get('content') # type: ignore
             else:
                 return f"[ERROR]: Missing argument 'content' for 'create' operation to initialize file content."
         

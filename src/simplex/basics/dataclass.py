@@ -239,10 +239,10 @@ class UserMessage:
 @dataclass
 class UserNotify:
     notify_type: Literal['unknown', 'permission', 'notify', 'conversation'] = 'permission'
-    object_display_type: Literal['table'] = 'table'
     content: str = ''
     title: str = ''
     objects: Optional[List[Dict[str, Any]]] = None
+    object_display_type: Literal['table'] = 'table'
     extras: Optional[Dict] = None
 
 @dataclass
