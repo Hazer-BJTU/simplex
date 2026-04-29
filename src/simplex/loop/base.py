@@ -27,6 +27,7 @@ from simplex.basics import (
     Notice,
     UserNotify,
     UnbuiltError,
+    LoopInformation,
     AgentLoopStateEdit,
     UserMessage,
     ExceptionHandler,
@@ -266,6 +267,11 @@ class AgentLoop(AgentLoopAdapter):
         self.__model_response: ModelResponse = ModelResponse()
         self.__tool_returns: List[ToolReturn] = []
         self.__exit_flag: bool = False
+
+        # Rehearsal mode parameters
+        self.__perform_rehearsal: bool = False
+        self.__rehearsal_list: List[LoopInformation] = []
+        self.__rehearsal_iter: int = 0
 
         # Object state managemnt
         self.__initialized: bool = False
@@ -539,6 +545,8 @@ class AgentLoop(AgentLoopAdapter):
         timeout: float = 600,
         max_retry: int = 5,
         keep_original_system: bool = False,
+        rehearsal_mode: bool = False,
+        rehearsal_list: Optional[List[LoopInformation]] = None, 
         **kwargs
     ) -> ModelInput:
         """
@@ -555,6 +563,8 @@ class AgentLoop(AgentLoopAdapter):
             timeout: Timeout in seconds for model generation requests
             max_retry: Maximum retry attempts for failed model requests
             keep_original_system: Preserve original system prompt from history
+            rehearsal_mode: Perform an established sequence of actions again.
+            rehearsal_list: The established action sequence for rehearsal_mode.
             
         Returns:
             Final ModelResponse from the agent loop
@@ -582,6 +592,12 @@ class AgentLoop(AgentLoopAdapter):
         # Initialize prompt templates
         self.__system_prompt = system if system is not None else PromptTemplate()
         self.__user_prompt = user if user is not None else PromptTemplate()
+
+        # Initialize rehearsal settings
+        if rehearsal_mode and rehearsal_list:
+            self.__perform_rehearsal = True
+            self.__rehearsal_list = copy.deepcopy(rehearsal_list)
+            self.__rehearsal_iter = 0
         
         # Default to empty history if None provided
         if history is None:
@@ -620,41 +636,45 @@ class AgentLoop(AgentLoopAdapter):
             await self._call_async('before_response_async')
             self._call_sequential('before_response')
             
-            # Model generation with retry logic
-            '''
-            for attempt in range(max_retry + 1):
+            response_already_got: bool = False
+
+            if self.__perform_rehearsal:
+                rehearsal_model_output: Optional[ModelResponse] = None
+                # Find the first `loop_info` object where the `model_response` field is not None.
+                while self.__rehearsal_iter < len(self.__rehearsal_list):
+                    loop_info = self.__rehearsal_list[self.__rehearsal_iter]
+                    if loop_info.model_response:
+                        rehearsal_model_output = copy.deepcopy(loop_info.model_response)
+                        self.__rehearsal_iter += 1
+                        break
+                    else:
+                        self.__rehearsal_iter += 1
+                
+                if rehearsal_model_output:
+                    self.__model_response = rehearsal_model_output
+                    response_already_got = True
+                else:
+                    self.__perform_rehearsal = False
+
+            if not response_already_got: # If the `model_response` has already been obtained, skip the backend request process.
+                # Model generation with retry logic
                 try:
-                    self.__model_response = await asyncio.wait_for(self.__model.generate(model_input = self.__model_input), timeout = timeout)
-                except (asyncio.TimeoutError, RequestError) as e:
-                    self.__exception_handler(e, Notice(f"model endpoint retry attempt [{attempt}/{max_retry}]"))
-                    if attempt == max_retry:
-                        # Raise error after final failed attempt
-                        raise RuntimeError(f"failed to receive from model endpoint after {max_retry} attempts")
-                    await asyncio.sleep(0.5)
-                    continue
+                    if hasattr(self.__model.generate, 'retry_already_handled'):
+                        self.__model_response = await self.__model.generate(model_input = self.__model_input)
+                    else:
+                        self.__model_response = await async_retry_timeout(
+                            max_retry, 
+                            timeout, 
+                            retry_exceptions = (asyncio.TimeoutError, RequestError),
+                            on_retry = lambda e, attempt: self.__exception_handler(Notice(f"model endpoint retry attempt [{attempt + 1}/{max_retry}]: {e}"))
+                        )(self.__model.generate)(model_input = self.__model_input)
+                except MaxRetriesExceeded:
+                    e = RuntimeError(f"failed to receive from model endpoint after {max_retry} attempts")
+                    self.__exception_handler(e, Notice(f"loop quit due to maximum retry exceeded"))
+                    raise e
                 except Exception as e:
                     self.__exception_handler(e, Notice(f"loop quit due to unexpected error"))
-                    raise e  # Fatal error, re-raise to terminate loop
-                # Exit retry loop on successful generation
-                break
-            '''
-            try:
-                if hasattr(self.__model.generate, 'retry_already_handled'):
-                    self.__model_response = await self.__model.generate(model_input = self.__model_input)
-                else:
-                    self.__model_response = await async_retry_timeout(
-                        max_retry, 
-                        timeout, 
-                        retry_exceptions = (asyncio.TimeoutError, RequestError),
-                        on_retry = lambda e, attempt: self.__exception_handler(Notice(f"model endpoint retry attempt [{attempt + 1}/{max_retry}]: {e}"))
-                    )(self.__model.generate)(model_input = self.__model_input)
-            except MaxRetriesExceeded:
-                e = RuntimeError(f"failed to receive from model endpoint after {max_retry} attempts")
-                self.__exception_handler(e, Notice(f"loop quit due to maximum retry exceeded"))
-                raise e
-            except Exception as e:
-                self.__exception_handler(e, Notice(f"loop quit due to unexpected error"))
-                raise e
+                    raise e
             
             # Post-response lifecycle hooks
             await self._call_async('after_response_async')

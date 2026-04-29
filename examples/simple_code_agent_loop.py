@@ -58,7 +58,7 @@ async def main(base_dir: Path | None = None) -> None:
         # API key loaded from environment variable
         api_key = os.getenv('API_KEY'),
         # Specific DeepSeek model to use
-        model = 'deepseek-reasoner',
+        model = 'deepseek-v4-pro',
         # Default generation parameters for LLM responses
         default_generate_configs = {
             'temperature': 0.4  # Lower = more deterministic, higher = more creative
@@ -92,9 +92,9 @@ async def main(base_dir: Path | None = None) -> None:
         SequentialPlan(add_skill = True),
         # Context window management to prevent token overflow
         RollContextClipper(
-            max_context_tokens = 128000,    # Model's maximum context window size
+            max_context_tokens = 256000,    # Model's maximum context window size
             threshold_ratio = 0.65,         # Trigger clipping at 65% of max context usage
-            keep_fc_msgs = 60               # Preserve up to 60 function call messages after clipping
+            keep_fc_msgs = 120              # Preserve up to 60 function call messages after clipping
         ),
         # Tracks token consumption and notifies the user
         TokenCostCounter(),
