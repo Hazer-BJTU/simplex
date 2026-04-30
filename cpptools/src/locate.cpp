@@ -35,6 +35,7 @@ void PathReader::PathTreeNode::insert(const boost::filesystem::path& normalized_
     return;
 }
 
+/*
 void PathReader::PathTreeNode::recursive_output(std::ostream& stream, int indent, bool root) const noexcept {    
     if (!root) {
         for (int i = 0; i < indent; i ++) {
@@ -45,6 +46,54 @@ void PathReader::PathTreeNode::recursive_output(std::ostream& stream, int indent
     for (const auto& [_, node_ptr]: children) {
         node_ptr->recursive_output(stream, indent + 1, false);
     }
+    return;
+}
+*/
+
+void PathReader::PathTreeNode::recursive_output(std::ostream& stream, int indent, bool root) const noexcept {
+    if (!root) {
+        for (int i = 0; i < indent; ++i) {
+            stream << "  ";
+        }
+        stream << type << " " << identifier << std::endl;
+    }
+
+    std::vector<const PathTreeNode*> directories;
+    std::vector<const PathTreeNode*> others;
+
+    for (const auto& [_, node_ptr] : children) {
+        const PathTreeNode* child = node_ptr.get();
+        if (child->type == Type::DIRECTORY) {
+            directories.push_back(child);
+        } else {
+            others.push_back(child);
+        }
+    }
+
+    size_t printed_cnt = 0;
+    for (const auto* dir : directories) {
+        dir->recursive_output(stream, indent + 1, false);
+        printed_cnt ++;
+        if (printed_cnt >= max_entries_per_level) {
+            for (int i = 0; i < indent + 1; ++i) {
+                stream << "  ";
+            }
+            stream << "... (" << children.size() - printed_cnt << " entries not listed)" << std::endl;
+            return;
+        }
+    }
+    for (const auto* other : others) {
+        other->recursive_output(stream, indent + 1, false);
+        printed_cnt ++;
+        if (printed_cnt >= max_entries_per_level) {
+            for (int i = 0; i < indent + 1; ++i) {
+                stream << "  ";
+            }
+            stream << "... (" << children.size() - printed_cnt << " entries not listed)" << std::endl;
+            return;
+        }
+    }
+
     return;
 }
 

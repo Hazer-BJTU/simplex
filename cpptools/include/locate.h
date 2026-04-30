@@ -62,6 +62,8 @@ public:
 
     struct PathTreeNode {
         using Connection = std::unordered_map<std::string, std::unique_ptr<PathTreeNode>>;
+        static constexpr size_t max_entries_per_level = 240;
+
         const Type type;
         const std::string identifier;
         Connection children;

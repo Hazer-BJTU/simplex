@@ -48,7 +48,7 @@ public:
         const TFGenerator& generator,
         unsigned short port, 
         size_t num_workers = 1,
-        size_t max_result = 24576
+        size_t max_result = 49152
     );
     WebsocketServer(const WebsocketServer&) = delete;
     WebsocketServer(WebsocketServer&&) = delete;

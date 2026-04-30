@@ -636,7 +636,7 @@ int main(int argc, char** argv) {
     ("head-n,n", boost::program_options::value<size_t>()->default_value(200), "number of lines for file preview (default to 200)")
     ("history,s", boost::program_options::value<size_t>()->default_value(15), "number of history entries per file for undo log (default to 15)")
     ("concurrent,c", boost::program_options::value<size_t>()->default_value(4), "number of threads for concurrent search (default to 4)")
-    ("max-result,m", boost::program_options::value<size_t>()->default_value(24576), "maximum number of bytes return (default to 24576)");
+    ("max-result,m", boost::program_options::value<size_t>()->default_value(49152), "maximum number of bytes return (default to 49152)");
 
     boost::program_options::store(boost::program_options::parse_command_line(argc, argv, arguments), GLOBAL_ARGS);
     if(GLOBAL_ARGS.count("help")) {
